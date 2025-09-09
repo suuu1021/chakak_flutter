@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_button_widgets.dart';
+import '../../widgets/custom_logo.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -23,23 +24,7 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 앱 아이콘
-            const Icon(
-              Icons.camera,
-              size: 150,
-              color: Colors.black,
-            ),
-            const SizedBox(height: 16),
-
-            // 앱 이름
-            const Text(
-              AppStrings.appName,
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            CustomLogo(AppStrings.appNameUpper),
             const SizedBox(height: 32),
 
             // 이메일 입력

@@ -4,6 +4,9 @@ class AppStrings {
   static const String appNameLower = 'chakak';
   static const String appNameUpper = 'CHAKAK';
 
+  // fontFamily
+  static const String fontFamily1 = 'Modak';
+
   // Authentication
   static const String login = '로그인';
   static const String signUp = '회원가입';
