@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../../widgets/custom_logo.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,16 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.camera, size: 200, color:Color(0xFFffb9b3)),
+            CustomLogo("CHAKAK"),
             SizedBox(height: 16),
-            Text(
-              "chakak",
-              style: TextStyle(
-                fontSize: 50,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
           ],
         ),
       ),
