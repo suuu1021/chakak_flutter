@@ -4,6 +4,8 @@ import 'ui/pages/splash/onboarding_screen.dart';
 import 'ui/pages/auth/LoginScreen.dart';
 import 'ui/pages/home/HomeScreen.dart';
 
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() {
   runApp(const MyApp());
 }
