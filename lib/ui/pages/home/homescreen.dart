@@ -121,6 +121,15 @@ class HomeContent extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          Text(
+            "서비스",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 16),
+
           // 포토그래퍼 카드 영역 (가로 스크롤)
           SizedBox(
             height: 250,
@@ -184,3 +193,5 @@ class HomeContent extends StatelessWidget {
     );
   }
 }
+
+
