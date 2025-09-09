@@ -1,6 +1,6 @@
-import 'package:chakak_flutter/ui/pages/home/homescreen.dart';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_button_widgets.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -13,7 +13,7 @@ class LoginScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("로그인"),
+        title: const Text(AppStrings.login),
         centerTitle: true,
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
@@ -33,7 +33,7 @@ class LoginScreen extends StatelessWidget {
 
             // 앱 이름
             const Text(
-              "chakak",
+              AppStrings.appName,
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
@@ -46,7 +46,7 @@ class LoginScreen extends StatelessWidget {
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
-                labelText: "이메일",
+                labelText: AppStrings.email,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -57,14 +57,14 @@ class LoginScreen extends StatelessWidget {
               controller: passwordController,
               obscureText: true,
               decoration: const InputDecoration(
-                labelText: "비밀번호",
+                labelText: AppStrings.password,
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 24),
 
             // 로그인 버튼
-          CustomButtonWidgets.button(context, "로그인"),
+            CustomButtonWidgets.button(context, AppStrings.login),
             const SizedBox(height: 12),
             // 회원가입 이동 텍스트 버튼
             TextButton(
