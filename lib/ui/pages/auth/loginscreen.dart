@@ -1,5 +1,7 @@
-import 'package:chakak_flutter/ui/pages/home/HomeScreen.dart';
+import 'package:chakak_flutter/ui/pages/home/homescreen.dart';
 import 'package:flutter/material.dart';
+
+import '../../widgets/custom_button_widgets.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -62,33 +64,8 @@ class LoginScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // 로그인 버튼
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                print("로그인 버튼 클릭됨");
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                backgroundColor: Colors.black,
-                foregroundColor: Colors.white, // 글자 흰색
-              ),
-              child: const Text(
-                "로그인",
-                style: TextStyle(fontSize: 18),
-              ),
-            ),
-          ),
-
+          CustomButtonWidgets.button(context, "로그인"),
             const SizedBox(height: 12),
-
             // 회원가입 이동 텍스트 버튼
             TextButton(
               onPressed: () {

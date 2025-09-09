@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'ui/pages/splash/splash_screen.dart';
 import 'ui/pages/splash/onboarding_screen.dart';
-import 'ui/pages/auth/LoginScreen.dart';
-import 'ui/pages/home/HomeScreen.dart';
+import 'ui/pages/auth/loginscreen.dart';
+import 'ui/pages/home/homescreen.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 

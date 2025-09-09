@@ -16,12 +16,13 @@ class CustomLogo extends StatelessWidget {
         const SizedBox(height: xlargeGap),
         SvgPicture.asset(
           "assets/images/logo.svg",
-          height: 70,
-          width: 70,
+          color: Colors.black,
+          height: 150,
+          width: 150,
         ),
         Text(
           title,
-          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 40, fontFamily: 'Modak'),
         ),
         const SizedBox(height: largeGap),
       ],
