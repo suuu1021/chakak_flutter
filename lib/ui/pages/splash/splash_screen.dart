@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_logo.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomLogo("CHAKAK"),
+            CustomLogo(AppStrings.appNameUpper),
             SizedBox(height: 16),
           ],
         ),

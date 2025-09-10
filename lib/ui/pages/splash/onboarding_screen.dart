@@ -1,6 +1,9 @@
 import 'package:chakak_flutter/ui/widgets/custom_logo.dart';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_strings.dart';
+import '../../../_core/constants/app_images.dart';
+
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
@@ -11,13 +14,13 @@ class OnboardingScreen extends StatelessWidget {
         children: [
           SizedBox.expand(
             child: Image.asset(
-              'assets/images/onboarding2.jpg',
+              AppImages.onboarding2,
               fit: BoxFit.cover,
             ),
           ),
 
           Container(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: .6),
           ),
 
           // 중앙 아이콘 + 텍스트
@@ -25,10 +28,10 @@ class OnboardingScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                CustomLogo("CHAKAK"),
+                CustomLogo(AppStrings.appNameUpper),
                 SizedBox(height: 16),
                 Text(
-                  "당신의 소중한 순간을 완벽하게 담아줄 사진작가를 만나보세요",
+                  AppStrings.onboardingMessage,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,

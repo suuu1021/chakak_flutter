@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'ui/pages/splash/splash_screen.dart';
 import 'ui/pages/splash/onboarding_screen.dart';
 import 'ui/pages/auth/login_screen.dart';
-import 'ui/pages/home/homescreen.dart';
+import 'ui/pages/home/home_screen.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -17,7 +17,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
       title: 'Chakak',
       theme: ThemeData(
         primarySwatch: Colors.pink,
