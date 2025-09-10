@@ -20,7 +20,7 @@ class AppStrings {
   // Navigation
   static const String home = '홈';
   static const String search = '검색';
-  static const String booking = '예약';
+  static const String community = '커뮤니티';
   static const String profile = '프로필';
 
   // Home Screen
