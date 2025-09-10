@@ -25,7 +25,7 @@ class CustomAuthTextFormField extends StatelessWidget {
           onChanged: onChanged,
           obscureText: obscureText,
           decoration: InputDecoration(
-            hintText: "Enter $title",
+            hintText: "$title",
             errorText: errorText.isEmpty ? null : errorText,
             enabledBorder: OutlineInputBorder(
               // 3. 기본 TextFormField 디자인
