@@ -1,14 +1,12 @@
 import 'package:chakak_flutter/ui/pages/home/service_card_list.dart';
 import 'package:flutter/material.dart';
-import '../../../_core/constants/app_images.dart';
-import '../../../_core/constants/app_strings.dart';
+
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../photoService/category_widgets.dart';
-import '../profile/photographer/photographer_card_list.dart';
-
 import '../profile/photographer/photographer_profile_page.dart';
 import 'banner_widget.dart';
+import 'photographer_card_list.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

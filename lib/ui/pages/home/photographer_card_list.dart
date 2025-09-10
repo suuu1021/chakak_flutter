@@ -1,7 +1,7 @@
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../_core/constants/app_images.dart';
+import '../../../_core/constants/app_images.dart';
 
 // 1. 데이터 모델 (PhotographerItem)
 class PhotographerItem {
