@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_appbar.dart';
-import '../profile/photographer/photographer_profile.dart';
+import '../profile/photographer/photographer_profile_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,7 +25,9 @@ class _HomeScreenState extends State<HomeScreen> {
         const Center(child: Text("검색 화면", style: TextStyle(fontSize: 24))));
     _pages.add(
         const Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))));
-    _pages.add(const PhotographerProfile());
+    // if (state.userType == user) {const UserProfile}
+    // else {const PhotographerProfile}
+    _pages.add(const PhotographerProfilePage());
   }
 
   @override
