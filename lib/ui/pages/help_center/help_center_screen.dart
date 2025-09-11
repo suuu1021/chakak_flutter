@@ -34,7 +34,7 @@ class HelpCenterScreen extends StatelessWidget {
                 const Text(
                   "FAQ, 1:1 문의\n"
                       "카카오톡 CHAKAK 채널을 통해 앱의 FAQ, 1:1 문의를 하실 수 있습니다.\n\n"
-                      "배송 확인이 필요하실 땐\n"
+                      "배송 확인이 필요하실 땐 \n"
                       "고객 센터로 연락주시면 빠르게 해결을 도와드리겠습니다.",
                   style: TextStyle(fontSize: 14, color: Colors.black54),
                 ),
@@ -110,7 +110,7 @@ class HelpCenterScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavigationBar(), // ✅ 공통 적용
+      bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }
