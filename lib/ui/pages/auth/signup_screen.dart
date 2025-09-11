@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../widgets/custom_auth_text_form_field.dart';
 import '../../widgets/custom_logo.dart';
-import '../../widgets/custom_auth_button_widgets.dart'; // 전용 버튼
+import '../../widgets/custom_auth_button_widgets.dart';
 import '../../../_core/utils/validator_util.dart';
 import 'profile_setup_screen.dart';
 
@@ -27,7 +27,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   bool isLoading = false;
 
-  /// ✅ 이메일 인증 요청 (회원가입 API 호출 → 메일 발송)
+  /// ✅ 이메일 인증 요청
   Future<void> _sendVerificationCode() async {
     if (isLoading) return;
 
@@ -50,9 +50,6 @@ class _SignupScreenState extends State<SignupScreen> {
           "userTypeCode": userType.isEmpty ? "user" : userType,
         }),
       );
-
-      print("응답 코드: ${response.statusCode}");
-      print("응답 바디: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -93,9 +90,6 @@ class _SignupScreenState extends State<SignupScreen> {
         }),
       );
 
-      print("응답 코드: ${response.statusCode}");
-      print("응답 바디: ${response.body}");
-
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("이메일 인증 성공!")),
@@ -120,6 +114,23 @@ class _SignupScreenState extends State<SignupScreen> {
     } finally {
       setState(() => isLoading = false);
     }
+  }
+
+  /// ✅ 회원 유형만 선택 후 프로필 설정으로 이동
+  void _goToProfileSetup() {
+    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty || userType.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("모든 정보를 입력하세요.")),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProfileSetupScreen(userType: userType),
+      ),
+    );
   }
 
   @override
@@ -236,6 +247,21 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const Text("포토그래퍼 회원"),
               ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // 👉 회원 유형 선택 밑에 '다음 단계로' 버튼
+            ElevatedButton(
+              onPressed: _goToProfileSetup,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              child: const Text(
+                "다음",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
 
             const SizedBox(height: 24),

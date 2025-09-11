@@ -37,6 +37,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
+  /// ✅ 프로필 저장/완료 처리
   Future<void> _completeProfile() async {
     if (nickname.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,35 +52,42 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
-    // Mock API (나중에 실제 API 교체)
     setState(() => isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => isLoading = false);
 
-    print("✅ 프로필 설정 완료!");
-    print("닉네임: $nickname");
-    print("소개: $introduction");
-    if (profileImage != null) {
-      print("프로필 사진 경로: ${profileImage!.path}");
-    }
-    if (widget.userType == "photographer" ||
-        (widget.userType == "social" && selectedType == "photographer")) {
-      print("카테고리: $category");
-      print("경력: $experience");
-    }
+    try {
+      // 👉 나중에 실제 API 요청 코드 추가
+      await Future.delayed(const Duration(seconds: 2));
 
-    // 완료 후 홈 화면으로 이동
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
-    );
+      // 더미 로그
+      debugPrint("✅ 프로필 저장 완료!");
+      debugPrint("닉네임: $nickname");
+      debugPrint("소개: $introduction");
+      if (profileImage != null) {
+        debugPrint("프로필 이미지: ${profileImage!.path}");
+      }
+      if (widget.userType == "photographer" ||
+          (widget.userType == "social" && selectedType == "photographer")) {
+        debugPrint("카테고리: $category");
+        debugPrint("경력: $experience");
+      }
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("저장 실패: $e")),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // 실제 사용할 userType (소셜이면 선택한 값 사용)
     final effectiveUserType =
     widget.userType == "social" ? selectedType : widget.userType;
 
@@ -94,7 +102,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // 프로필 사진 선택
+            // 프로필 이미지
             GestureDetector(
               onTap: _pickImage,
               child: CircleAvatar(
@@ -109,7 +117,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 소셜 로그인일 경우 회원 유형 선택
+            // 소셜 로그인 → 회원 유형 선택
             if (widget.userType == "social") ...[
               const Text(
                 "회원 유형을 선택하세요",
@@ -150,7 +158,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ),
             const SizedBox(height: 16),
 
-            // 포토그래퍼만 추가 입력칸
+            // 포토그래퍼 전용 입력
             if (effectiveUserType == "photographer") ...[
               CustomAuthTextFormField(
                 title: "촬영 카테고리",
@@ -171,7 +179,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ? const CircularProgressIndicator()
                 : CustomButtonWidgets.button(
               context,
-              "완료",
+              "저장하고 시작하기",
               onPressed: _completeProfile,
             ),
           ],

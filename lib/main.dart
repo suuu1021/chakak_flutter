@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ Riverpod import
 
 // 화면 import
 import 'ui/pages/splash/splash_screen.dart';
@@ -10,10 +11,14 @@ import 'ui/pages/auth/social_login_screen.dart';
 import 'ui/pages/auth/profile_setup_screen.dart';
 import 'ui/pages/home/home_screen.dart';
 
-
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(   // ✅ 앱 전체를 ProviderScope로 감싸기
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
