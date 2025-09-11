@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LogoWidget extends StatelessWidget {
   final double size;
@@ -15,8 +16,8 @@ class LogoWidget extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          "assets/images/chakakLogo.svg",
+        SvgPicture.asset(
+          "assets/images/logo.svg",
           width: size,
           height: size,
         ),
