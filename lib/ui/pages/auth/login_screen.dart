@@ -4,6 +4,9 @@ import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_button_widgets.dart';
 import '../../widgets/custom_logo.dart';
 
+// 회원가입 화면 import
+import 'signup_screen.dart';
+
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
@@ -48,14 +51,24 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // 로그인 버튼
-            CustomButtonWidgets.button(context, AppStrings.login),
+            // 로그인 버튼 (아직은 더미 동작)
+            CustomButtonWidgets.button(
+              context,
+              AppStrings.login,
+              onPressed: () {
+                print("로그인 시도: ${emailController.text}, ${passwordController.text}");
+                // TODO: 로그인 API 연동 예정
+              },
+            ),
             const SizedBox(height: 12),
-            // 회원가입 이동 텍스트 버튼
+
+            // 회원가입 이동 버튼
             TextButton(
               onPressed: () {
-                print("회원가입 화면으로 이동");
-                // Navigator.pushNamed(context, '/signup'); <- 나중에 연결
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignupScreen()),
+                );
               },
               child: const Text("회원가입 하기"),
             ),

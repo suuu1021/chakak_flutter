@@ -12,6 +12,7 @@ class OnboardingScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
+          // 배경 이미지
           SizedBox.expand(
             child: Image.asset(
               AppImages.onboarding2,
@@ -19,11 +20,12 @@ class OnboardingScreen extends StatelessWidget {
             ),
           ),
 
+          // 반투명 오버레이
           Container(
-            color: Colors.white.withValues(alpha: .6),
+            color: Colors.white.withOpacity(0.6),
           ),
 
-          // 중앙 아이콘 + 텍스트
+          // 중앙 로고 + 메시지
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -62,7 +64,8 @@ class OnboardingScreen extends StatelessWidget {
                   width: double.infinity, // 버튼 가로 전체
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/social');
+                      // 👉 로그인 선택 화면으로 이동
+                      Navigator.pushReplacementNamed(context, '/login-choice');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -81,14 +84,21 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8), // 버튼과 텍스트 간격
-                const Text(
-                  "계정이 없으신가요? 회원가입",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.black,
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () {
+                    // 👉 바로 회원가입 화면으로 이동 (선택 사항)
+                    Navigator.pushNamed(context, '/signup');
+                  },
+                  child: const Text(
+                    "계정이 없으신가요? 회원가입",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.black,
+                      decoration: TextDecoration.underline,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),
