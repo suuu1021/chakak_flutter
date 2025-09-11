@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 
-import '../../../data/models/photo_service.dart';
-import '../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../../../data/models/photo_service.dart';
+import '../../../../provider/global/photoService/photo_service_notifier.dart';
 
 class ServiceCardList extends ConsumerStatefulWidget {
   final Function(PhotoService) onServiceTap;

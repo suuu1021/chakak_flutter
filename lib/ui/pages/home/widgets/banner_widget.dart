@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-import '../../../data/models/banner.dart';
-import '../../../provider/global/banner/banner_notifier.dart';
+import '../../../../data/models/banner.dart';
+import '../../../../provider/global/banner/banner_notifier.dart';
 
 class BannerWidget extends ConsumerStatefulWidget {
   final double height;
