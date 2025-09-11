@@ -1,12 +1,19 @@
-import 'package:chakak_flutter/ui/pages/home/banner_widget.dart';
+import 'package:chakak_flutter/ui/pages/home/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/photographer_card_list.dart';
 import 'package:chakak_flutter/ui/pages/home/service_card_list.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../photoService/photo_service_category.dart';
+import '../../../data/models/banner.dart';
+import '../../../data/models/photo_service.dart';
+import '../../../data/models/photo_service_category.dart';
+import '../../../data/models/photographer.dart';
+import 'banner_widget.dart';
 
-class HomeContent extends StatelessWidget {
-  void _onCategoryTap(CategoryItem category) {
+class HomeContent extends ConsumerWidget {
+  const HomeContent({super.key});
+
+  void _onCategoryTap(PhotoServiceCategory category) {
     print('카테고리 클릭: ${category.name}');
   }
 
@@ -14,18 +21,16 @@ class HomeContent extends StatelessWidget {
     print('배너 클릭: ${banner.title}');
   }
 
-  void _onServiceTap(ServiceItem service) {
+  void _onServiceTap(PhotoService service) {
     print('포토 서비스 클릭 : ${service.title}');
   }
 
-  void _onPhotographerTap(PhotographerItem photographer) {
+  void _onPhotographerTap(Photographer photographer) {
     print('포토그래퍼 클릭 : ${photographer.businessName}');
   }
 
-  const HomeContent({super.key});
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -34,15 +39,14 @@ class HomeContent extends StatelessWidget {
           // 배너 영역
           BannerWidget(
             height: 180,
-            autoSlideInterval: Duration(seconds: 3),
+            autoSlideInterval: const Duration(seconds: 3),
             showIndicators: true,
             onBannerTap: _onBannerTap,
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
           ),
 
           // 카테고리
-          PhotoServiceCategory(
-            categories: CategoryItem.photoServiceCategories(),
+          PhotoServiceCategoryWidget(
             onCategoryTap: _onCategoryTap,
             showSeeAll: true,
           ),
@@ -51,7 +55,7 @@ class HomeContent extends StatelessWidget {
           ServiceCardList(
             onServiceTap: _onServiceTap,
           ),
-          SizedBox(height: 24),
+          const SizedBox(height: 24),
           PhotographerCardList(
             onPhotographerTap: _onPhotographerTap,
           ),
