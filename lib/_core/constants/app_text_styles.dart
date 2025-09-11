@@ -63,4 +63,9 @@ class AppTextStyles {
     fontStyle: FontStyle.italic,
     color: AppColors.textPrimary,
   );
+  static const TextStyle categoryName = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  );
 }

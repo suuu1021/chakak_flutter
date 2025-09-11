@@ -1,7 +1,9 @@
+import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
 import '../../../_core/constants/app_images.dart';
+import '../../../_core/constants/app_text_styles.dart';
 
 // 1. 데이터 모델 (PhotographerItem)
 class PhotographerItem {
@@ -76,7 +78,10 @@ class PhotographerApiService {
 
 // 3. UI 위젯 (PhotographerCardList)
 class PhotographerCardList extends StatelessWidget {
-  const PhotographerCardList({Key? key}) : super(key: key);
+  final Function(PhotographerItem) onPhotographerTap;
+
+  const PhotographerCardList({Key? key, required this.onPhotographerTap})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -110,13 +115,15 @@ class PhotographerCardList extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: photographers.length,
                   itemBuilder: (context, index) {
+                    final photographer = photographers[index];
                     return Padding(
                       padding: EdgeInsets.only(
                         left: 16.0,
                         right: index == photographers.length - 1 ? 16.0 : 0,
                       ),
-                      child:
-                          PhotographerCard(photographer: photographers[index]),
+                      child: PhotographerCard(
+                          photographer: photographer,
+                          onTap: () => onPhotographerTap(photographer)),
                     );
                   },
                 );
@@ -132,8 +139,10 @@ class PhotographerCardList extends StatelessWidget {
 // 4. 개별 작가 카드 위젯 (PhotographerCard)
 class PhotographerCard extends StatefulWidget {
   final PhotographerItem photographer;
+  final VoidCallback onTap;
 
-  const PhotographerCard({Key? key, required this.photographer})
+  const PhotographerCard(
+      {Key? key, required this.photographer, required this.onTap})
       : super(key: key);
 
   @override
@@ -160,118 +169,118 @@ class _PhotographerCardState extends State<PhotographerCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.asset(
-                  widget.photographer.imageUrl,
-                  height: 120,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 120,
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.person, color: Colors.grey, size: 40),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: _toggleLike, // _toggleLike 호출
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _isLiked ? Icons.favorite : Icons.favorite_border,
-                      color: _isLiked ? Colors.red : Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Container(
+        width: 180,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  widget.photographer.businessName,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Image.asset(
+                    widget.photographer.imageUrl,
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 120,
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child:
+                              Icon(Icons.person, color: Colors.grey, size: 40),
+                        ),
+                      );
+                    },
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                if (widget.photographer.categories.isNotEmpty)
-                  Wrap(
-                    spacing: 6.0,
-                    runSpacing: 4.0,
-                    children: widget.photographer.categories
-                        .take(3)
-                        .map((categoryName) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              child: Text(
-                                categoryName,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.normal,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${widget.photographer.rating.toStringAsFixed(1)} (${widget.photographer.reviewCount})',
-                      style: const TextStyle(fontSize: 13),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: _toggleLike,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _isLiked ? Icons.favorite : Icons.favorite_border,
+                        color: _isLiked ? Colors.red : Colors.black,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.photographer.businessName,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  if (widget.photographer.categories.isNotEmpty)
+                    Wrap(
+                      spacing: 6.0,
+                      runSpacing: 4.0,
+                      children: widget.photographer.categories
+                          .take(3)
+                          .map((categoryName) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(16.0),
+                                ),
+                                child: Text(
+                                  categoryName,
+                                  style: AppTextStyles.categoryName,
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${widget.photographer.rating.toStringAsFixed(1)} (${widget.photographer.reviewCount})',
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
