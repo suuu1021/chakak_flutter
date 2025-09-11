@@ -1,5 +1,6 @@
 import 'package:chakak_flutter/ui/pages/home/service_card_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
@@ -8,38 +9,22 @@ import '../profile/photographer/photographer_profile_page.dart';
 import 'banner_widget.dart';
 import 'photographer_card_list.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
-
-  // 탭별 화면
-  final List<Widget> _pages = [];
+  static const List<Widget> _pages = [
+    HomeContent(),
+    Center(child: Text("검색 화면", style: TextStyle(fontSize: 24))),
+    Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
+    PhotographerProfilePage(),
+  ];
 
   @override
-  void initState() {
-    super.initState();
-    // 홈 화면 콘텐츠를 첫 페이지로 설정
-    _pages.add(const HomeContent());
-    _pages.add(
-        const Center(child: Text("검색 화면", style: TextStyle(fontSize: 24))));
-    _pages.add(
-        const Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))));
-    // if (state.userType == user) {const UserProfile}
-    // else {const PhotographerProfile}
-    _pages.add(const PhotographerProfilePage());
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final int currentIndex = ref.watch(bottomNavIndexProvider);
     return Scaffold(
       appBar: CustomAppbar(),
-      body: _pages[_currentIndex],
+      body: _pages[currentIndex],
       bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
