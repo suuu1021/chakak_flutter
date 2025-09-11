@@ -1,7 +1,9 @@
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_colors.dart';
 import '../../../_core/constants/app_images.dart';
+import '../../../_core/constants/app_text_styles.dart';
 
 // 1. 데이터 모델 (ServiceItem)
 class ServiceItem {
@@ -81,7 +83,10 @@ class ServiceApiService {
 
 // 3. UI 위젯
 class ServiceCardList extends StatelessWidget {
-  const ServiceCardList({Key? key}) : super(key: key);
+  final Function(ServiceItem) onServiceTap;
+
+  const ServiceCardList({required this.onServiceTap, Key? key})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -115,12 +120,16 @@ class ServiceCardList extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemCount: services.length,
                   itemBuilder: (context, index) {
+                    final service = services[index];
                     return Padding(
                       padding: EdgeInsets.only(
                         left: 16.0,
                         right: index == services.length - 1 ? 16.0 : 0,
                       ),
-                      child: ServiceCard(service: services[index]),
+                      child: ServiceCard(
+                        service: service,
+                        onTap: () => onServiceTap(service),
+                      ),
                     );
                   },
                 );
@@ -135,8 +144,10 @@ class ServiceCardList extends StatelessWidget {
 
 class ServiceCard extends StatefulWidget {
   final ServiceItem service;
+  final VoidCallback onTap;
 
-  const ServiceCard({Key? key, required this.service}) : super(key: key);
+  const ServiceCard({Key? key, required this.service, required this.onTap})
+      : super(key: key);
 
   @override
   State<ServiceCard> createState() => _ServiceCardState();
@@ -160,127 +171,126 @@ class _ServiceCardState extends State<ServiceCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 180,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.asset(
-                  widget.service.imageUrl,
-                  height: 140,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      height: 140,
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.broken_image, color: Colors.grey),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: _toggleLike,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      _isLiked
-                          ? Icons.bookmark_outlined
-                          : Icons.bookmark_border_outlined,
-                      color: _isLiked ? Colors.orange : Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Container(
+        width: 180,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                Text(
-                  widget.service.title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 6.0,
-                  runSpacing: 4.0,
-                  children: widget.service.categories
-                      .take(3)
-                      .map((categoryName) => Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(16.0),
-                            ),
-                            child: Text(
-                              categoryName,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.black54,
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${widget.service.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원~',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: Image.asset(
+                    widget.service.imageUrl,
+                    height: 140,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 140,
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(Icons.broken_image, color: Colors.grey),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${widget.service.rating.toStringAsFixed(1)} (${widget.service.reviewCount})',
-                      style: const TextStyle(fontSize: 14),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: _toggleLike,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.8),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _isLiked
+                            ? Icons.bookmark_outlined
+                            : Icons.bookmark_border_outlined,
+                        color: _isLiked ? Colors.orange : Colors.black,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.service.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 6.0,
+                    runSpacing: 4.0,
+                    children: widget.service.categories
+                        .take(3)
+                        .map((categoryName) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(16.0),
+                              ),
+                              child: Text(
+                                categoryName,
+                                style: AppTextStyles.categoryName,
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${widget.service.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원~',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 16),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${widget.service.rating.toStringAsFixed(1)} (${widget.service.reviewCount})',
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

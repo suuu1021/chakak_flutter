@@ -2,7 +2,7 @@ import 'package:chakak_flutter/_core/constants/app_images.dart';
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 
-class CategoryWidgets extends StatelessWidget {
+class PhotoServiceCategory extends StatelessWidget {
   final List<CategoryItem> categories;
   final Function(CategoryItem) onCategoryTap;
   final double itemSize;
@@ -13,7 +13,7 @@ class CategoryWidgets extends StatelessWidget {
   final bool showSeeAll;
   final VoidCallback? onSeeAllTap;
 
-  const CategoryWidgets({
+  const PhotoServiceCategory({
     super.key,
     required this.categories,
     required this.onCategoryTap,
@@ -134,8 +134,8 @@ class CategoryWidgets extends StatelessWidget {
             Text(
               category.name,
               style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
