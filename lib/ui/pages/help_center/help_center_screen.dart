@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_bottom_navigation_bar.dart'; // ✅ 공통 위젯 import
 
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});
@@ -109,15 +110,7 @@ class HelpCenterScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "검색"),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "예약"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "마이"),
-        ],
-      ),
+      bottomNavigationBar: const CustomBottomNavigationBar(), // ✅ 공통 적용
     );
   }
 }

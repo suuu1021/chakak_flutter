@@ -1,10 +1,49 @@
 import 'package:flutter/material.dart';
+import '../../widgets/custom_bottom_navigation_bar.dart'; // 공통 바텀바
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, dynamic>> notifications = [
+      {
+        "avatar": "assets/images/onbording.jpg",
+        "sender": "조정우",
+        "time": "1일전",
+        "message": "결제가 완료 되었습니다! 결제...",
+        "unread": true,
+      },
+      {
+        "avatar": "assets/images/mini.png",
+        "sender": "미니언즈",
+        "time": "2일전",
+        "message": "님이 메시지를 보냈습니다.",
+        "unread": false,
+      },
+      {
+        "avatar": "assets/images/onboarding2.jpg",
+        "sender": "닮음",
+        "time": "3일전",
+        "message": "님이 메시지를 보냈습니다.",
+        "unread": false,
+      },
+      {
+        "avatar": "assets/images/dora.png",
+        "sender": "하",
+        "time": "4일전",
+        "message": "님이 메시지를 보냈습니다.",
+        "unread": false,
+      },
+      {
+        "avatar": "assets/images/jjanggu.png",
+        "sender": "배터지겠다",
+        "time": "5일전",
+        "message": "님이 메시지를 보냈습니다.",
+        "unread": false,
+      },
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("알림"),
@@ -13,54 +52,20 @@ class NotificationScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: ListView(
-        children: const [
-          NotificationItem(
-            avatar: "assets/images/onbording.jpg",
-            sender: "퉁퉁이",
-            time: "1일전",
-            message: "결제가 완료 되었습니다! 결제...",
-            unread: true,
-          ),
-          NotificationItem(
-            avatar: "assets/images/onboarding2.jpg",
-            sender: "짱구",
-            time: "1일전",
-            message: "님이 메시지를 보냈습니다.",
-            unread: false,
-          ),
-          NotificationItem(
-            avatar: "assets/images/onbording.jpg",
-            sender: "도라에몽",
-            time: "1일전",
-            message: "예약이 완료 되었습니다! 예약...",
-            unread: true,
-          ),
-          NotificationItem(
-            avatar: "assets/images/onboarding2.jpg",
-            sender: "조정우",
-            time: "3일 전",
-            message: "님이 메시지를 보냈습니다.",
-            unread: false,
-          ),
-          NotificationItem(
-            avatar: "assets/images/onbording.jpg",
-            sender: "미니언즈",
-            time: "5일 전",
-            message: "님이 메시지를 보냈습니다.",
-            unread: false,
-          ),
-        ],
+      body: ListView.builder(
+        itemCount: notifications.length,
+        itemBuilder: (context, index) {
+          final item = notifications[index];
+          return NotificationItem(
+            avatar: item["avatar"],
+            sender: item["sender"],
+            time: item["time"],
+            message: item["message"],
+            unread: item["unread"],
+          );
+        },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "홈"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "검색"),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "예약"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "마이"),
-        ],
-      ),
+      bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }

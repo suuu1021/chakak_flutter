@@ -9,6 +9,7 @@ import 'ui/pages/auth/signup_screen.dart';
 import 'ui/pages/auth/social_login_screen.dart';
 import 'ui/pages/home/home_screen.dart';
 import 'ui/pages/help_center/help_center_screen.dart';
+import 'package:chakak_flutter/ui/pages/review/review_management_screen.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
