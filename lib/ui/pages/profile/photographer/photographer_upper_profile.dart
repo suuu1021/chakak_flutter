@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_images.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import '../../../widgets/custom_elavated_button.dart';
 
 class PhotographerUpperProfile extends StatelessWidget {
   const PhotographerUpperProfile({super.key});
@@ -168,15 +168,26 @@ class PhotographerUpperProfile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildStatItem('거래건수', '797건'),
+          _buildVerticalDivider(),
           _buildStatItem('만족도', '98%'),
+          _buildVerticalDivider(),
           _buildStatItem('회원 구분', '개인 작가'),
         ],
       ),
     );
   }
 
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 24,
+      width: 1,
+      color: AppColors.gray300,
+    );
+  }
+
   Widget _buildStatItem(String label, String value) {
-    return Column(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
@@ -185,11 +196,11 @@ class PhotographerUpperProfile extends StatelessWidget {
             color: AppColors.textSecondary,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(width: 16),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),

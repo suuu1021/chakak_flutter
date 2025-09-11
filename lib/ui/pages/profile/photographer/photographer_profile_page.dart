@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import 'photographer_portfolios.dart';
 import 'photographer_price_options.dart';
 import 'photographer_reviews.dart';
 import 'photographer_upper_profile.dart';
