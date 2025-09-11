@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../_core/constants/app_colors.dart';
-import '../../../../_core/constants/app_sizes.dart';
 import '../../../data/models/portfolio.dart';
+// import '../../../providers/auth_provider.dart';
+import 'widgets/portfolio_image_gallery.dart';
+import 'widgets/portfolio_content_section.dart';
 
-class PortfolioDetailPage extends StatefulWidget {
+class PortfolioDetailPage extends ConsumerStatefulWidget {
   final Portfolio portfolio;
 
   const PortfolioDetailPage({
@@ -13,169 +16,92 @@ class PortfolioDetailPage extends StatefulWidget {
   });
 
   @override
-  State<PortfolioDetailPage> createState() => _PortfolioDetailPageState();
+  ConsumerState<PortfolioDetailPage> createState() =>
+      _PortfolioDetailPageState();
 }
 
-class _PortfolioDetailPageState extends State<PortfolioDetailPage> {
+class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.portfolio.category),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _sharePortfolio,
-            icon: const Icon(Icons.share_outlined),
-          ),
-        ],
-      ),
+      appBar: _buildAppBar(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildImageGallery(),
-            _buildContent(),
+            PortfolioImageGallery(imageUrls: widget.portfolio.imageUrls),
+            PortfolioContentSection(portfolio: widget.portfolio),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildImageGallery() {
-    return Column(
-      children: widget.portfolio.imageUrls.asMap().entries.map((entry) {
-        int index = entry.key;
-        String imageUrl = entry.value;
-
-        return Container(
-          margin: EdgeInsets.only(
-            bottom: index < widget.portfolio.imageUrls.length - 1
-                ? AppSizes.spacing12
-                : 0,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Text(widget.portfolio.category),
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      actions: [
+        // 수정 버튼 (소유자만 표시)
+        if (_isOwner())
+          IconButton(
+            onPressed: _editPortfolio,
+            icon: const Icon(Icons.edit_outlined),
           ),
-          child: _buildImageContainer(imageUrl, index),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildImageContainer(String imageUrl, int index) {
-    return Container(
-      width: double.infinity,
-      height: 300,
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: AppColors.gray200,
-          child: const Icon(
-            Icons.photo_camera_outlined,
-            size: 80,
-            color: AppColors.gray400,
+        // 삭제 버튼 (소유자만 표시)
+        if (_isOwner())
+          IconButton(
+            onPressed: _deletePortfolio,
+            icon: const Icon(Icons.delete_outlined),
           ),
+        // 공유 버튼
+        IconButton(
+          onPressed: _sharePortfolio,
+          icon: const Icon(Icons.share_outlined),
         ),
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            color: AppColors.gray200,
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        },
-      ),
+      ],
     );
   }
 
-  Widget _buildContent() {
-    return Padding(
-      padding: const EdgeInsets.all(AppSizes.spacing16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  widget.portfolio.title,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.favorite,
-                        size: 16, color: AppColors.white),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${widget.portfolio.likes}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSizes.spacing12),
-          Text(
-            widget.portfolio.description,
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: AppSizes.spacing16),
-          Row(
-            children: [
-              _buildInfoChip(
-                  Icons.category_outlined, widget.portfolio.category),
-              const SizedBox(width: AppSizes.spacing8),
-              _buildInfoChip(Icons.calendar_today_outlined,
-                  widget.portfolio.formattedDate),
-            ],
-          ),
-        ],
-      ),
-    );
+  bool _isOwner() {
+    // final authState = ref.watch(authProvider);
+    // return authState.when(
+    //   data: (user) => user?.id == widget.portfolio.photographerId,
+    //   loading: () => false,
+    //   error: (_, __) => false,
+    // );
+    return true;
   }
 
-  Widget _buildInfoChip(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
-        color: AppColors.gray100,
-        borderRadius: BorderRadius.all(Radius.circular(8)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+  void _editPortfolio() {
+    debugPrint('포트폴리오 수정: ${widget.portfolio.title}');
+    // TODO: 수정 페이지로 이동
+  }
+
+  void _deletePortfolio() {
+    debugPrint('포트폴리오 삭제: ${widget.portfolio.title}');
+    _showDeleteConfirmDialog();
+  }
+
+  void _showDeleteConfirmDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('포트폴리오 삭제'),
+        content: Text('${widget.portfolio.title}을(를) 정말 삭제하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              debugPrint('삭제 확인: ${widget.portfolio.title}');
+              // TODO: 실제 삭제 로직
+            },
+            child: const Text('삭제', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -183,9 +109,9 @@ class _PortfolioDetailPageState extends State<PortfolioDetailPage> {
   }
 
   void _sharePortfolio() {
-    final portfolioUrl = 'https://myapp.com/portfolio/${widget.portfolio.id}';
     final shareText =
-        '${widget.portfolio.title}\n\n${widget.portfolio.description}\n\n자세히 보기: $portfolioUrl';
+        '${widget.portfolio.title}\n\n${widget.portfolio.description}\n\n'
+        'https://myapp.com/portfolio/${widget.portfolio.id}';
     Share.share(shareText);
   }
 }

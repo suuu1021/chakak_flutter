@@ -4,71 +4,112 @@ class PortfolioDto {
   final String id;
   final String title;
   final String description;
-  final String category;
+  final String thumbnailUrl;
   final List<String> imageUrls;
+  final List<String> categories;
   final int likes;
   final String createdAt;
+  final String? updatedAt;
+  final String photographerId;
 
   PortfolioDto({
     required this.id,
     required this.title,
     required this.description,
-    required this.category,
+    required this.thumbnailUrl,
     required this.imageUrls,
+    required this.categories,
     required this.likes,
     required this.createdAt,
+    this.updatedAt,
+    required this.photographerId,
   });
 
-  // JSON에서 Map 구조로 변환한 뒤 map 구조에서 DTO 클래스를 생성하는 코드
+  // 서버 응답 JSON에서 DTO 생성 (서버 구조에 맞춤)
   factory PortfolioDto.fromJson(Map<String, dynamic> json) {
     return PortfolioDto(
-      id: json['id'] as String,
+      id: json['portfolioId'].toString(),
       title: json['title'] as String,
-      description: json['description'] as String,
-      category: json['category'] as String,
-      imageUrls: List<String>.from(json['imageUrls'] as List),
-      likes: json['likes'] as int,
+      description: json['description'] as String? ?? '',
+      thumbnailUrl: json['thumbnailUrl'] as String? ?? '',
+      imageUrls: (json['portfolioImages'] as List<dynamic>?)
+              ?.map((img) => img['imageUrl'] as String)
+              .toList() ??
+          [],
+      categories: (json['portfolioMaps'] as List<dynamic>?)
+              ?.map((map) => map['category']['name'] as String)
+              .toList() ??
+          [],
+      likes: json['likes'] as int? ?? 0,
       createdAt: json['createdAt'] as String,
+      updatedAt: json['updatedAt'] as String?,
+      photographerId: json['photographerProfile']['id'].toString(),
     );
   }
 
-  // DTO 객체를 JSON으로 변환시 사용 (서버 전송용)
+  // 서버 전송용 JSON 변환 (서버가 기대하는 구조)
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'title': title,
       'description': description,
-      'category': category,
+      'thumbnailUrl': thumbnailUrl,
       'imageUrls': imageUrls,
-      'likes': likes,
-      'createdAt': createdAt,
+      'categories': categories,
+      'photographerId': photographerId,
     };
   }
 
-  // Model 객체를 DTO로 변환하는 기능
+  // Model 객체를 DTO로 변환
   factory PortfolioDto.fromModel(Portfolio model) {
     return PortfolioDto(
       id: model.id,
       title: model.title,
       description: model.description,
-      category: model.category,
+      thumbnailUrl: model.thumbnailUrl,
       imageUrls: model.imageUrls,
+      categories: model.categories,
       likes: model.likes,
       createdAt: model.createdAt.toIso8601String(),
+      updatedAt: model.updatedAt?.toIso8601String(),
+      photographerId: model.photographerId,
     );
   }
 
-  // PortfolioDto > Portfolio class construct
-  // PortfolioDto.toModel(); > Portfolio() construct
+  // DTO를 Model로 변환
   Portfolio toModel() {
     return Portfolio(
       id: id,
       title: title,
       description: description,
-      category: category,
+      thumbnailUrl: thumbnailUrl,
       imageUrls: imageUrls,
+      categories: categories,
       likes: likes,
       createdAt: DateTime.parse(createdAt),
+      updatedAt: updatedAt != null ? DateTime.parse(updatedAt!) : null,
+      photographerId: photographerId,
     );
+  }
+
+  // 포트폴리오 생성/수정용 요청 DTO (간소화된 버전)
+  Map<String, dynamic> toCreateRequest() {
+    return {
+      'title': title,
+      'description': description,
+      'thumbnailUrl': thumbnailUrl,
+      'imageUrls': imageUrls,
+      'categories': categories,
+    };
+  }
+
+  // 포트폴리오 수정용 요청 DTO
+  Map<String, dynamic> toUpdateRequest() {
+    return {
+      'title': title,
+      'description': description,
+      'thumbnailUrl': thumbnailUrl,
+      'imageUrls': imageUrls,
+      'categories': categories,
+    };
   }
 }

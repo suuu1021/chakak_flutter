@@ -82,7 +82,7 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
         controller: _tabController,
         children: [
           _buildScrollableContent(const PhotographerPriceOptions()),
-          _buildScrollableContent(const PortfolioPage()),
+          const PortfolioPage(),
           _buildScrollableContent(const PhotographerReviews()),
         ],
       ),
