@@ -1,4 +1,6 @@
+import 'package:chakak_flutter/ui/pages/auth/social_login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/pages/splash/splash_screen.dart';
 import 'ui/pages/splash/onboarding_screen.dart';
 import 'ui/pages/auth/login_screen.dart';
@@ -7,7 +9,7 @@ import 'ui/pages/home/home_screen.dart';
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
-  runApp(const MyApp());
+  runApp(ProviderScope(child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -25,6 +27,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
+        '/social': (context) => const SocialLoginScreen(),
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
       },

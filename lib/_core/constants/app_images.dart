@@ -11,8 +11,9 @@ class AppImages {
   static const String logoWhite = '${_basePath}logo_white.png';
 
   // Placeholders
-  static const String photographerPlaceholder =
-      '${_basePath}photographer_placeholder.jpg';
+  static const String photographerProfile =
+      '${_basePath}photographer_profile.jpg';
+
   static const String portfolioPlaceholder =
       '${_basePath}portfolio_placeholder.jpg';
   static const String userPlaceholder = '${_basePath}user_placeholder.png';
