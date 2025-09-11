@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/ui/pages/%20notification/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ Riverpod import
 
@@ -43,7 +44,8 @@ class MyApp extends StatelessWidget {
         '/social-login': (context) => const SocialLoginScreen(),
         // ProfileSetupScreen은 userType을 받아야 하므로 routes에 직접 등록하지 않고 push에서 넘김
         '/home': (context) => const HomeScreen(),
-        '/help-center': (context) => const HelpCenterScreen(), // ✅ 고객센터 라우트 등록
+        '/help-center': (context) => const HelpCenterScreen(),
+        '/notification': (context) => const NotificationScreen(),
       },
     );
   }

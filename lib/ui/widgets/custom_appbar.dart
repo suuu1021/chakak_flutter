@@ -26,7 +26,10 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
                   onPressed: () => print("검색 클릭")),
               IconButton(
                   icon: const Icon(Icons.notifications),
-                  onPressed: () => print("알림 클릭")),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/notification'); // ✅ 알림 화면 이동
+                  },
+              ),
               IconButton(
                   icon: const Icon(Icons.calendar_month),
                   onPressed: () => print("일정 클릭")),
