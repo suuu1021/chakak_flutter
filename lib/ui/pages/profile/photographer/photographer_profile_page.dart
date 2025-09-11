@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/ui/pages/portfolio/portfolios_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../_core/constants/app_colors.dart';
@@ -81,7 +82,7 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
         controller: _tabController,
         children: [
           _buildScrollableContent(const PhotographerPriceOptions()),
-          _buildScrollableContent(const PhotographerPortfolios()),
+          _buildScrollableContent(const PortfolioPage()),
           _buildScrollableContent(const PhotographerReviews()),
         ],
       ),
