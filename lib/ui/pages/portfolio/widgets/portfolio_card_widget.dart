@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../../data/models/portfolio.dart';
@@ -7,27 +6,26 @@ import '../../../../data/models/portfolio.dart';
 class PortfolioCardWidget extends StatelessWidget {
   final Portfolio portfolio;
   final VoidCallback? onTap;
-  final VoidCallback? onShare;
-  final VoidCallback? onBookmark;
 
   const PortfolioCardWidget({
     super.key,
     required this.portfolio,
     this.onTap,
-    this.onShare,
-    this.onBookmark,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: _buildCardDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPortfolioImage(),
-          _buildPortfolioContent(),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: _buildCardDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPortfolioImage(),
+            _buildPortfolioContent(),
+          ],
+        ),
       ),
     );
   }
@@ -65,11 +63,39 @@ class PortfolioCardWidget extends StatelessWidget {
     return Container(
       width: double.infinity,
       height: 200,
+      child: portfolio.firstImageUrl.isNotEmpty
+          ? Image.network(
+              portfolio.firstImageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                debugPrint('이미지 로드 에러 ${portfolio.firstImageUrl} : $error');
+                return _buildPlaceholderImage();
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return _buildLoadingImage();
+              },
+            )
+          : _buildPlaceholderImage(),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Container(
       color: AppColors.gray200,
       child: const Icon(
         Icons.photo_camera_outlined,
         size: 48,
         color: AppColors.gray400,
+      ),
+    );
+  }
+
+  Widget _buildLoadingImage() {
+    return Container(
+      color: AppColors.gray200,
+      child: const Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }
@@ -144,8 +170,6 @@ class PortfolioCardWidget extends StatelessWidget {
           _buildTitleAndDate(),
           const SizedBox(height: AppSizes.spacing6),
           _buildDescription(),
-          const SizedBox(height: AppSizes.spacing8),
-          _buildActionButtons(),
         ],
       ),
     );
@@ -188,58 +212,6 @@ class PortfolioCardWidget extends StatelessWidget {
       ),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        _buildActionButton(Icons.visibility_outlined, '자세히 보기', onTap),
-        const SizedBox(width: AppSizes.spacing8),
-        _buildActionButton(Icons.share_outlined, '공유', _sharePortfolio),
-      ],
-    );
-  }
-
-  void _sharePortfolio() {
-    //final portfolioUrl = 'https://myapp.com/portfolio/${portfolio.id}';
-    final portfolioUrl = 'https://picsum.photos/200';
-    final shareText =
-        '${portfolio.title}\n\n${portfolio.description}\n\n자세히 보기: $portfolioUrl';
-    // 텍스트와 링크를 함께 공유
-    Share.share(shareText);
-  }
-
-  Widget _buildActionButton(
-      IconData icon, String label, VoidCallback? onPressed) {
-    return InkWell(
-      onTap: onPressed ?? () => debugPrint('$label 클릭'),
-      borderRadius: const BorderRadius.all(Radius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSizes.spacing8,
-          vertical: AppSizes.spacing4,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: AppColors.primary,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
