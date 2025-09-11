@@ -30,6 +30,12 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
               IconButton(
                   icon: const Icon(Icons.calendar_month),
                   onPressed: () => print("일정 클릭")),
+              IconButton(
+                icon: const Icon(Icons.support_agent),
+                onPressed: () {
+                  Navigator.pushNamed(context, '/help-center');
+                },
+              ),
             ],
           ),
         ],

@@ -10,12 +10,13 @@ import 'ui/pages/auth/signup_screen.dart';
 import 'ui/pages/auth/social_login_screen.dart';
 import 'ui/pages/auth/profile_setup_screen.dart';
 import 'ui/pages/home/home_screen.dart';
+import 'ui/pages/help_center/help_center_screen.dart'; //
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   runApp(
-    const ProviderScope(   // ✅ 앱 전체를 ProviderScope로 감싸기
+    const ProviderScope(
       child: MyApp(),
     ),
   );
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         '/social-login': (context) => const SocialLoginScreen(),
         // ProfileSetupScreen은 userType을 받아야 하므로 routes에 직접 등록하지 않고 push에서 넘김
         '/home': (context) => const HomeScreen(),
+        '/help-center': (context) => const HelpCenterScreen(), // ✅ 고객센터 라우트 등록
       },
     );
   }
