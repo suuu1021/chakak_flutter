@@ -5,7 +5,7 @@ class PortfolioDto {
   final String title;
   final String description;
   final String category;
-  final String imageUrl;
+  final List<String> imageUrls;
   final int likes;
   final String createdAt;
 
@@ -14,7 +14,7 @@ class PortfolioDto {
     required this.title,
     required this.description,
     required this.category,
-    required this.imageUrl,
+    required this.imageUrls,
     required this.likes,
     required this.createdAt,
   });
@@ -26,7 +26,7 @@ class PortfolioDto {
       title: json['title'] as String,
       description: json['description'] as String,
       category: json['category'] as String,
-      imageUrl: json['imageUrl'] as String,
+      imageUrls: List<String>.from(json['imageUrls'] as List),
       likes: json['likes'] as int,
       createdAt: json['createdAt'] as String,
     );
@@ -39,7 +39,7 @@ class PortfolioDto {
       'title': title,
       'description': description,
       'category': category,
-      'imageUrl': imageUrl,
+      'imageUrls': imageUrls,
       'likes': likes,
       'createdAt': createdAt,
     };
@@ -52,7 +52,7 @@ class PortfolioDto {
       title: model.title,
       description: model.description,
       category: model.category,
-      imageUrl: model.imageUrl,
+      imageUrls: model.imageUrls,
       likes: model.likes,
       createdAt: model.createdAt.toIso8601String(),
     );
@@ -66,7 +66,7 @@ class PortfolioDto {
       title: title,
       description: description,
       category: category,
-      imageUrl: imageUrl,
+      imageUrls: imageUrls,
       likes: likes,
       createdAt: DateTime.parse(createdAt),
     );

@@ -1,17 +1,14 @@
-import 'package:chakak_flutter/ui/pages/%20notification/notification_screen.dart';
+import 'package:chakak_flutter/ui/pages/notification/notification_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✅ Riverpod import
-
-// 화면 import
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/pages/splash/splash_screen.dart';
 import 'ui/pages/splash/onboarding_screen.dart';
 import 'ui/pages/auth/login_choice_screen.dart';
 import 'ui/pages/auth/login_screen.dart';
 import 'ui/pages/auth/signup_screen.dart';
 import 'ui/pages/auth/social_login_screen.dart';
-import 'ui/pages/auth/profile_setup_screen.dart';
 import 'ui/pages/home/home_screen.dart';
-import 'ui/pages/help_center/help_center_screen.dart'; //
+import 'ui/pages/help_center/help_center_screen.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -42,7 +39,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/social-login': (context) => const SocialLoginScreen(),
-        // ProfileSetupScreen은 userType을 받아야 하므로 routes에 직접 등록하지 않고 push에서 넘김
         '/home': (context) => const HomeScreen(),
         '/help-center': (context) => const HelpCenterScreen(),
         '/notification': (context) => const NotificationScreen(),
