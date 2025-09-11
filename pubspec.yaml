@@ -24,7 +24,7 @@ dependencies:
   image_picker: ^1.0.7
   carousel_slider: ^5.1.1
   share_plus: ^7.2.1
-
+  url_launcher: ^6.2.2  # URL 및 외부 앱 실행을 위한 패키지
 
 dev_dependencies:
   flutter_test:

@@ -66,7 +66,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildRoundedTabs(),
-        const SizedBox(height: AppSizes.spacing16),
+        const SizedBox(height: AppSizes.spacing8),
         _buildSelectedOptionDetails(),
       ],
     );
@@ -93,7 +93,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
       onTap: () => setState(() => _selectedOption = index),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary : AppColors.transparent,
           borderRadius: const BorderRadius.all(Radius.circular(20)),
@@ -131,11 +131,11 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildPriceHeader(option),
-          const SizedBox(height: AppSizes.spacing16),
+          const SizedBox(height: AppSizes.spacing12),
           _buildBasicInfo(option),
           _buildDivider(),
           _buildFeaturesList(option.features),
-          const SizedBox(height: AppSizes.spacing20),
+          const SizedBox(height: AppSizes.spacing8),
           _buildBookingButton(option.name),
         ],
       ),
@@ -163,7 +163,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
         Text(
           option.name,
           style: const TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
@@ -171,7 +171,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
         Text(
           option.price,
           style: const TextStyle(
-            fontSize: 28,
+            fontSize: 24,
             fontWeight: FontWeight.bold,
             color: AppColors.primary,
           ),
@@ -184,9 +184,9 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
     return Column(
       children: [
         _buildInfoRow(Icons.access_time, '촬영 시간', option.duration),
-        const SizedBox(height: AppSizes.spacing8),
+        const SizedBox(height: AppSizes.spacing4),
         _buildInfoRow(Icons.photo_camera, '사진 제공', option.photos),
-        const SizedBox(height: AppSizes.spacing8),
+        const SizedBox(height: AppSizes.spacing4),
         _buildInfoRow(Icons.edit, '보정 수준', option.editing),
       ],
     );
@@ -199,7 +199,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
         const SizedBox(width: AppSizes.spacing8),
         Text(
           '$label: ',
-          style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
         ),
         Text(
           value,
@@ -216,9 +216,9 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
   Widget _buildDivider() {
     return const Column(
       children: [
-        SizedBox(height: AppSizes.spacing16),
+        SizedBox(height: AppSizes.spacing4),
         Divider(color: AppColors.divider),
-        SizedBox(height: AppSizes.spacing16),
+        SizedBox(height: AppSizes.spacing4),
       ],
     );
   }
@@ -230,12 +230,12 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
         const Text(
           '포함 서비스',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: AppSizes.spacing12),
+        const SizedBox(height: AppSizes.spacing6),
         ...features.map((feature) => _buildFeatureItem(feature)),
       ],
     );
@@ -243,7 +243,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
 
   Widget _buildFeatureItem(String feature) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSizes.spacing6),
+      padding: const EdgeInsets.only(bottom: AppSizes.spacing4),
       child: Row(
         children: [
           const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
@@ -251,7 +251,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
           Text(
             feature,
             style:
-                const TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                const TextStyle(fontSize: 15, color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -266,7 +266,7 @@ class _PhotographerPriceOptionsState extends State<PhotographerPriceOptions> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textOnPrimary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           shape: const RoundedRectangleBorder(
             borderRadius:
                 BorderRadius.all(Radius.circular(AppSizes.radiusMedium)),

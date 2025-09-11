@@ -13,8 +13,6 @@ class PhotographerUpperProfile extends StatelessWidget {
       children: [
         _buildProfileSection(),
         const SizedBox(height: AppSizes.spacing12),
-        _buildScheduleButton(),
-        const SizedBox(height: AppSizes.spacing12),
         _buildStatsCard(),
       ],
     );
@@ -123,46 +121,12 @@ class PhotographerUpperProfile extends StatelessWidget {
     );
   }
 
-  // Widget _buildScheduleButton() {
-  //   return CustomElevatedButton(
-  //     text: '스케쥴 관리',
-  //     click: () => print('스케쥴 관리 클릭'),
-  //   );
-  // }
-  Widget _buildScheduleButton() {
-    return Container(
-      width: double.infinity,
-      height: 36,
-      child: ElevatedButton(
-        onPressed: () => print('스케줄 관리 클릭'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary, // #F4A460 골든 아워 샌디 브라운
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        ),
-        child: const Text(
-          '스케줄 관리',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildStatsCard() {
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacing6),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.gray100,
-        borderRadius: BorderRadius.all(Radius.circular(10)),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
