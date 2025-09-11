@@ -1,90 +1,37 @@
-import 'package:chakak_flutter/_core/constants/app_colors.dart';
-import 'package:chakak_flutter/_core/constants/app_strings.dart';
+// lib/ui/pages/home/widgets/photographer_card_list.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:chakak_flutter/_core/constants/app_colors.dart';
+import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 
-import '../../../_core/constants/app_images.dart';
-import '../../../_core/constants/app_text_styles.dart';
+import '../../../data/models/photographer.dart';
+import '../../../provider/global/photographer/photographer_notifier.dart';
 
-// 1. 데이터 모델 (PhotographerItem)
-class PhotographerItem {
-  final int id;
-  final String businessName; // 작가/업체명
-  final String imageUrl; // 대표 이미지 URL
-  final List<String> categories; // 전문 분야 (예: 웨딩, 프로필, 스냅)
-  final double rating; // 평점
-  final int reviewCount; // 리뷰 수
-  final bool isLiked;
 
-  PhotographerItem({
-    required this.id,
-    required this.businessName,
-    required this.imageUrl,
-    required this.categories,
-    required this.rating,
-    required this.reviewCount,
-    this.isLiked = false, // 기본값 false
-  });
-}
-
-// 2. 더미 데이터 (PhotographerApiService) - 실제 API 연동 시 수정 필요
-class PhotographerApiService {
-  static Future<List<PhotographerItem>> getPhotographers() async {
-    // 실제 API 호출 대신 500ms 지연 후 더미 데이터 반환
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    return [
-      PhotographerItem(
-        id: 1,
-        businessName: '감성 포토 스튜디오',
-        imageUrl: AppImages.onboarding,
-        categories: [
-          AppStrings.categoryWedding,
-          AppStrings.categoryCouple,
-          AppStrings.categoryEvent,
-        ],
-        rating: 4.8,
-        reviewCount: 120,
-        isLiked: true,
-      ),
-      PhotographerItem(
-        id: 2,
-        businessName: '모던 스냅',
-        imageUrl: AppImages.onboarding2,
-        categories: [
-          AppStrings.categoryCouple,
-          AppStrings.categoryEvent,
-          AppStrings.categoryPersonal,
-        ],
-        rating: 4.9,
-        reviewCount: 98,
-        isLiked: false,
-      ),
-      PhotographerItem(
-        id: 3,
-        businessName: '빛을 담는 사진관',
-        imageUrl: AppImages.onboarding,
-        categories: [
-          AppStrings.categoryCouple,
-          AppStrings.categoryEvent,
-          AppStrings.categoryPersonal,
-        ],
-        rating: 4.7,
-        reviewCount: 75,
-        isLiked: true,
-      ),
-    ];
-  }
-}
-
-// 3. UI 위젯 (PhotographerCardList)
-class PhotographerCardList extends StatelessWidget {
-  final Function(PhotographerItem) onPhotographerTap;
+class PhotographerCardList extends ConsumerStatefulWidget {
+  final Function(Photographer) onPhotographerTap;
 
   const PhotographerCardList({Key? key, required this.onPhotographerTap})
       : super(key: key);
 
   @override
+  ConsumerState<PhotographerCardList> createState() =>
+      _PhotographerCardListState();
+}
+
+class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(photographerNotifierProvider.notifier).loadPhotographers();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final photographerState = ref.watch(photographerNotifierProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -100,77 +47,60 @@ class PhotographerCardList extends StatelessWidget {
         ),
         SizedBox(
           height: 220,
-          child: FutureBuilder<List<PhotographerItem>>(
-            future: PhotographerApiService.getPhotographers(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('에러: ${snapshot.error}'));
-              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('등록된 작가가 없습니다.'));
-              } else {
-                final photographers = snapshot.data!;
-                return ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: photographers.length,
-                  itemBuilder: (context, index) {
-                    final photographer = photographers[index];
-                    return Padding(
-                      padding: EdgeInsets.only(
-                        left: 16.0,
-                        right: index == photographers.length - 1 ? 16.0 : 0,
-                      ),
-                      child: PhotographerCard(
-                          photographer: photographer,
-                          onTap: () => onPhotographerTap(photographer)),
-                    );
-                  },
-                );
-              }
-            },
-          ),
+          child: _buildContent(photographerState),
         ),
       ],
     );
   }
+
+  Widget _buildContent(PhotographerState state) {
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state.error != null) {
+      return Center(child: Text('에러: ${state.error}'));
+    } else if (state.photographers.isEmpty) {
+      return const Center(child: Text('등록된 작가가 없습니다.'));
+    } else {
+      return ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: state.photographers.length,
+        itemBuilder: (context, index) {
+          final photographer = state.photographers[index];
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 16.0,
+              right: index == state.photographers.length - 1 ? 16.0 : 0,
+            ),
+            child: PhotographerCard(
+              photographer: photographer,
+              onTap: () => widget.onPhotographerTap(photographer),
+              onLikeTap: () => ref
+                  .read(photographerNotifierProvider.notifier)
+                  .toggleLike(photographer.id),
+            ),
+          );
+        },
+      );
+    }
+  }
 }
 
-// 4. 개별 작가 카드 위젯 (PhotographerCard)
-class PhotographerCard extends StatefulWidget {
-  final PhotographerItem photographer;
+class PhotographerCard extends StatelessWidget {
+  final Photographer photographer;
   final VoidCallback onTap;
+  final VoidCallback onLikeTap;
 
-  const PhotographerCard(
-      {Key? key, required this.photographer, required this.onTap})
-      : super(key: key);
-
-  @override
-  State<PhotographerCard> createState() => _PhotographerCardState();
-}
-
-class _PhotographerCardState extends State<PhotographerCard> {
-  late bool _isLiked;
-
-  @override
-  void initState() {
-    super.initState();
-    _isLiked = widget.photographer.isLiked;
-  }
-
-  void _toggleLike() {
-    // _toggleFollow 대신 _toggleLike
-    setState(() {
-      _isLiked = !_isLiked;
-      // TODO: 실제 API 연동 - 좋아요 상태 업데이트 로직 추가
-      // 예: await PhotographerApiService.updateLikeStatus(widget.photographer.id, _isLiked);
-    });
-  }
+  const PhotographerCard({
+    Key? key,
+    required this.photographer,
+    required this.onTap,
+    required this.onLikeTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
         width: 180,
         decoration: BoxDecoration(
@@ -194,7 +124,7 @@ class _PhotographerCardState extends State<PhotographerCard> {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: Image.asset(
-                    widget.photographer.imageUrl,
+                    photographer.imageUrl,
                     height: 120,
                     width: double.infinity,
                     fit: BoxFit.cover,
@@ -214,7 +144,7 @@ class _PhotographerCardState extends State<PhotographerCard> {
                   top: 8,
                   right: 8,
                   child: GestureDetector(
-                    onTap: _toggleLike,
+                    onTap: onLikeTap,
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -222,8 +152,10 @@ class _PhotographerCardState extends State<PhotographerCard> {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        _isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: _isLiked ? Colors.red : Colors.black,
+                        photographer.isLiked
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: photographer.isLiked ? Colors.red : Colors.black,
                       ),
                     ),
                   ),
@@ -236,7 +168,7 @@ class _PhotographerCardState extends State<PhotographerCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.photographer.businessName,
+                    photographer.businessName,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -245,11 +177,11 @@ class _PhotographerCardState extends State<PhotographerCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  if (widget.photographer.categories.isNotEmpty)
+                  if (photographer.categories.isNotEmpty)
                     Wrap(
                       spacing: 6.0,
                       runSpacing: 4.0,
-                      children: widget.photographer.categories
+                      children: photographer.categories
                           .take(3)
                           .map((categoryName) => Container(
                                 padding: const EdgeInsets.symmetric(
@@ -271,7 +203,7 @@ class _PhotographerCardState extends State<PhotographerCard> {
                       const Icon(Icons.star, color: Colors.amber, size: 16),
                       const SizedBox(width: 4),
                       Text(
-                        '${widget.photographer.rating.toStringAsFixed(1)} (${widget.photographer.reviewCount})',
+                        '${photographer.rating.toStringAsFixed(1)} (${photographer.reviewCount})',
                         style: const TextStyle(fontSize: 13),
                       ),
                     ],
