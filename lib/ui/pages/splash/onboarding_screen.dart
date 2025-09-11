@@ -62,7 +62,7 @@ class OnboardingScreen extends StatelessWidget {
                   width: double.infinity, // 버튼 가로 전체
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/login');
+                      Navigator.pushReplacementNamed(context, '/social');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
