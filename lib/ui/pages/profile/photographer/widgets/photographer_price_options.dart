@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../_core/constants/app_colors.dart';
-import '../../../../_core/constants/app_sizes.dart';
+import '../../../../../_core/constants/app_colors.dart';
+import '../../../../../_core/constants/app_sizes.dart';
 
 // 가격 옵션 데이터 모델
 class PriceOption {

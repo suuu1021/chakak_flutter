@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../_core/constants/app_colors.dart';
+import '../../../../../_core/constants/app_colors.dart';
 
 // 리뷰 데이터 모델
 class ReviewData {
