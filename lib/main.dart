@@ -1,4 +1,3 @@
-import 'package:chakak_flutter/ui/pages/notification/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ui/pages/splash/splash_screen.dart';
@@ -9,8 +8,13 @@ import 'ui/pages/auth/signup_screen.dart';
 import 'ui/pages/auth/social_login_screen.dart';
 import 'ui/pages/home/home_screen.dart';
 import 'ui/pages/help_center/help_center_screen.dart';
+import 'ui/pages/notification/notification_screen.dart';
 import 'ui/pages/review/my_review_screen.dart';
 import 'ui/pages/review/photographer_review_screen.dart';
+import 'ui/pages/review/review_manager_screen.dart';
+import 'ui/pages/portfolio/portfolio_detail_page.dart';
+import '_core/constants/user_type.dart';
+import '../data/models/portfolio.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -29,11 +33,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
-      // 앱 시작 시 첫 화면
       initialRoute: '/splash',
-
-      // 라우트 테이블
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
@@ -45,7 +45,16 @@ class MyApp extends StatelessWidget {
         '/help-center': (context) => const HelpCenterScreen(),
         '/notification': (context) => const NotificationScreen(),
         '/my-reviews': (context) => const MyReviewScreen(),
-        '/photographer-reviews': (context) => const PhotographerReviewScreen(),
+        '/photographer-reviews': (context) =>
+        const PhotographerReviewScreen(),
+        '/review-manager': (context) => const ReviewManagerScreen(
+          userType: UserType.user, // 테스트 시 user/photographer 바꿔가며 확인
+        ),
+        '/portfolio-detail': (context) {
+          final portfolio =
+          ModalRoute.of(context)!.settings.arguments as Portfolio;
+          return PortfolioDetailPage(portfolio: portfolio);
+        },
       },
     );
   }
