@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+<<<<<<< HEAD
 import 'ui/pages/splash/splash_screen.dart';
 import 'ui/pages/splash/onboarding_screen.dart';
 import 'ui/pages/auth/login_choice_screen.dart';
@@ -15,6 +16,10 @@ import 'ui/pages/review/review_manager_screen.dart';
 import 'ui/pages/portfolio/portfolio_detail_page.dart';
 import '_core/constants/user_type.dart';
 import '../data/models/portfolio.dart';
+=======
+
+import '_core/constants/app_routes.dart';
+>>>>>>> 13108472edd4a931a59f927c1c5caea13ebc415c
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -33,6 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+<<<<<<< HEAD
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const SplashScreen(),
@@ -56,6 +62,11 @@ class MyApp extends StatelessWidget {
           return PortfolioDetailPage(portfolio: portfolio);
         },
       },
+=======
+      navigatorKey: navigatorKey,
+      initialRoute: AppRoutes.initialRoute,
+      routes: AppRoutes.routes,
+>>>>>>> 13108472edd4a931a59f927c1c5caea13ebc415c
     );
   }
 }
