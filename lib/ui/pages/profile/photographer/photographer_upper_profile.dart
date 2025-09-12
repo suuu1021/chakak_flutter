@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_images.dart';
+import '../../../../_core/constants/app_routes.dart';
 import '../../../../_core/constants/app_sizes.dart';
 
 class PhotographerUpperProfile extends StatelessWidget {
@@ -11,19 +12,26 @@ class PhotographerUpperProfile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildProfileSection(),
+        _buildProfileSection(context),
         const SizedBox(height: AppSizes.spacing12),
         _buildStatsCard(),
       ],
     );
   }
 
-  Widget _buildProfileSection() {
+  Widget _buildProfileSection(BuildContext context) {
     return Row(
       children: [
         _buildProfileImage(),
         const SizedBox(width: AppSizes.spacing16),
         Expanded(child: _buildProfileInfo()),
+        const SizedBox(width: AppSizes.spacing16),
+        IconButton(
+          onPressed: () {
+            Navigator.pushNamed(context, AppRoutes.photographerProfileForm);
+          },
+          icon: const Icon(Icons.settings),
+        )
       ],
     );
   }
