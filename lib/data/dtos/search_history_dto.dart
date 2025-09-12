@@ -1,8 +1,10 @@
+import '../models/search_history.dart';
+
 class SearchHistoryDto {
   final String id;
   final String keyword;
   final DateTime searchedAt;
-  final String type; // 'recent', 'popular'
+  final SearchType type;
 
   SearchHistoryDto({
     required this.id,
@@ -27,5 +29,25 @@ class SearchHistoryDto {
       'searched_at': searchedAt.toIso8601String(),
       'type': type,
     };
+  }
+
+  // Model에서 DTO로 변환
+  factory SearchHistoryDto.fromModel(SearchHistory model) {
+    return SearchHistoryDto(
+      id: model.id,
+      keyword: model.keyword,
+      searchedAt: model.searchedAt,
+      type: model.type,
+    );
+  }
+
+  // DTO에서 Model로 변환
+  SearchHistory toModel() {
+    return SearchHistory(
+      id: id,
+      keyword: keyword,
+      searchedAt: searchedAt,
+      type: type,
+    );
   }
 }

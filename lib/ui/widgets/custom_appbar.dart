@@ -1,6 +1,9 @@
 // Custom AppBar
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../_core/constants/app_strings.dart';
+import 'custom_bottom_navigation_bar.dart';
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppbar({super.key});
@@ -22,7 +25,11 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () => print("검색 클릭"),
+                onPressed: () {
+                  ProviderScope.containerOf(context)
+                      .read(bottomNavIndexProvider.notifier)
+                      .state = 1;
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.notifications),

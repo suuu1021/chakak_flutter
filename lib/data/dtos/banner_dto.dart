@@ -1,3 +1,5 @@
+import 'package:chakak_flutter/data/models/banner.dart';
+
 class BannerDto {
   final int id;
   final String title;
@@ -43,5 +45,31 @@ class BannerDto {
       'created_at': createdAt,
       'expires_at': expiresAt,
     };
+  }
+
+  factory BannerDto.fromModel(BannerItem model) {
+    return BannerDto(
+      id: model.id,
+      title: model.title,
+      subtitle: model.subtitle,
+      imageUrl: model.imageUrl,
+      linkUrl: model.linkUrl,
+      isActive: model.isActive,
+      createdAt: model.createdAt.toIso8601String(),
+      expiresAt: model.expiresAt?.toIso8601String(),
+    );
+  }
+
+  BannerItem toModel() {
+    return BannerItem(
+      id: id,
+      title: title,
+      subtitle: subtitle,
+      imageUrl: imageUrl,
+      linkUrl: linkUrl,
+      isActive: isActive,
+      createdAt: DateTime.parse(createdAt),
+      expiresAt: expiresAt != null ? DateTime.parse(expiresAt!) : null,
+    );
   }
 }

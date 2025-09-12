@@ -1,16 +1,18 @@
 import 'package:chakak_flutter/ui/pages/notification/notification_screen.dart';
+import 'package:chakak_flutter/ui/pages/search/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'ui/pages/splash/splash_screen.dart';
-import 'ui/pages/splash/onboarding_screen.dart';
+
 import 'ui/pages/auth/login_choice_screen.dart';
 import 'ui/pages/auth/login_screen.dart';
 import 'ui/pages/auth/signup_screen.dart';
 import 'ui/pages/auth/social_login_screen.dart';
-import 'ui/pages/home/home_screen.dart';
 import 'ui/pages/help_center/help_center_screen.dart';
+import 'ui/pages/home/home_screen.dart';
 import 'ui/pages/review/my_review_screen.dart';
 import 'ui/pages/review/photographer_review_screen.dart';
+import 'ui/pages/splash/onboarding_screen.dart';
+import 'ui/pages/splash/splash_screen.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -46,6 +48,7 @@ class MyApp extends StatelessWidget {
         '/notification': (context) => const NotificationScreen(),
         '/my-reviews': (context) => const MyReviewScreen(),
         '/photographer-reviews': (context) => const PhotographerReviewScreen(),
+        '/search': (context) => const SearchScreen(),
       },
     );
   }

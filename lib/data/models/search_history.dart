@@ -18,7 +18,7 @@ class SearchHistory {
       id: dto.id,
       keyword: dto.keyword,
       searchedAt: dto.searchedAt,
-      type: SearchType.fromString(dto.type),
+      type: dto.type,
     );
   }
 
@@ -27,7 +27,7 @@ class SearchHistory {
       id: id,
       keyword: keyword,
       searchedAt: searchedAt,
-      type: type.value,
+      type: type,
     );
   }
 
@@ -69,6 +69,7 @@ enum SearchType {
   popular('popular');
 
   const SearchType(this.value);
+
   final String value;
 
   static SearchType fromString(String value) {
