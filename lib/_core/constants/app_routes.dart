@@ -13,6 +13,7 @@ import '../../ui/pages/review/my_review_screen.dart';
 import '../../ui/pages/review/photographer_review_screen.dart';
 import '../../ui/pages/review/review_manager_screen.dart';
 import '../../ui/pages/portfolio/portfolio_detail_page.dart';
+import '../../ui/pages/search/search_screen.dart';
 import '../../ui/pages/splash/onboarding_screen.dart';
 import '../../ui/pages/splash/splash_screen.dart';
 
@@ -36,7 +37,7 @@ class AppRoutes {
   static const String reviewManager = '/review-manager';
   static const String portfolioDetail = '/portfolio-detail';
   static const String userBookingList = '/user-booking-list';
-
+  static const String search = '/search';
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
         splash: (context) => const SplashScreen(),
@@ -60,6 +61,7 @@ class AppRoutes {
           return PortfolioDetailPage(portfolio: portfolio);
         },
         userBookingList: (context) => const UserBookingListPage(),
+        search: (context) => const SearchScreen()
       };
 
   // 초기 라우트
