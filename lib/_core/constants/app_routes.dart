@@ -4,6 +4,7 @@ import '../../ui/pages/auth/login_choice_screen.dart';
 import '../../ui/pages/auth/login_screen.dart';
 import '../../ui/pages/auth/signup_screen.dart';
 import '../../ui/pages/auth/social_login_screen.dart';
+import '../../ui/pages/booking/user_booking_list_page.dart';
 import '../../ui/pages/help_center/help_center_screen.dart';
 import '../../ui/pages/home/home_screen.dart';
 import '../../ui/pages/notification/notification_screen.dart';
@@ -15,7 +16,7 @@ import '../../ui/pages/portfolio/portfolio_detail_page.dart';
 import '../../ui/pages/splash/onboarding_screen.dart';
 import '../../ui/pages/splash/splash_screen.dart';
 
-import 'user_type.dart';              // ✅ ReviewManagerScreen용
+import 'user_type.dart'; // ✅ ReviewManagerScreen용
 import '../../data/models/portfolio.dart'; //
 
 class AppRoutes {
@@ -34,30 +35,32 @@ class AppRoutes {
   static const String photographerProfileForm = '/photographer-profile-form';
   static const String reviewManager = '/review-manager';
   static const String portfolioDetail = '/portfolio-detail';
+  static const String userBookingList = '/user-booking-list';
 
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
-    splash: (context) => const SplashScreen(),
-    onboarding: (context) => const OnboardingScreen(),
-    loginChoice: (context) => const LoginChoiceScreen(),
-    login: (context) => const LoginScreen(),
-    signup: (context) => const SignupScreen(),
-    socialLogin: (context) => const SocialLoginScreen(),
-    home: (context) => const HomeScreen(),
-    helpCenter: (context) => const HelpCenterScreen(),
-    notification: (context) => const NotificationScreen(),
-    myReviews: (context) => const MyReviewScreen(),
-    photographerProfileForm: (context) =>
-    const PhotographerProfileFormPage(),
-    photographerReviews: (context) => const PhotographerReviewScreen(),
-    reviewManager: (context) =>
-    const ReviewManagerScreen(userType: UserType.user),
-    portfolioDetail: (context) {
-      final portfolio =
-      ModalRoute.of(context)!.settings.arguments as Portfolio;
-      return PortfolioDetailPage(portfolio: portfolio);
-    },
-  };
+        splash: (context) => const SplashScreen(),
+        onboarding: (context) => const OnboardingScreen(),
+        loginChoice: (context) => const LoginChoiceScreen(),
+        login: (context) => const LoginScreen(),
+        signup: (context) => const SignupScreen(),
+        socialLogin: (context) => const SocialLoginScreen(),
+        home: (context) => const HomeScreen(),
+        helpCenter: (context) => const HelpCenterScreen(),
+        notification: (context) => const NotificationScreen(),
+        myReviews: (context) => const MyReviewScreen(),
+        photographerProfileForm: (context) =>
+            const PhotographerProfileFormPage(),
+        photographerReviews: (context) => const PhotographerReviewScreen(),
+        reviewManager: (context) =>
+            const ReviewManagerScreen(userType: UserType.user),
+        portfolioDetail: (context) {
+          final portfolio =
+              ModalRoute.of(context)!.settings.arguments as Portfolio;
+          return PortfolioDetailPage(portfolio: portfolio);
+        },
+        userBookingList: (context) => const UserBookingListPage(),
+      };
 
   // 초기 라우트
   static const String initialRoute = splash;

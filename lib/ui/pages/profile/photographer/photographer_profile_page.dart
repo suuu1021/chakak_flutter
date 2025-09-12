@@ -67,7 +67,7 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
           fontWeight: FontWeight.normal,
         ),
         tabs: const [
-          Tab(text: '가격 옵션'),
+          Tab(text: '서비스'),
           Tab(text: '포트폴리오'),
           Tab(text: '리뷰'),
         ],
