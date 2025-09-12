@@ -20,37 +20,31 @@ class PhotoServiceCategoryRepositoryImpl
         id: 'categoryPersonal',
         name: AppStrings.categoryPersonal,
         categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.orange,
       ),
       PhotoServiceCategory(
         id: 'categoryCouple',
         name: AppStrings.categoryCouple,
         categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.red,
       ),
       PhotoServiceCategory(
         id: 'categoryWedding',
         name: AppStrings.categoryWedding,
         categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.brown,
       ),
       PhotoServiceCategory(
         id: 'categoryEvent',
         name: AppStrings.categoryEvent,
         categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.blue,
       ),
       PhotoServiceCategory(
         id: 'categoryFamily',
         name: AppStrings.categoryEvent,
         categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.green,
       ),
       PhotoServiceCategory(
         id: 'categoryProduct',
         name: AppStrings.categoryEvent,
         categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.purple,
       ),
     ];
 

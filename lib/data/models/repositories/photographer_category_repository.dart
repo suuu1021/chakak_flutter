@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
@@ -21,28 +20,19 @@ class PhotographerCategoryRepositoryImpl
       PhotographerCategory(
         id: 'categoryPersonal',
         name: AppStrings.categoryPersonal,
-        categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.orange,
       ),
       PhotographerCategory(
         id: 'categoryCouple',
         name: AppStrings.categoryCouple,
-        categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.red,
       ),
       PhotographerCategory(
         id: 'categoryWedding',
         name: AppStrings.categoryWedding,
-        categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.brown,
       ),
       PhotographerCategory(
         id: 'categoryEvent',
         name: AppStrings.categoryEvent,
-        categoryImageData: AppImages.onboarding2,
-        backgroundColor: Colors.blue,
       ),
-
     ];
 
     return mockData;
