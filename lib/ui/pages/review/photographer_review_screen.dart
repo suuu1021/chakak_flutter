@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
-import '../../widgets/review_card_widget.dart';
+import 'package:chakak_flutter/data/dtos/review_dto.dart';
+import 'widgets/review_card_widget.dart';
 
 class PhotographerReviewScreen extends StatelessWidget {
   const PhotographerReviewScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // ✅ 타입 명확하게 지정
-    final List<Map<String, dynamic>> receivedReviews = [
-      {
-        "user": "happyclient",
-        "title": "웨딩 스냅",
-        "comment": "작가님 덕분에 결혼식 사진이 너무 예쁘게 나왔어요!",
-        "rating": 5,
-        "time": "3일 전",
-      },
-      {
-        "user": "bestfriends",
-        "title": "우정 스냅",
-        "comment": "우정 스냅 너무 재밌게 촬영했어요!",
-        "rating": 4,
-        "time": "1주 전",
-      },
+    // 📌 Mock DTO 리스트
+    final receivedReviews = [
+      ReviewDto(
+        id: "1",
+        reviewerId: "happyclient",
+        photographerId: "photo21",
+        rating: 5,
+        comment: "작가님 덕분에 결혼식 사진이 너무 예쁘게 나왔어요!",
+        createdAt: DateTime.now().subtract(const Duration(days: 3)),
+      ),
+      ReviewDto(
+        id: "2",
+        reviewerId: "bestfriends",
+        photographerId: "photo22",
+        rating: 4,
+        comment: "우정 스냅 너무 재밌게 촬영했어요!",
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+      ),
     ];
 
     return Scaffold(
@@ -32,14 +35,12 @@ class PhotographerReviewScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: ListView(
+      body: receivedReviews.isEmpty
+          ? const Center(child: Text("아직 받은 리뷰가 없습니다."))
+          : ListView(
         children: receivedReviews.map((review) {
           return ReviewCardWidget(
-            user: review["user"] as String,
-            title: review["title"] as String,
-            comment: review["comment"] as String,
-            rating: review["rating"] as int,
-            time: review["time"] as String,
+            dto: review,
             onTap: () {
               Navigator.pushNamed(
                 context,
@@ -48,7 +49,7 @@ class PhotographerReviewScreen extends StatelessWidget {
               );
             },
           );
-        }).toList(), // ✅ 반드시 toList()
+        }).toList(),
       ),
       bottomNavigationBar: const CustomBottomNavigationBar(),
     );

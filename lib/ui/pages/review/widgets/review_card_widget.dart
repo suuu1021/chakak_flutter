@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:chakak_flutter/data/dtos/review_dto.dart';
 
 class ReviewCardWidget extends StatelessWidget {
-  final String? user;        // optional (포토그래퍼용 화면에서만 사용)
-  final String title;        // 포트폴리오 제목
-  final String comment;      // 리뷰 내용
-  final int rating;          // 별점 (0~5)
-  final String time;         // 작성 시각
-  final VoidCallback onTap;  // 이동 버튼 액션
+  final ReviewDto dto;
+  final VoidCallback onTap;
 
   const ReviewCardWidget({
     super.key,
-    this.user,
-    required this.title,
-    required this.comment,
-    required this.rating,
-    required this.time,
+    required this.dto,
     required this.onTap,
   });
 
@@ -23,25 +16,28 @@ class ReviewCardWidget extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
-        leading: user != null
-            ? CircleAvatar(child: Text(user![0].toUpperCase())) // 포토그래퍼용
+        leading: dto.reviewerId.isNotEmpty
+            ? CircleAvatar(child: Text(dto.reviewerId[0].toUpperCase()))
             : null,
-        title: user != null ? Text("$user • $title") : Text(title),
+        title: Text(dto.reviewerId),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(comment),
+            if (dto.comment != null) Text(dto.comment!),
             Row(
               children: List.generate(
                 5,
                     (i) => Icon(
-                  i < rating ? Icons.star : Icons.star_border,
+                  i < dto.rating ? Icons.star : Icons.star_border,
                   color: Colors.amber,
                   size: 18,
                 ),
               ),
             ),
-            Text(time, style: const TextStyle(fontSize: 12)),
+            Text(
+              "${DateTime.now().difference(dto.createdAt).inDays}일 전",
+              style: const TextStyle(fontSize: 12),
+            ),
           ],
         ),
         trailing: ElevatedButton(
