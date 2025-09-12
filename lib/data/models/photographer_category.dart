@@ -1,4 +1,3 @@
-import 'dart:ui';
 import '../dtos/photographer_category_dto.dart';
 
 class PhotographerCategory {

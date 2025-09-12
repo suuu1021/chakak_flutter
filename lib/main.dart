@@ -1,5 +1,3 @@
-import 'package:chakak_flutter/ui/pages/notification/notification_screen.dart';
-import 'package:chakak_flutter/ui/pages/search/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

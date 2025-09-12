@@ -1,7 +1,4 @@
-import 'package:flutter/material.dart';
-
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
-import 'package:chakak_flutter/_core/constants/app_images.dart';
 
 import '../photographer_category.dart';
 

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/photographer.dart';
 import '../../../data/models/repositories/photographer_repository.dart';
-import '../../../ui/pages/home/widgets/photographer_card_list.dart';
 
 final photographerRepositoryProvider = Provider<PhotographerRepository>((ref) {
   return PhotographerRepositoryImpl();

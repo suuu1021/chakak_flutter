@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:chakak_flutter/_core/constants/app_images.dart';
+import 'package:chakak_flutter/_core/constants/app_strings.dart';
 
 import '../photo_service_category.dart';
 
