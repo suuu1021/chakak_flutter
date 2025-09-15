@@ -1,51 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/photo_service/photo_service.dart';
-import '../../../../provider/global/photoService/photo_service_notifier.dart';
-
-class PhotoServiceListWidget extends ConsumerWidget {
-  final List<PhotoService> services;
-  final EdgeInsets? padding;
-  final Function(PhotoService)? onServiceTap;
-
-  const PhotoServiceListWidget({
-    super.key,
-    required this.services,
-    this.padding,
-    this.onServiceTap,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (services.isEmpty) {
-      return const Center(child: Text('서비스가 없습니다.'));
-    }
-
-    // 실시간으로 포토서비스 상태를 가져옴
-    final photoServiceState = ref.watch(photoServiceNotifierProvider);
-
-    return ListView.builder(
-      padding: padding ?? const EdgeInsets.all(16),
-      itemCount: services.length,
-      itemBuilder: (context, index) {
-        final serviceId = services[index].id;
-        // 현재 상태에서 해당 서비스를 찾음
-        final service =
-            photoServiceState.services.firstWhere((s) => s.id == serviceId);
-
-        return PhotoServiceCard(
-          service: service,
-          onTap: onServiceTap,
-          onBookmarkTap: () {
-            ref
-                .read(photoServiceNotifierProvider.notifier)
-                .toggleLike(service.id);
-          },
-        );
-      },
-    );
-  }
-}
 
 class PhotoServiceCard extends StatelessWidget {
   final PhotoService service;
@@ -92,16 +46,7 @@ class PhotoServiceCard extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(12)),
-                    child: Image.asset(
-                      service.imageUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.camera_alt,
-                            size: 30, color: Colors.grey);
-                      },
-                    ),
+                    child: _buildImage(),
                   ),
                   // 북마크 아이콘
                   Positioned(
@@ -109,12 +54,19 @@ class PhotoServiceCard extends StatelessWidget {
                     right: 8,
                     child: GestureDetector(
                       onTap: onBookmarkTap,
-                      child: Icon(
-                        service.isLiked
-                            ? Icons.bookmark
-                            : Icons.bookmark_border,
-                        color: service.isLiked ? Colors.orange : Colors.white,
-                        size: 20,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          service.isLiked
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
+                          color: service.isLiked ? Colors.orange : Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -137,17 +89,17 @@ class PhotoServiceCard extends StatelessWidget {
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     // 평점과 별 아이콘
                     Row(
                       children: [
                         const Icon(Icons.star, size: 16, color: Colors.orange),
                         const SizedBox(width: 4),
                         Text(
-                          service.rating.toStringAsFixed(1),
+                          '${service.rating.toStringAsFixed(1)} (${service.reviewCount})',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -155,7 +107,7 @@ class PhotoServiceCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     // 카테고리
                     Text(
                       service.categories.join(', '),
@@ -167,9 +119,9 @@ class PhotoServiceCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    // 가격
+                    // 가격 (새로운 priceRange 사용)
                     Text(
-                      '${service.price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원',
+                      service.priceRange,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -181,6 +133,65 @@ class PhotoServiceCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (service.imageUrl.isEmpty) {
+      return _buildPlaceholder();
+    }
+
+    // HTTP URL인 경우 네트워크 이미지
+    if (service.imageUrl.startsWith('http')) {
+      return Image.network(
+        service.imageUrl,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildPlaceholder();
+        },
+      );
+    }
+
+    // 로컬 asset 이미지인 경우
+    return Image.asset(
+      service.imageUrl,
+      width: double.infinity,
+      height: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return _buildPlaceholder();
+      },
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.grey[300],
+      child: const Center(
+        child: Icon(
+          Icons.camera_alt,
+          size: 30,
+          color: Colors.grey,
         ),
       ),
     );

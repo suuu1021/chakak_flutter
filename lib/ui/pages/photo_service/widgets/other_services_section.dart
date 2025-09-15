@@ -40,11 +40,24 @@ class OtherServicesSection extends StatelessWidget {
   }
 
   Widget _buildContent() {
-    if (otherServices == null || otherServices!.isEmpty) {
+    final filteredServices = _getFilteredServices();
+
+    if (filteredServices.isEmpty) {
       return _buildPlaceholder();
     }
 
-    return _buildServicesList();
+    return _buildServicesList(filteredServices);
+  }
+
+  // 현재 서비스를 제외한 다른 서비스들만 반환
+  List<PhotoService> _getFilteredServices() {
+    if (otherServices == null || otherServices!.isEmpty) {
+      return [];
+    }
+
+    return otherServices!
+        .where((otherService) => otherService.id != service.id)
+        .toList();
   }
 
   Widget _buildPlaceholder() {
@@ -57,18 +70,19 @@ class OtherServicesSection extends StatelessWidget {
     );
   }
 
-  Widget _buildServicesList() {
+  Widget _buildServicesList(List<PhotoService> filteredServices) {
     return SizedBox(
       height: 120,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: otherServices!.length,
+        itemCount: filteredServices.length,
         itemBuilder: (context, index) {
-          final otherService = otherServices![index];
+          final otherService = filteredServices[index];
           return Container(
             width: 200,
             margin: EdgeInsets.only(
-              right: index < otherServices!.length - 1 ? AppSizes.spacing12 : 0,
+              right:
+                  index < filteredServices.length - 1 ? AppSizes.spacing12 : 0,
             ),
             child: _buildServiceCard(otherService),
           );
@@ -114,21 +128,55 @@ class OtherServicesSection extends StatelessWidget {
           topRight: Radius.circular(8),
         ),
       ),
-      child: otherService.imageUrl.startsWith('http')
-          ? ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(8),
-                topRight: Radius.circular(8),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(8),
+          topRight: Radius.circular(8),
+        ),
+        child: _buildImage(otherService),
+      ),
+    );
+  }
+
+  Widget _buildImage(PhotoService otherService) {
+    if (otherService.imageUrl.isEmpty) {
+      return _buildImagePlaceholder();
+    }
+
+    // HTTP URL인 경우 네트워크 이미지
+    if (otherService.imageUrl.startsWith('http')) {
+      return Image.network(
+        otherService.imageUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
               ),
-              child: Image.network(
-                otherService.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildImagePlaceholder();
-                },
-              ),
-            )
-          : _buildImagePlaceholder(),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildImagePlaceholder();
+        },
+      );
+    }
+
+    // 로컬 asset 이미지인 경우
+    return Image.asset(
+      otherService.imageUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return _buildImagePlaceholder();
+      },
     );
   }
 

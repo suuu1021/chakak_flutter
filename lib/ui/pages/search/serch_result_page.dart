@@ -6,7 +6,8 @@ import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photographer.dart';
 import '../../../provider/global/photoService/photo_service_notifier.dart';
 import '../../../provider/global/photographer/photographer_notifier.dart';
-import '../home/widgets/photo_service_list_widget.dart';
+import '../photo_service/photo_service_detail_page.dart';
+import '../photo_service/widgets/photo_service_list_widget.dart';
 import 'widgets/custom_search_field.dart';
 
 class SearchResultsPage extends ConsumerStatefulWidget {
@@ -169,7 +170,12 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
     return PhotoServiceListWidget(
       services: filteredPhotoServices,
       onServiceTap: (service) {
-        print('서비스 선택: ${service.title}');
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PhotoServiceDetailPage(service: service),
+          ),
+        );
       },
     );
   }

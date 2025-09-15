@@ -1,3 +1,5 @@
+import '../models/photo_service/price_option.dart';
+
 class PhotoServiceDto {
   final int id; // SERVICE_ID
   final int photographerId; // PHOTOGRAPHER_PROFILE_ID
@@ -5,10 +7,12 @@ class PhotoServiceDto {
   final String description; // DESCRIPTION
   final String imageUrl; // IMAGE_URL
   final List<String> categories; // CATEGORY는 별도 처리 (중간 테이블)
-  final int price; // 가격 (별도 테이블에서 가져올 수도 있음)
+  final int price; // 기본 가격 (별도 테이블에서 가져올 수도 있음)
   final double rating; // 평점 (계산된 값)
   final int reviewCount; // 리뷰 수 (계산된 값)
   final bool isLiked; // 찜 여부 (사용자별)
+  final List<PriceOptionDto> priceOptions; // 가격 옵션들 (별도 테이블)
+  final List<String> portfolioImages; // 포트폴리오 이미지 URL들
   final DateTime createdAt; // CREATED_AT
   final DateTime updatedAt; // UPDATED_AT
 
@@ -23,6 +27,8 @@ class PhotoServiceDto {
     required this.rating,
     required this.reviewCount,
     this.isLiked = false,
+    this.priceOptions = const [],
+    this.portfolioImages = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -40,6 +46,12 @@ class PhotoServiceDto {
       rating: (json['rating'] ?? 0.0).toDouble(),
       reviewCount: json['reviewCount'] ?? 0,
       isLiked: json['isLiked'] ?? false,
+      priceOptions: (json['priceOptions'] as List<dynamic>?)
+              ?.map((item) =>
+                  PriceOptionDto.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      portfolioImages: List<String>.from(json['portfolioImages'] ?? []),
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : json['CREATED_AT'] != null
@@ -65,6 +77,8 @@ class PhotoServiceDto {
       'rating': rating,
       'reviewCount': reviewCount,
       'isLiked': isLiked,
+      'priceOptions': priceOptions.map((option) => option.toJson()).toList(),
+      'portfolioImages': portfolioImages,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -81,6 +95,8 @@ class PhotoServiceDto {
     double? rating,
     int? reviewCount,
     bool? isLiked,
+    List<PriceOptionDto>? priceOptions,
+    List<String>? portfolioImages,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -95,8 +111,63 @@ class PhotoServiceDto {
       rating: rating ?? this.rating,
       reviewCount: reviewCount ?? this.reviewCount,
       isLiked: isLiked ?? this.isLiked,
+      priceOptions: priceOptions ?? this.priceOptions,
+      portfolioImages: portfolioImages ?? this.portfolioImages,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+// PriceOption의 DTO 버전
+class PriceOptionDto {
+  final String name;
+  final int price;
+  final String duration;
+  final String photoCount;
+  final String editingLevel;
+  final List<String> features;
+
+  const PriceOptionDto({
+    required this.name,
+    required this.price,
+    required this.duration,
+    required this.photoCount,
+    required this.editingLevel,
+    required this.features,
+  });
+
+  factory PriceOptionDto.fromJson(Map<String, dynamic> json) {
+    return PriceOptionDto(
+      name: json['name'] as String,
+      price: json['price'] as int,
+      duration: json['duration'] as String,
+      photoCount: json['photoCount'] as String,
+      editingLevel: json['editingLevel'] as String,
+      features: List<String>.from(json['features'] as List),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'price': price,
+      'duration': duration,
+      'photoCount': photoCount,
+      'editingLevel': editingLevel,
+      'features': features,
+    };
+  }
+
+  // DTO에서 Model로 변환
+  PriceOption toModel() {
+    return PriceOption(
+      name: name,
+      price: price,
+      duration: duration,
+      photoCount: photoCount,
+      editingLevel: editingLevel,
+      features: features,
     );
   }
 }
