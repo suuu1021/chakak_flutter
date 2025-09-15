@@ -103,18 +103,13 @@ class _PhotoServiceCategoryWidgetState
               ],
             ),
             child: ClipOval(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: category.backgroundColor ?? Colors.grey[200],
-                ),
-                child: Image.asset(
-                  category.categoryImageData,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    print('이미지 로드 에러 ${category.categoryImageData} : $error');
-                    return _buildPlaceholder(category);
-                  },
-                ),
+              child: Image.asset(
+                category.categoryImageData,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  print('이미지 로드 에러 ${category.categoryImageData} : $error');
+                  return _buildPlaceholder(category);
+                },
               ),
             ),
           ),
@@ -142,16 +137,10 @@ class _PhotoServiceCategoryWidgetState
   }
 
   Widget _buildPlaceholder(PhotoServiceCategory category) {
-    return Container(
-      decoration: BoxDecoration(
-        color: category.backgroundColor ?? Colors.grey[200],
-        shape: BoxShape.circle,
-      ),
-      child: Icon(
-        Icons.category,
-        color: Colors.white,
-        size: widget.itemSize * 0.4,
-      ),
+    return Icon(
+      Icons.category,
+      color: Colors.white,
+      size: widget.itemSize * 0.4,
     );
   }
 }

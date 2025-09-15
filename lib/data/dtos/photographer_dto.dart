@@ -1,3 +1,5 @@
+import '../models/photographer.dart';
+
 class PhotographerDto {
   final int id;
   final String businessName;
@@ -39,5 +41,30 @@ class PhotographerDto {
       'review_count': reviewCount,
       'is_liked': isLiked,
     };
+  }
+
+  factory PhotographerDto.fromModel(Photographer model) {
+    return PhotographerDto(
+      id: model.id,
+      businessName: model.businessName,
+      imageUrl: model.imageUrl,
+      categories: List<String>.from(model.categories),
+      rating: model.rating,
+      reviewCount: model.reviewCount,
+      isLiked: model.isLiked,
+    );
+  }
+
+  // DTO에서 Model로 변환
+  Photographer toModel() {
+    return Photographer(
+      id: id,
+      businessName: businessName,
+      imageUrl: imageUrl,
+      categories: List<String>.from(categories),
+      rating: rating,
+      reviewCount: reviewCount,
+      isLiked: isLiked,
+    );
   }
 }

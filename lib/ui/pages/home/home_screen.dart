@@ -2,7 +2,6 @@ import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/service_card_list.dart';
-import 'package:chakak_flutter/ui/pages/search/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/banner.dart';
@@ -12,13 +11,14 @@ import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../profile/photographer/photographer_profile_page.dart';
+import '../search/search_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   static const List<Widget> _pages = [
     HomeContent(),
-    SearchPage(),
+    SearchScreen(),
     Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
     PhotographerProfilePage(),
   ];

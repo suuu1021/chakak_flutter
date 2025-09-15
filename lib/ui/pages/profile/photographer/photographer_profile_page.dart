@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import 'photographer_price_options.dart';
-import 'photographer_reviews.dart';
-import 'photographer_upper_profile.dart';
+import 'widgets/photographer_price_options.dart';
+import 'widgets/photographer_reviews.dart';
+import 'widgets/photographer_upper_profile.dart';
 
 class PhotographerProfilePage extends StatefulWidget {
   const PhotographerProfilePage({super.key});
@@ -67,7 +67,7 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
           fontWeight: FontWeight.normal,
         ),
         tabs: const [
-          Tab(text: '가격 옵션'),
+          Tab(text: '서비스'),
           Tab(text: '포트폴리오'),
           Tab(text: '리뷰'),
         ],

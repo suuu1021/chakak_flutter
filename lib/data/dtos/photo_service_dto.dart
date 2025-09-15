@@ -1,3 +1,5 @@
+import '../models/photo_service.dart';
+
 class PhotoServiceDto {
   final int id;
   final String title;
@@ -43,5 +45,32 @@ class PhotoServiceDto {
       'review_count': reviewCount,
       'is_liked': isLiked,
     };
+  }
+
+  factory PhotoServiceDto.fromModel(PhotoService model) {
+    return PhotoServiceDto(
+      id: model.id,
+      title: model.title,
+      imageUrl: model.imageUrl,
+      categories: List<String>.from(model.categories),
+      price: model.price,
+      rating: model.rating,
+      reviewCount: model.reviewCount,
+      isLiked: model.isLiked,
+    );
+  }
+
+  // DTO에서 Model로 변환
+  PhotoService toModel() {
+    return PhotoService(
+      id: id,
+      title: title,
+      imageUrl: imageUrl,
+      categories: List<String>.from(categories),
+      price: price,
+      rating: rating,
+      reviewCount: reviewCount,
+      isLiked: isLiked,
+    );
   }
 }
