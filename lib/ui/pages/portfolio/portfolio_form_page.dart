@@ -47,7 +47,7 @@ class _PortfolioFormPageState extends State<PortfolioFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? '포트폴리오 수정' : '포트폴리오 등록'),
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.primaryLight,
         elevation: 0,
       ),
       body: Form(

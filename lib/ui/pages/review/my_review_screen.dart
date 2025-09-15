@@ -1,6 +1,7 @@
 import 'package:chakak_flutter/data/dtos/porfolio_dto.dart';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_colors.dart';
 import 'widgets/review_card_widget.dart';
 
 class MyReviewScreen extends StatelessWidget {
@@ -37,7 +38,7 @@ class MyReviewScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("내가 작성한 리뷰"),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
         foregroundColor: Colors.black,
         elevation: 0,
       ),

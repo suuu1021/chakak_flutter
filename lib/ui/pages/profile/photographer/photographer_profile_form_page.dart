@@ -90,7 +90,7 @@ class _PhotographerProfileFormPageState
         ),
       ),
       centerTitle: true,
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.primaryLight,
       foregroundColor: AppColors.textPrimary,
       elevation: 0,
       actions: [
