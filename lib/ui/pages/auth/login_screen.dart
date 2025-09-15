@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/dtos/auth_dto.dart';
+import '../../../provider/auth_provider.dart';
 import '../../widgets/custom_auth_text_form_field.dart';
 import '../../widgets/custom_logo.dart';
 import '../../widgets/custom_auth_button_widgets.dart'; // ✅ 여기서 버튼 가져옴
 import '../../../_core/utils/validator_util.dart';
 import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   String email = "";
   String emailError = "";
   String password = "";
@@ -28,12 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // TODO: 실제 로그인 API 연동
-    debugPrint("로그인 시도: $email / $password");
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("로그인 성공 (더미)")),
-    );
+    // Riverpod 호출
+    ref.read(authProvider.notifier).login(
+          LoginRequest(email: email, password: password),
+        );
 
     // 로그인 성공 → 홈으로 이동
     // Navigator.pushReplacementNamed(context, '/home');
@@ -41,6 +42,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider); // 상태 구독 가능
+
+    // 로그인 성공 시 - > 홈 화면으로 이동
+    if (authState.login != null) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: true, // ✅ 키보드 열릴 때 화면 자동 조정
       appBar: AppBar(
@@ -82,8 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
               // 로그인 버튼 (✅ 공통 위젯 사용)
               CustomAuthButtonWidgets.button(
                 context,
-                "로그인",
-                onPressed: _login,
+                authState.login == null ? "로그인" : "로그인 중...",
+                onPressed: authState.login == null ? _login : null,
               ),
               const SizedBox(height: 16),
 
