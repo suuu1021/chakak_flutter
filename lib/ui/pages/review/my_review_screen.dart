@@ -1,7 +1,6 @@
 import 'package:chakak_flutter/data/dtos/porfolio_dto.dart';
 import 'package:flutter/material.dart';
 
-import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'widgets/review_card_widget.dart';
 
 class MyReviewScreen extends StatelessWidget {
