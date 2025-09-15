@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../_core/constants/app_colors.dart';
-import '../../../../_core/constants/app_images.dart';
-import '../../../../_core/constants/app_routes.dart';
-import '../../../../_core/constants/app_sizes.dart';
+import '../../../../../_core/constants/app_colors.dart';
+import '../../../../../_core/constants/app_images.dart';
+import '../../../../../_core/constants/app_routes.dart';
+import '../../../../../_core/constants/app_sizes.dart';
 
 class PhotographerUpperProfile extends StatelessWidget {
   const PhotographerUpperProfile({super.key});

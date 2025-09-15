@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'package:chakak_flutter/data/dtos/porfolio_dto.dart';
-import 'package:chakak_flutter/data/models/portfolio.dart';
+import 'package:flutter/material.dart';
+
+import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'widgets/review_card_widget.dart';
 
 class MyReviewScreen extends StatelessWidget {
@@ -45,19 +45,19 @@ class MyReviewScreen extends StatelessWidget {
       body: myReviews.isEmpty
           ? const Center(child: Text("작성한 리뷰가 없습니다."))
           : ListView(
-        children: myReviews.map((dto) {
-          return ReviewCardWidget(
-            dto: dto.toModel(), // DTO → Model 변환
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/portfolio-detail',
-                arguments: dto.toModel(), // Model 전달
-              );
-            },
-          );
-        }).toList(),
-      ),
+              children: myReviews.map((dto) {
+                return ReviewCardWidget(
+                  dto: dto.toModel(), // DTO → Model 변환
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/portfolio-detail',
+                      arguments: dto.toModel(), // Model 전달
+                    );
+                  },
+                );
+              }).toList(),
+            ),
       bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
