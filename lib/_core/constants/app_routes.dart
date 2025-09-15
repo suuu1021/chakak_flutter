@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../ui/pages/auth/login_choice_screen.dart';
@@ -40,6 +41,7 @@ class AppRoutes {
   static const String userBookingList = '/user-booking-list';
   static const String search = '/search';
   static const String chat = '/chat';
+  static const String chatList = '/chat-list';
 
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
@@ -69,6 +71,7 @@ class AppRoutes {
           final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
           return ChatScreen(chatRoomId: chatRoomId);
         },
+        chatList: (context) => const ChatListScreen(),
       };
 
   // 초기 라우트

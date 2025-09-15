@@ -1,4 +1,5 @@
 import 'package:chakak_flutter/_core/constants/app_routes.dart';
+import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends ConsumerWidget {
     HomeContent(),
     SearchScreen(),
     Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
+    ChatListScreen(),
     MyProfilePage(), // PhotographerProfilePage에서 MyProfilePage로 변경
   ];
 

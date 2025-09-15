@@ -20,6 +20,7 @@ class AppStrings {
   // Navigation
   static const String home = '홈';
   static const String search = '검색';
+  static const String chat = '채팅';
   static const String community = '커뮤니티';
   static const String profile = '프로필';
 
