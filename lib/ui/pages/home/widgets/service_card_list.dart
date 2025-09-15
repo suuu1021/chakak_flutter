@@ -9,8 +9,7 @@ import '../../../../provider/global/photoService/photo_service_notifier.dart';
 class ServiceCardList extends ConsumerStatefulWidget {
   final Function(PhotoService) onServiceTap;
 
-  const ServiceCardList({required this.onServiceTap, Key? key})
-      : super(key: key);
+  const ServiceCardList({required this.onServiceTap, super.key});
 
   @override
   ConsumerState<ServiceCardList> createState() => _ServiceCardListState();
@@ -88,11 +87,11 @@ class ServiceCard extends StatelessWidget {
   final VoidCallback onLikeTap;
 
   const ServiceCard({
-    Key? key,
+    super.key,
     required this.service,
     required this.onTap,
     required this.onLikeTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

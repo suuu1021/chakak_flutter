@@ -12,6 +12,7 @@ import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../photo_service/category_service_list_page.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../profile/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
@@ -25,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
     SearchScreen(),
     Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
     ChatListScreen(),
-    MyProfilePage(), // PhotographerProfilePage에서 MyProfilePage로 변경
+    MyProfilePage(),
   ];
 
   @override
@@ -42,8 +43,13 @@ class HomeScreen extends ConsumerWidget {
 class HomeContent extends ConsumerWidget {
   const HomeContent({super.key});
 
-  void _onCategoryTap(PhotoServiceCategory category) {
-    print('카테고리 클릭: ${category.name}');
+  void _onCategoryTap(BuildContext context, PhotoServiceCategory category) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryServiceListPage(category: category),
+      ),
+    );
   }
 
   void _onBannerTap(BannerItem banner) {
@@ -51,7 +57,6 @@ class HomeContent extends ConsumerWidget {
   }
 
   void _onServiceTap(BuildContext context, PhotoService service) {
-    // PhotoServiceDetailPage로 네비게이션
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -61,7 +66,6 @@ class HomeContent extends ConsumerWidget {
   }
 
   void _onPhotographerTap(BuildContext context, Photographer photographer) {
-    // 포토그래퍼 클릭시 프로필 페이지로 이동
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -100,7 +104,7 @@ class HomeContent extends ConsumerWidget {
 
           // 카테고리
           PhotoServiceCategoryWidget(
-            onCategoryTap: _onCategoryTap,
+            onCategoryTap: (category) => _onCategoryTap(context, category),
             showSeeAll: true,
           ),
 

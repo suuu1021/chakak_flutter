@@ -14,7 +14,7 @@ class PhotoServiceCategoryWidget extends ConsumerStatefulWidget {
   final VoidCallback? onSeeAllTap;
 
   const PhotoServiceCategoryWidget({
-    Key? key,
+    super.key,
     required this.onCategoryTap,
     this.showSeeAll = false,
     this.itemSize = 70.0,
@@ -22,7 +22,7 @@ class PhotoServiceCategoryWidget extends ConsumerStatefulWidget {
     this.padding,
     this.title,
     this.onSeeAllTap,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PhotoServiceCategoryWidget> createState() =>
@@ -96,21 +96,14 @@ class _PhotoServiceCategoryWidgetState
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: ClipOval(
-              child: Image.asset(
-                category.categoryImageData,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  print('이미지 로드 에러 ${category.categoryImageData} : $error');
-                  return _buildPlaceholder(category);
-                },
-              ),
+              child: _buildCategoryImage(category),
             ),
           ),
 
@@ -136,11 +129,58 @@ class _PhotoServiceCategoryWidgetState
     );
   }
 
+  Widget _buildCategoryImage(PhotoServiceCategory category) {
+    final imageUrl = category.categoryImageData;
+
+    if (imageUrl.isEmpty) {
+      return _buildPlaceholder(category);
+    }
+
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          print('카테고리 이미지 로드 에러 $imageUrl : $error');
+          return _buildPlaceholder(category);
+        },
+      );
+    }
+
+    return Image.asset(
+      imageUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        print('카테고리 이미지 로드 에러 $imageUrl : $error');
+        return _buildPlaceholder(category);
+      },
+    );
+  }
+
   Widget _buildPlaceholder(PhotoServiceCategory category) {
-    return Icon(
-      Icons.category,
-      color: Colors.white,
-      size: widget.itemSize * 0.4,
+    return Container(
+      color: Colors.grey[200],
+      child: Icon(
+        Icons.category,
+        color: Colors.grey[600],
+        size: widget.itemSize * 0.4,
+      ),
     );
   }
 }
