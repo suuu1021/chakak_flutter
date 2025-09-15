@@ -14,7 +14,7 @@ import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../photo_service/category_service_list_page.dart';
 import '../photo_service/photo_service_detail_page.dart';
-import '../profile/my_profile_page.dart';
+import '../profile/user/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../search/search_screen.dart';
 
@@ -24,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
   static const List<Widget> _pages = [
     HomeContent(),
     SearchScreen(),
-    Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
+    Center(child: Text("커뮤니티 화면", style: TextStyle(fontSize: 24))),
     ChatListScreen(),
     MyProfilePage(),
   ];
@@ -34,14 +34,26 @@ class HomeScreen extends ConsumerWidget {
     final int currentIndex = ref.watch(bottomNavIndexProvider);
     return Scaffold(
       appBar: CustomAppbar(),
-      body: _pages[currentIndex],
+      body: IndexedStack(
+        index: currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }
 
-class HomeContent extends ConsumerWidget {
+class HomeContent extends ConsumerStatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  ConsumerState<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends ConsumerState<HomeContent>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   void _onCategoryTap(BuildContext context, PhotoServiceCategory category) {
     Navigator.push(
@@ -70,54 +82,56 @@ class HomeContent extends ConsumerWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PhotographerProfilePage(
-          photographerId: photographer.id, // 포토그래퍼 ID 전달
+          photographerId: photographer.id,
         ),
       ),
     );
   }
 
+  Future<void> _onRefresh() async {
+    await Future.wait([
+      Future.delayed(Duration(milliseconds: 500)),
+    ]);
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // TODO: 테스트용 나중에 지워야함
-          ElevatedButton(
-            onPressed: () {
-              // 채팅방 ID 1번으로 입장 (테스트용)
-              Navigator.pushNamed(context, AppRoutes.chat, arguments: 1);
-            },
-            child: const Text("채팅 테스트 (임시)"),
-          ),
-          const SizedBox(height: 16), // 버튼과 배너 사이 간격
+  Widget build(BuildContext context) {
+    super.build(context);
 
-          // 배너 영역
-          BannerWidget(
-            height: 180,
-            autoSlideInterval: const Duration(seconds: 3),
-            showIndicators: true,
-            onBannerTap: _onBannerTap,
-            margin: const EdgeInsets.all(16),
-          ),
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 배너 영역
+            BannerWidget(
+              height: 180,
+              autoSlideInterval: const Duration(seconds: 3),
+              showIndicators: true,
+              onBannerTap: _onBannerTap,
+              margin: const EdgeInsets.all(16),
+            ),
 
-          // 카테고리
-          PhotoServiceCategoryWidget(
-            onCategoryTap: (category) => _onCategoryTap(context, category),
-            showSeeAll: true,
-          ),
+            // 카테고리
+            PhotoServiceCategoryWidget(
+              onCategoryTap: (category) => _onCategoryTap(context, category),
+              showSeeAll: true,
+            ),
 
-          const SizedBox(height: 10),
-          ServiceCardList(
-            onServiceTap: (service) => _onServiceTap(context, service),
-          ),
-          const SizedBox(height: 24),
-          PhotographerCardList(
-            onPhotographerTap: (photographer) =>
-                _onPhotographerTap(context, photographer),
-          ),
-        ],
+            const SizedBox(height: 10),
+            ServiceCardList(
+              onServiceTap: (service) => _onServiceTap(context, service),
+            ),
+            const SizedBox(height: 24),
+            PhotographerCardList(
+              onPhotographerTap: (photographer) =>
+                  _onPhotographerTap(context, photographer),
+            ),
+          ],
+        ),
       ),
     );
   }
