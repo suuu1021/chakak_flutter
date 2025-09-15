@@ -2,6 +2,7 @@ import '../banner.dart';
 
 abstract class BannerRepository {
   Future<List<BannerItem>> getActiveBanners();
+
   Future<void> trackBannerClick(int bannerId);
 }
 
@@ -16,8 +17,7 @@ class BannerRepositoryImpl implements BannerRepository {
         id: 1,
         title: '스페셜 촬영 이벤트',
         subtitle: '지금 예약하면 50% 할인!',
-        imageUrl:
-            'https://via.placeholder.com/400x200/FF6B6B/FFFFFF?text=이벤트+배너',
+        imageUrl: 'https://picsum.photos/400/200?random=1',
         linkUrl: '/event/special-photo',
         createdAt: DateTime.now(),
         expiresAt: DateTime.now().add(const Duration(days: 30)),
@@ -26,8 +26,7 @@ class BannerRepositoryImpl implements BannerRepository {
         id: 2,
         title: '웨딩 촬영 패키지',
         subtitle: '평생 간직할 순간을 담아드립니다',
-        imageUrl:
-            'https://via.placeholder.com/400x200/4ECDC4/FFFFFF?text=웨딩+패키지',
+        imageUrl: 'https://picsum.photos/400/200?random=2',
         linkUrl: '/services/wedding',
         createdAt: DateTime.now(),
       ),
@@ -35,8 +34,7 @@ class BannerRepositoryImpl implements BannerRepository {
         id: 3,
         title: '프로필 촬영',
         subtitle: '당신만의 특별한 모습을',
-        imageUrl:
-            'https://via.placeholder.com/400x200/45B7D1/FFFFFF?text=프로필+촬영',
+        imageUrl: 'https://picsum.photos/400/200?random=3',
         linkUrl: '/services/profile',
         createdAt: DateTime.now(),
       ),

@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:flutter/material.dart';
 import '../../ui/pages/auth/login_choice_screen.dart';
 import '../../ui/pages/auth/login_screen.dart';
@@ -45,6 +46,7 @@ class AppRoutes {
   static const String paymentSuccess = '/payment-success';
   static const String paymentFail = '/payment-fail';
   static const String chat = '/chat';
+  static const String chatList = '/chat-list';
 
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
@@ -70,21 +72,19 @@ class AppRoutes {
     },
     userBookingList: (context) => const UserBookingListPage(),
     search: (context) => const SearchScreen(),
-
     chat: (context) {
       final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
       return ChatScreen(chatRoomId: chatRoomId);
     },
-
+    chatList: (context) => const ChatListScreen(),
     paymentForm: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments
-      as Map<String, dynamic>;
+      final args =
+      ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return PaymentFormScreen(
         itemName: args['itemName'],
         totalAmount: args['totalAmount'],
       );
     },
-    //결제 성공/실패 화면 등록
     paymentSuccess: (context) => const PaymentSuccessScreen(),
     paymentFail: (context) {
       final reason =

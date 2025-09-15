@@ -1,4 +1,5 @@
 // Custom AppBar
+import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../_core/constants/app_routes.dart';
@@ -11,15 +12,18 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
+      backgroundColor: AppColors.primaryLight,
+      foregroundColor: Colors.grey[800],
       elevation: 0,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
             AppStrings.appNameUpper,
-            style: TextStyle(fontSize: 24, fontFamily: AppStrings.fontFamily1),
+            style: TextStyle(
+                fontSize: 28,
+                fontFamily: AppStrings.fontFamily1,
+                color: AppColors.primary),
           ),
           Row(
             children: [
@@ -41,12 +45,6 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
                 icon: const Icon(Icons.calendar_month),
                 onPressed: () {
                   Navigator.of(context).pushNamed(AppRoutes.userBookingList);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.support_agent),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.helpCenter);
                 },
               ),
               IconButton(

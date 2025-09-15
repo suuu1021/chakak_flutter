@@ -29,7 +29,7 @@ class AppColors {
   //==========================================================
   // Primary Colors (골든 아워 기반)
   static const Color primary = Color(0xFFF4A460); // 골든 아워 샌디 브라운
-  static const Color primaryLight = Color(0xFFFFD7A3); // 밝은 골든 톤
+  static const Color primaryLight = Color(0xFFFFF4EA); // 밝은 골든 톤
   static const Color primaryDark = Color(0xFFB8834A); // 진한 골든 톤
 
   // Secondary Colors (사진의 따뜻함과 차가움의 균형)

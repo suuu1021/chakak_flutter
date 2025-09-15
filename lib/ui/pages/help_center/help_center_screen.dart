@@ -117,7 +117,7 @@ class HelpCenterScreen extends StatelessWidget {
                 const SizedBox(width: 24),
                 Image.asset(
                   "assets/images/helpcall.png", // 새 이미지
-                  width: 130,  // 🔼 이미지 크게
+                  width: 130, // 🔼 이미지 크게
                   height: 130,
                   fit: BoxFit.contain,
                 ),
@@ -127,8 +127,7 @@ class HelpCenterScreen extends StatelessWidget {
             // 공지 배너
             Container(
               width: double.infinity,
-              padding:
-              const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
               decoration: BoxDecoration(
                 color: const Color(0xFFFEE500),
                 borderRadius: BorderRadius.circular(8),
@@ -141,7 +140,7 @@ class HelpCenterScreen extends StatelessWidget {
                     child: Text(
                       "* 사칭 사이트 주의 안내 *",
                       style:
-                      TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -206,7 +205,6 @@ class HelpCenterScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }

@@ -1,34 +1,40 @@
+import 'package:chakak_flutter/data/dtos/auth_dto.dart';
+import 'package:chakak_flutter/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_logo.dart';
 import 'profile_setup_screen.dart';
 
-class SocialLoginScreen extends StatelessWidget {
+class SocialLoginScreen extends ConsumerWidget {
   const SocialLoginScreen({super.key});
 
-  void _mockSocialLogin(BuildContext context, String provider) async {
-    //소셜 로그인 Mock 동작 (나중에 API 연동 시 교체)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("$provider 로그인 시도 중...")),
-    );
+  // void _mockSocialLogin(BuildContext context, String provider) async {
+  //   //소셜 로그인 Mock 동작 (나중에 API 연동 시 교체)
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text("$provider 로그인 시도 중...")),
+  //   );
+  //
+  //   await Future.delayed(const Duration(seconds: 2)); // 네트워크 대기 흉내
+  //
+  //   // 소셜 로그인 성공 시 → 프로필 설정 화면으로 이동
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (_) => const ProfileSetupScreen(userType: "social"),
+  //     ),
+  //   );
+  // }
 
-    await Future.delayed(const Duration(seconds: 2)); // 네트워크 대기 흉내
-
-    // 소셜 로그인 성공 시 → 프로필 설정 화면으로 이동
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const ProfileSetupScreen(userType: "social"),
-      ),
-    );
-
-
+  void _kakaoLogin(BuildContext context, WidgetRef ref) {
+    ref.read(authProvider.notifier).kakaoLogin(
+          SocialLoginRequest(code: "mock_code", typeCode: "KAKAO"),
+        );
   }
 
   Widget _buildSocialButton({
-    required BuildContext context,
     required String text,
-    required String provider,
+    required VoidCallback onPressed,
     required String assetPath,
     required Color backgroundColor,
     required Color textColor,
@@ -36,7 +42,7 @@ class SocialLoginScreen extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () => _mockSocialLogin(context, provider),
+        onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -62,7 +68,17 @@ class SocialLoginScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    if (authState.social != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ProfileSetupScreen(userType: "social"),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("소셜 로그인"),
@@ -80,9 +96,8 @@ class SocialLoginScreen extends StatelessWidget {
 
             // 카카오 로그인 버튼
             _buildSocialButton(
-              context: context,
               text: "카카오로 로그인",
-              provider: "카카오",
+              onPressed: () => _kakaoLogin(context, ref),
               assetPath: "assets/images/kakaotalk-seeklogo.png",
               backgroundColor: const Color(0xFFFEE500),
               textColor: Colors.black,
@@ -91,9 +106,8 @@ class SocialLoginScreen extends StatelessWidget {
 
             // 네이버 로그인 버튼
             _buildSocialButton(
-              context: context,
               text: "네이버로 로그인",
-              provider: "네이버",
+              onPressed: () => _kakaoLogin(context, ref),
               assetPath: "assets/images/naver.png",
               backgroundColor: const Color(0xFF03C75A),
               textColor: Colors.white,

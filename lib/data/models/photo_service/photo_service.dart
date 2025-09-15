@@ -44,9 +44,8 @@ class PhotoService {
       reviewCount: dto.reviewCount,
       isLiked: dto.isLiked,
       description: dto.description,
-      // TODO: DTO에서 priceOptions, portfolioImages 매핑 추가
-      priceOptions: [], // 임시로 빈 리스트
-      portfolioImages: [], // 임시로 빈 리스트
+      priceOptions: dto.priceOptions.map((dto) => dto.toModel()).toList(), // 변경
+      portfolioImages: dto.portfolioImages, // 변경
     );
   }
 

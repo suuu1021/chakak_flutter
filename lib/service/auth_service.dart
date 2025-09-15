@@ -21,4 +21,20 @@ class AuthService {
       throw Exception("로그인 실패: ${response.statusCode}");
     }
   }
+
+  // 소셜 로그인(카카오/ 네이버)
+  static Future<String> socialLogin(
+      String provider, String code, String typeCode) async {
+    // provider = "kakao" / "naver"
+    final response = await _dio.post(
+      "/api/auth/$provider/login",
+      data: {"code": code, "typeCode": typeCode},
+    );
+    if (response.statusCode == 200) {
+      return response.data["jwt"]; // 백엔드에서 내려주는 키(jwt)
+    } else {
+      final errorResponse = response.data["msg"] ?? "알 수 없는 오류";
+      throw Exception("$provider 로그인 실패: ${response.statusCode}");
+    }
+  }
 }

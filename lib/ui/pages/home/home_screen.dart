@@ -1,4 +1,5 @@
 import 'package:chakak_flutter/_core/constants/app_routes.dart';
+import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
@@ -11,6 +12,7 @@ import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../photo_service/photo_service_detail_page.dart';
 import '../profile/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../search/search_screen.dart';
@@ -22,6 +24,7 @@ class HomeScreen extends ConsumerWidget {
     HomeContent(),
     SearchScreen(),
     Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
+    ChatListScreen(),
     MyProfilePage(), // PhotographerProfilePage에서 MyProfilePage로 변경
   ];
 
@@ -47,8 +50,14 @@ class HomeContent extends ConsumerWidget {
     print('배너 클릭: ${banner.title}');
   }
 
-  void _onServiceTap(PhotoService service) {
-    print('포토 서비스 클릭 : ${service.title}');
+  void _onServiceTap(BuildContext context, PhotoService service) {
+    // PhotoServiceDetailPage로 네비게이션
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotoServiceDetailPage(service: service),
+      ),
+    );
   }
 
   void _onPhotographerTap(BuildContext context, Photographer photographer) {
@@ -97,7 +106,7 @@ class HomeContent extends ConsumerWidget {
 
           const SizedBox(height: 10),
           ServiceCardList(
-            onServiceTap: _onServiceTap,
+            onServiceTap: (service) => _onServiceTap(context, service),
           ),
           const SizedBox(height: 24),
           PhotographerCardList(
