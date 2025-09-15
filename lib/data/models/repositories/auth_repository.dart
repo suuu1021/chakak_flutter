@@ -23,20 +23,27 @@ class AuthRepository {
     try {
       final res = await _dio.post('/api/users/login', data: request.toJson());
 
-      // ApiUtil 래핑 대응
-      final data = (res.data is Map && res.data['data'] != null)
-          ? res.data['data']
-          : res.data;
+      final raw = res.data;
+      final data =
+          (raw is Map && raw['response'] != null) ? raw['response'] : raw;
 
       final parsed = LoginResponse.fromJson(data);
 
-      // 필요 시 자동 헤더 세팅
       if (parsed.tokenType.isNotEmpty && parsed.accessToken.isNotEmpty) {
         setAuthHeader(
             tokenType: parsed.tokenType, accessToken: parsed.accessToken);
       }
       return parsed;
     } on DioException catch (e) {
+      // ✅ 여기 디버깅용 로그 추가
+      print("DioException 발생: ${e.type}, ${e.message}");
+      if (e.response != null) {
+        print("응답 상태코드: ${e.response?.statusCode}");
+        print("응답 바디: ${e.response?.data}");
+      } else {
+        print("서버 응답 없음 (네트워크 문제일 가능성 높음)");
+      }
+
       final status = e.response?.statusCode;
       final body = e.response?.data;
       throw Exception('로그인 실패 ($status): $body');
