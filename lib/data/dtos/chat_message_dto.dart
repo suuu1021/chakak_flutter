@@ -1,6 +1,3 @@
-
-import 'package:intl/intl.dart';
-
 class ChatMessageDto {
   final int? chatMessageId;
   final int chatRoomId;
@@ -57,6 +54,6 @@ class ChatMessageDto {
   }
 }
 
-
 enum SenderType { USER, PHOTOGRAPHER }
+
 enum MessageType { TEXT, PAYMENT_REQUEST }

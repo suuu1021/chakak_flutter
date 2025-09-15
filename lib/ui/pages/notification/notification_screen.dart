@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'package:chakak_flutter/data/dtos/notification_dto.dart';
+import 'package:flutter/material.dart';
+
 import 'widgets/notification_item.dart';
 
 class NotificationScreen extends StatelessWidget {
@@ -53,16 +53,15 @@ class NotificationScreen extends StatelessWidget {
       ),
       body: notifications.isEmpty
           ? const Center(
-        child: Text(
-          "알림이 없습니다.",
-          style: TextStyle(fontSize: 16, color: Colors.black54),
-        ),
-      )
+              child: Text(
+                "알림이 없습니다.",
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+            )
           : ListView(
-        children:
-        notifications.map((n) => NotificationItem(dto: n)).toList(),
-      ),
-      bottomNavigationBar: const CustomBottomNavigationBar(),
+              children:
+                  notifications.map((n) => NotificationItem(dto: n)).toList(),
+            ),
     );
   }
 }

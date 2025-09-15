@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'package:chakak_flutter/data/dtos/help_dto.dart';
 import 'package:chakak_flutter/ui/pages/help_center/widgets/contact_card.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});

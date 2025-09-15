@@ -11,10 +11,7 @@ class NotificationItem extends StatelessWidget {
     return ListTile(
       leading: Stack(
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundImage: AssetImage(dto.avatar), // DTO의 avatar 사용
-          ),
+          _buildAvatar(),
           if (!dto.isRead)
             Positioned(
               right: 0,
@@ -39,6 +36,44 @@ class NotificationItem extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(color: Colors.black54, fontSize: 13),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    if (dto.avatar.isEmpty) {
+      return _buildPlaceholderAvatar();
+    }
+
+    // HTTP URL인 경우 네트워크 이미지
+    if (dto.avatar.startsWith('http')) {
+      return CircleAvatar(
+        radius: 22,
+        backgroundImage: NetworkImage(dto.avatar),
+        onBackgroundImageError: (exception, stackTrace) {
+          // 에러 발생시 기본 처리
+        },
+      );
+    }
+
+    // 로컬 asset 이미지인 경우
+    return CircleAvatar(
+      radius: 22,
+      backgroundImage: AssetImage(dto.avatar),
+      onBackgroundImageError: (exception, stackTrace) {
+        // 에러 발생시 기본 처리
+      },
+    );
+  }
+
+  Widget _buildPlaceholderAvatar() {
+    return CircleAvatar(
+      radius: 22,
+      backgroundColor: Colors.grey[300],
+      child: const Icon(
+        Icons.person,
+        color: Colors.grey,
+        size: 24,
       ),
     );
   }

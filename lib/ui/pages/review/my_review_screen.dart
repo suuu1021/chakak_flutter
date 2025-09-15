@@ -58,7 +58,6 @@ class MyReviewScreen extends StatelessWidget {
                 );
               }).toList(),
             ),
-      bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }
