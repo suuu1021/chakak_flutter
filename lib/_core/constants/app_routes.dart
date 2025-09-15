@@ -1,10 +1,12 @@
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:flutter/material.dart';
+
+import '../../data/models/portfolio.dart'; //
 import '../../ui/pages/auth/login_choice_screen.dart';
 import '../../ui/pages/auth/login_screen.dart';
 import '../../ui/pages/auth/signup_screen.dart';
 import '../../ui/pages/auth/social_login_screen.dart';
-import '../../ui/pages/booking/user_booking_list_page.dart';
+import '../../ui/pages/booking/booking_management_screen.dart';
 import '../../ui/pages/chat/chat_screen.dart';
 import '../../ui/pages/help_center/help_center_screen.dart';
 import '../../ui/pages/home/home_screen.dart';
@@ -20,9 +22,7 @@ import '../../ui/pages/splash/splash_screen.dart';
 import '../../ui/pages/payment/payment_form_screen.dart';
 import '../../ui/pages/payment/payment_success_screen.dart';
 import '../../ui/pages/payment/payment_fail_screen.dart';
-
 import 'user_type.dart';
-import '../../data/models/portfolio.dart';
 
 class AppRoutes {
   // 라우트 이름 상수
@@ -50,48 +50,47 @@ class AppRoutes {
 
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
-    splash: (context) => const SplashScreen(),
-    onboarding: (context) => const OnboardingScreen(),
-    loginChoice: (context) => const LoginChoiceScreen(),
-    login: (context) => const LoginScreen(),
-    signup: (context) => const SignupScreen(),
-    socialLogin: (context) => const SocialLoginScreen(),
-    home: (context) => const HomeScreen(),
-    helpCenter: (context) => const HelpCenterScreen(),
-    notification: (context) => const NotificationScreen(),
-    myReviews: (context) => const MyReviewScreen(),
-    photographerProfileForm: (context) =>
-    const PhotographerProfileFormPage(),
-    photographerReviews: (context) => const PhotographerReviewScreen(),
-    reviewManager: (context) =>
-    const ReviewManagerScreen(userType: UserType.user),
-    portfolioDetail: (context) {
-      final portfolio =
-      ModalRoute.of(context)!.settings.arguments as Portfolio;
-      return PortfolioDetailPage(portfolio: portfolio);
-    },
-    userBookingList: (context) => const UserBookingListPage(),
-    search: (context) => const SearchScreen(),
-    chat: (context) {
-      final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
-      return ChatScreen(chatRoomId: chatRoomId);
-    },
-    chatList: (context) => const ChatListScreen(),
-    paymentForm: (context) {
-      final args =
-      ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      return PaymentFormScreen(
-        itemName: args['itemName'],
-        totalAmount: args['totalAmount'],
-      );
-    },
-    paymentSuccess: (context) => const PaymentSuccessScreen(),
-    paymentFail: (context) {
-      final reason =
-      ModalRoute.of(context)!.settings.arguments as String?;
-      return PaymentFailScreen(reason: reason);
-    },
-  };
+        splash: (context) => const SplashScreen(),
+        onboarding: (context) => const OnboardingScreen(),
+        loginChoice: (context) => const LoginChoiceScreen(),
+        login: (context) => const LoginScreen(),
+        signup: (context) => const SignupScreen(),
+        socialLogin: (context) => const SocialLoginScreen(),
+        home: (context) => const HomeScreen(),
+        helpCenter: (context) => const HelpCenterScreen(),
+        notification: (context) => const NotificationScreen(),
+        myReviews: (context) => const MyReviewScreen(),
+        photographerProfileForm: (context) =>
+            const PhotographerProfileFormPage(),
+        photographerReviews: (context) => const PhotographerReviewScreen(),
+        reviewManager: (context) =>
+            const ReviewManagerScreen(userType: UserType.user),
+        portfolioDetail: (context) {
+          final portfolio =
+              ModalRoute.of(context)!.settings.arguments as Portfolio;
+          return PortfolioDetailPage(portfolio: portfolio);
+        },
+        userBookingList: (context) => const BookingManagementScreen(),
+        search: (context) => const SearchScreen(),
+        chat: (context) {
+          final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
+          return ChatScreen(chatRoomId: chatRoomId);
+        },
+        chatList: (context) => const ChatListScreen(),
+        paymentForm: (context) {
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>;
+          return PaymentFormScreen(
+            itemName: args['itemName'],
+            totalAmount: args['totalAmount'],
+          );
+        },
+        paymentSuccess: (context) => const PaymentSuccessScreen(),
+        paymentFail: (context) {
+          final reason = ModalRoute.of(context)!.settings.arguments as String?;
+          return PaymentFailScreen(reason: reason);
+        },
+      };
 
   // 초기 라우트
   static const String initialRoute = splash;

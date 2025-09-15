@@ -3,8 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-
-import '../../dtos/booking_create_request_dto.dart';
+import '../../dtos/booking/booking_request_dto.dart';
 import '../../dtos/booking_detail_dto.dart';
 import '../../dtos/booking_photographer_list_dto.dart';
 import '../../dtos/booking_user_list_dto.dart';
