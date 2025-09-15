@@ -44,12 +44,6 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.support_agent),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.helpCenter);
-                },
-              ),
-              IconButton(
                 icon: const Icon(Icons.reviews), //  리뷰 아이콘
                 onPressed: () {
                   //  일반 사용자라면 내가 작성한 리뷰로

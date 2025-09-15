@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
+import '../help_center/help_center_screen.dart';
 
 class MyProfilePage extends StatelessWidget {
   const MyProfilePage({super.key});
@@ -15,7 +16,7 @@ class MyProfilePage extends StatelessWidget {
           children: [
             _buildProfileHeader(),
             const SizedBox(height: AppSizes.spacing24),
-            _buildMenuList(),
+            _buildMenuList(context),
           ],
         ),
       ),
@@ -108,23 +109,55 @@ class MyProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuList() {
+  Widget _buildMenuList(BuildContext context) {
     final menuItems = [
       {
         'icon': Icons.bookmark,
         'title': '찜한 서비스',
-        'subtitle': '관심있는 서비스를 확인하세요'
+        'subtitle': '관심있는 서비스를 확인하세요',
+        'onTap': () => print('찜한 서비스 클릭'),
       },
-      {'icon': Icons.history, 'title': '예약 내역', 'subtitle': '지난 예약 내역을 확인하세요'},
-      {'icon': Icons.camera_alt, 'title': '내 사진', 'subtitle': '촬영된 사진들을 확인하세요'},
-      {'icon': Icons.star, 'title': '리뷰 관리', 'subtitle': '작성한 리뷰를 관리하세요'},
+      {
+        'icon': Icons.history,
+        'title': '예약 내역',
+        'subtitle': '지난 예약 내역을 확인하세요',
+        'onTap': () => print('예약 내역 클릭'),
+      },
+      {
+        'icon': Icons.camera_alt,
+        'title': '내 사진',
+        'subtitle': '촬영된 사진들을 확인하세요',
+        'onTap': () => print('내 사진 클릭'),
+      },
+      {
+        'icon': Icons.star,
+        'title': '리뷰 관리',
+        'subtitle': '작성한 리뷰를 관리하세요',
+        'onTap': () => print('리뷰 관리 클릭'),
+      },
       {
         'icon': Icons.notifications,
         'title': '알림 설정',
-        'subtitle': '알림 설정을 변경하세요'
+        'subtitle': '알림 설정을 변경하세요',
+        'onTap': () => print('알림 설정 클릭'),
       },
-      {'icon': Icons.help, 'title': '고객센터', 'subtitle': '문의사항이 있으시면 연락주세요'},
-      {'icon': Icons.settings, 'title': '설정', 'subtitle': '앱 설정을 변경하세요'},
+      {
+        'icon': Icons.help,
+        'title': '고객센터',
+        'subtitle': '문의사항이 있으시면 연락주세요',
+        'onTap': () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HelpCenterScreen(),
+              ),
+            ),
+      },
+      {
+        'icon': Icons.settings,
+        'title': '설정',
+        'subtitle': '앱 설정을 변경하세요',
+        'onTap': () => print('설정 클릭'),
+      },
     ];
 
     return Column(
@@ -133,6 +166,7 @@ class MyProfilePage extends StatelessWidget {
                 icon: item['icon'] as IconData,
                 title: item['title'] as String,
                 subtitle: item['subtitle'] as String,
+                onTap: item['onTap'] as VoidCallback,
               ))
           .toList(),
     );
@@ -142,6 +176,7 @@ class MyProfilePage extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
+    required VoidCallback onTap,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: AppSizes.spacing8),
@@ -188,9 +223,7 @@ class MyProfilePage extends StatelessWidget {
           Icons.chevron_right,
           color: AppColors.gray400,
         ),
-        onTap: () {
-          print('$title 클릭');
-        },
+        onTap: onTap,
       ),
     );
   }
