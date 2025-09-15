@@ -4,15 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/session_provider.dart';
 
 // TODO: 앱 전체에서 사용할 API 서버의 기본 주소로 변경하세요.
-const String apiBaseUrl = "http://192.168.0.184:8080";
+const String apiBaseUrl = "http://10.0.2.2:8080";
 
 // Dio 인스턴스를 제공하는 Provider
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
       baseUrl: apiBaseUrl,
-      connectTimeout: const Duration(seconds: 10), // 연결 타임아웃
-      receiveTimeout: const Duration(seconds: 10), // 응답 타임아웃
+      connectTimeout: const Duration(seconds: 30), // 연결 타임아웃
+      receiveTimeout: const Duration(seconds: 30), // 응답 타임아웃
     ),
   );
 

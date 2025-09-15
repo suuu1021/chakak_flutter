@@ -1,40 +1,49 @@
+// lib/service/auth_service.dart
+
 import 'package:dio/dio.dart';
 
 class AuthService {
-  static final Dio _dio = Dio(BaseOptions(
-    baseUrl: "http://10.0.2.2:8080", // 👉 백엔드 서버 주소로 변경 필요
-    connectTimeout: const Duration(seconds: 5),
-    receiveTimeout: const Duration(seconds: 5),
-    headers: {"Content-Type": "application/json"},
-  ));
+  final Dio _dio;
 
-  static Future<String> login(String email, String password) async {
-    final response = await _dio.post("/auth/login", data: {
-      "email": email,
-      "password": password,
-    });
+  AuthService(this._dio);
 
-    if (response.statusCode == 200) {
-      // ✅ JWT 토큰 반환
-      return response.data["token"];
-    } else {
-      throw Exception("로그인 실패: ${response.statusCode}");
+  Future<String> login(String email, String password) async {
+    try {
+      final response = await _dio.post(
+        "/auth/login",
+        data: {
+          "email": email,
+          "password": password,
+        },
+      );
+
+      // ✅ [수정] 올바른 경로에서 토큰을 추출합니다.
+      // response.data["token"] -> response.data["body"]["accessToken"]
+      final String? accessToken = response.data["body"]["accessToken"];
+      if (accessToken == null) {
+        throw Exception("서버 응답에 accessToken이 없습니다.");
+      }
+      return accessToken;
+
+    } on DioException catch (e) {
+      throw Exception("로그인 실패: ${e.response?.data['msg'] ?? '알 수 없는 오류'}");
+    } catch (e) {
+      // accessToken이 null인 경우 등 다른 예외 처리
+      throw Exception("로그인 처리 중 오류가 발생했습니다: $e");
     }
   }
 
-  // 소셜 로그인(카카오/ 네이버)
-  static Future<String> socialLogin(
-      String provider, String code, String typeCode) async {
-    // provider = "kakao" / "naver"
-    final response = await _dio.post(
-      "/api/auth/$provider/login",
-      data: {"code": code, "typeCode": typeCode},
-    );
-    if (response.statusCode == 200) {
-      return response.data["jwt"]; // 백엔드에서 내려주는 키(jwt)
-    } else {
-      final errorResponse = response.data["msg"] ?? "알 수 없는 오류";
-      throw Exception("$provider 로그인 실패: ${response.statusCode}");
+  // ... socialLogin 함수는 그대로 ...
+  Future<String> socialLogin(String provider, String code, String typeCode) async {
+    try {
+      final response = await _dio.post(
+        "/api/auth/$provider/login",
+        data: {"code": code, "typeCode": typeCode},
+      );
+      // 이전 코드에서 "jwt" 키를 사용했으므로, 이를 유지합니다.
+      return response.data["jwt"];
+    } on DioException catch (e) {
+      throw Exception("$provider 로그인 실패: ${e.response?.data['msg'] ?? '알 수 없는 오류가 발생했습니다.'}");
     }
   }
 }
