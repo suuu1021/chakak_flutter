@@ -23,7 +23,12 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       initialRoute: AppRoutes.initialRoute,
       routes: AppRoutes.routes,
-      theme: ThemeData(scaffoldBackgroundColor: Colors.white),
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          surfaceTintColor: Colors.transparent,
+        ),
+      ),
     );
   }
 }
