@@ -210,8 +210,11 @@ class _BookingManagementScreenState
           children: [
             Text(paymentState.errorMessage!),
             ElevatedButton(
-              onPressed: () =>
-                  ref.read(paymentProvider.notifier).loadPayments(),
+              onPressed: () {
+                if (mounted) {
+                  ref.read(paymentProvider.notifier).loadPayments();
+                }
+              },
               child: const Text('다시 시도'),
             ),
           ],

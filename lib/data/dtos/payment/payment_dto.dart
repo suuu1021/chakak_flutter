@@ -49,6 +49,25 @@ class PaymentDto {
     );
   }
 
+  // Payment 모델로부터 PaymentDto 생성
+  factory PaymentDto.fromPayment(Payment payment) {
+    return PaymentDto(
+      paymentId: payment.paymentId,
+      tid: payment.tid,
+      partnerOrderId: payment.partnerOrderId,
+      partnerUserId: payment.partnerUserId,
+      itemName: payment.itemName,
+      totalAmount: payment.totalAmount,
+      vatAmount: payment.vatAmount,
+      taxFreeAmount: payment.taxFreeAmount,
+      status: payment.status.name.toUpperCase(),
+      paymentMethodType: payment.paymentMethodType,
+      aid: payment.aid,
+      createdAt: payment.createdAt.toIso8601String(),
+      approvedAt: payment.approvedAt?.toIso8601String(),
+    );
+  }
+
   // DTO를 Model로 변환
   Payment toModel() {
     return Payment(

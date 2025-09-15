@@ -6,8 +6,55 @@ import '../../_core/constants/app_routes.dart';
 import '../../_core/constants/app_strings.dart';
 import 'custom_bottom_navigation_bar.dart';
 
-class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
+class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppbar({super.key});
+
+  @override
+  State<CustomAppbar> createState() => _CustomAppbarState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _CustomAppbarState extends State<CustomAppbar> {
+  bool _isNavigating = false;
+
+  void _navigateToRoute(String route) {
+    if (_isNavigating || !mounted) return;
+
+    // Navigator가 현재 안전한 상태인지 확인
+    final navigator = Navigator.of(context, rootNavigator: false);
+    final modalRoute = ModalRoute.of(context);
+
+    if (modalRoute == null || !modalRoute.isCurrent) {
+      return;
+    }
+
+    setState(() {
+      _isNavigating = true;
+    });
+
+    // 현재 프레임이 완전히 끝난 후에 실행
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      Future.delayed(const Duration(milliseconds: 100), () async {
+        if (!mounted || _isNavigating == false) return;
+
+        try {
+          await navigator.pushNamed(route);
+        } catch (e) {
+          print('Navigation error: $e');
+        } finally {
+          if (mounted) {
+            setState(() {
+              _isNavigating = false;
+            });
+          }
+        }
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,32 +76,40 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () {
-                  ProviderScope.containerOf(context)
-                      .read(bottomNavIndexProvider.notifier)
-                      .state = 1;
-                },
+                onPressed: _isNavigating
+                    ? null
+                    : () {
+                        ProviderScope.containerOf(context)
+                            .read(bottomNavIndexProvider.notifier)
+                            .state = 1;
+                      },
               ),
               IconButton(
                 icon: const Icon(Icons.notifications),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.notification);
-                },
+                onPressed: _isNavigating
+                    ? null
+                    : () {
+                        _navigateToRoute(AppRoutes.notification);
+                      },
               ),
               IconButton(
                 icon: const Icon(Icons.calendar_month),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.userBookingList);
-                },
+                onPressed: _isNavigating
+                    ? null
+                    : () {
+                        _navigateToRoute(AppRoutes.userBookingList);
+                      },
               ),
               IconButton(
                 icon: const Icon(Icons.reviews), //  리뷰 아이콘
-                onPressed: () {
-                  //  일반 사용자라면 내가 작성한 리뷰로
-                  Navigator.of(context).pushNamed(AppRoutes.myReviews);
-                  //  포토그래퍼 계정이면 아래 코드로 교체
-                  // Navigator.pushNamed(context, '/photographer-reviews');
-                },
+                onPressed: _isNavigating
+                    ? null
+                    : () {
+                        //  일반 사용자라면 내가 작성한 리뷰로
+                        _navigateToRoute(AppRoutes.myReviews);
+                        //  포토그래퍼 계정이면 아래 코드로 교체
+                        // _navigateToRoute('/photographer-reviews');
+                      },
               ),
             ],
           ),
@@ -62,7 +117,4 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
