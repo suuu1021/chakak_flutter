@@ -13,20 +13,19 @@ abstract class PhotoServiceCategoryRepository {
 
 class PhotoServiceCategoryRepositoryImpl
     implements PhotoServiceCategoryRepository {
-
   final Dio _dio = Dio(); // Dio 인스턴스 생성
 
   // 플랫폼별 서버 주소 설정
   static String get serverUrl {
-    if(Platform.isAndroid) {
+    if (Platform.isAndroid) {
       print("object 1");
-      return 'http://192.168.0.85:8080';
-    } else if(Platform.isIOS) {
+      return 'http://192.168.0.82:8080';
+    } else if (Platform.isIOS) {
       print("object 2");
-      return 'http://192.168.0.85:8080';
+      return 'http://192.168.0.82:8080';
     } else {
       print("object 3");
-      return 'http://192.168.0.85:8080';
+      return 'http://192.168.0.82:8080';
     }
   }
 
@@ -40,16 +39,17 @@ class PhotoServiceCategoryRepositoryImpl
         final Map<String, dynamic> apiResponse = response.data;
 
         // 실제 카테고리 목록은 'body' 키 아래의 리스트입니다.
-        final List<dynamic> categoryListFromResponse = apiResponse['body'] as List<dynamic>;
+        final List<dynamic> categoryListFromResponse =
+            apiResponse['body'] as List<dynamic>;
 
         // 각 항목을 DTO로 변환한 후, 모델로 변환합니다.
-        final List<PhotoServiceCategory> categories = categoryListFromResponse
-            .map((item) {
+        final List<PhotoServiceCategory> categories =
+            categoryListFromResponse.map((item) {
           // item은 Map<String, dynamic> 형태입니다.
-          final PhotoServiceCategoryDto dto = PhotoServiceCategoryDto.fromJson(item as Map<String, dynamic>);
+          final PhotoServiceCategoryDto dto =
+              PhotoServiceCategoryDto.fromJson(item as Map<String, dynamic>);
           return PhotoServiceCategory.fromDto(dto); // 모델 클래스에 정의된 fromDto 사용
-        })
-            .toList();
+        }).toList();
         print(categories);
         return categories;
       } else {

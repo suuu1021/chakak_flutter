@@ -3,44 +3,63 @@ import '../models/user_profile.dart';
 
 class UserProfileDto {
   final int userProfileId;
-  final Map<String, dynamic> user;
+  final Map<String, dynamic>? user;
   final String nickName;
   final String? introduce;
   final String? imageData;
-  final String createdAt;
-  final String updatedAt;
+  final String? createdAt;
+  final String? updatedAt;
 
   UserProfileDto({
     required this.userProfileId,
-    required this.user,
+    this.user,
     required this.nickName,
     this.introduce,
     this.imageData,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory UserProfileDto.fromJson(Map<String, dynamic> json) {
     return UserProfileDto(
       userProfileId: json['userProfileId'] ?? 0,
-      user: json['user'] ?? {},
+      user: json['user'] as Map<String, dynamic>?,
       nickName: json['nickName'] ?? '',
       introduce: json['introduce'],
       imageData: json['imageData'],
-      createdAt: json['createdAt'] ?? '',
-      updatedAt: json['updatedAt'] ?? '',
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
     );
   }
 
   UserProfile toModel() {
+    // user 객체가 없는 경우 기본 User 생성
+    User userModel;
+    if (user != null && user!.isNotEmpty) {
+      userModel = User.fromJson(user!);
+    } else {
+      // 기본 User 객체 생성 (프로필 조회 시 User 정보가 없는 경우)
+      userModel = User(
+        userId: 0,
+        email: 'unknown@example.com',
+        userTypeName: 'user', // userType → userTypeName으로 변경
+        status: UserStatus.ACTIVE,
+        emailVerified: false,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+    }
+
     return UserProfile(
       userProfileId: userProfileId,
-      user: User.fromJson(user),
+      user: userModel,
       nickName: nickName,
       introduce: introduce,
       imageData: imageData,
-      createdAt: DateTime.parse(createdAt),
-      updatedAt: DateTime.parse(updatedAt),
+      createdAt:
+          createdAt != null ? DateTime.parse(createdAt!) : DateTime.now(),
+      updatedAt:
+          updatedAt != null ? DateTime.parse(updatedAt!) : DateTime.now(),
     );
   }
 }
