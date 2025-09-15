@@ -3,6 +3,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../data/models/photo_service/photo_service.dart';
+import '../profile/photographer/photographer_profile_page.dart';
 import 'widgets/service_image_section.dart';
 import 'widgets/service_info_section.dart';
 import 'widgets/service_price_section.dart';
@@ -150,18 +151,26 @@ class PhotoServiceDetailPage extends StatelessWidget {
   }
 
   void _onPhotographerProfileTap(BuildContext context) {
-    // TODO: 포토그래퍼 프로필 페이지로 이동
-    print('포토그래퍼 프로필 - photographerId: ${service.photographerId}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotographerProfilePage(
+          photographerId: service.photographerId,
+        ),
+      ),
+    );
   }
 
   void _onOtherServiceTap(BuildContext context, PhotoService otherService) {
-    // TODO: 다른 서비스 상세 페이지로 이동
+    // 다른 서비스 상세 페이지로 이동
+    // pushReplacement 사용하여 뒤로가기 시 이전 서비스로 돌아가지 않도록 함
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => PhotoServiceDetailPage(
           service: otherService,
-          otherServices: otherServices,
+          // otherServices는 새로운 서비스의 포토그래퍼 서비스들로 업데이트될 예정
+          // 현재는 기존 리스트를 전달하지만, 실제로는 Provider에서 다시 로드됨
         ),
       ),
     );

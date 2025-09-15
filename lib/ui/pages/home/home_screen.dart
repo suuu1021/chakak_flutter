@@ -11,6 +11,7 @@ import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../photo_service/photo_service_detail_page.dart';
 import '../profile/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../search/search_screen.dart';
@@ -47,8 +48,14 @@ class HomeContent extends ConsumerWidget {
     print('배너 클릭: ${banner.title}');
   }
 
-  void _onServiceTap(PhotoService service) {
-    print('포토 서비스 클릭 : ${service.title}');
+  void _onServiceTap(BuildContext context, PhotoService service) {
+    // PhotoServiceDetailPage로 네비게이션
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotoServiceDetailPage(service: service),
+      ),
+    );
   }
 
   void _onPhotographerTap(BuildContext context, Photographer photographer) {
@@ -97,7 +104,7 @@ class HomeContent extends ConsumerWidget {
 
           const SizedBox(height: 10),
           ServiceCardList(
-            onServiceTap: _onServiceTap,
+            onServiceTap: (service) => _onServiceTap(context, service),
           ),
           const SizedBox(height: 24),
           PhotographerCardList(
