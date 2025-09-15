@@ -115,10 +115,11 @@ class _HomeContentState extends ConsumerState<HomeContent>
               margin: const EdgeInsets.all(16),
             ),
 
-          // 카테고리
-          PhotoServiceCategoryWidget(
-            onCategorySelected: (category) => _onCategoryTap(context, category),
-          ),
+            // 카테고리
+            PhotoServiceCategoryWidget(
+              onCategorySelected: (category) =>
+                  _onCategoryTap(context, category),
+            ),
 
             const SizedBox(height: 10),
             ServiceCardList(
