@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 
-import '../../../../data/models/photo_service.dart';
+import '../../../../data/models/photo_service/photo_service.dart';
 import '../../../../provider/global/photoService/photo_service_notifier.dart';
 
 class ServiceCardList extends ConsumerStatefulWidget {
@@ -105,7 +105,7 @@ class ServiceCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
+              color: Colors.grey.withValues(alpha: 0.2),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 3),
@@ -120,21 +120,39 @@ class ServiceCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.asset(
-                    service.imageUrl,
-                    height: 140,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 140,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: Icon(Icons.broken_image, color: Colors.grey),
+                  child: service.imageUrl.startsWith('http')
+                      ? Image.network(
+                          service.imageUrl,
+                          height: 140,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 140,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(Icons.broken_image,
+                                    color: Colors.grey),
+                              ),
+                            );
+                          },
+                        )
+                      : Image.asset(
+                          service.imageUrl,
+                          height: 140,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 140,
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(Icons.broken_image,
+                                    color: Colors.grey),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
                 Positioned(
                   top: 8,
@@ -144,7 +162,7 @@ class ServiceCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(

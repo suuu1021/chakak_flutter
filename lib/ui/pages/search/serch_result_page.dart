@@ -2,7 +2,7 @@ import 'package:chakak_flutter/ui/pages/home/widgets/photographer_list_widget.da
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/models/photo_service.dart';
+import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photographer.dart';
 import '../../../provider/global/photoService/photo_service_notifier.dart';
 import '../../../provider/global/photographer/photographer_notifier.dart';
