@@ -1,3 +1,5 @@
+import 'dart:convert'; // Base64 디코딩을 위해 추가
+import 'dart:typed_data'; // Uint8List를 위해 추가
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
@@ -42,7 +44,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
           ),
         ),
         SizedBox(
-          height: 300,
+          height: 300, // 카드의 크기에 따라 조정될 수 있음
           child: _buildContent(serviceState),
         ),
       ],
@@ -95,16 +97,78 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget imageWidget;
+    if (service.imageUrl.startsWith('http')) {
+      imageWidget = Image.network(
+        service.imageUrl,
+        height: 140,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 140,
+            color: Colors.grey[200],
+            child: const Center(
+              child: Icon(Icons.broken_image, color: Colors.grey),
+            ),
+          );
+        },
+      );
+    } else if (service.imageUrl.isNotEmpty) { // http로 시작하지 않고, 비어있지 않다면 Base64로 간주
+      try {
+        String base64String = service.imageUrl;
+        // 데이터 프리픽스 제거 (예: "data:image/png;base64,")
+        if (base64String.startsWith('data:image')) {
+          base64String = base64String.split(',').last;
+        }
+        Uint8List imageBytes = base64Decode(base64String);
+        imageWidget = Image.memory(
+          imageBytes,
+          height: 140,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('Error decoding or displaying base64 image: $error');
+            return Container(
+              height: 140,
+              color: Colors.grey[200],
+              child: const Center(
+                child: Icon(Icons.broken_image, color: Colors.grey),
+              ),
+            );
+          },
+        );
+      } catch (e) {
+        print('Error processing base64 image string: $e');
+        imageWidget = Container(
+          height: 140,
+          color: Colors.grey[200],
+          child: const Center(
+            child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+          ),
+        );
+      }
+    } else {
+      // imageUrl이 비어있는 경우
+      imageWidget = Container(
+        height: 140,
+        color: Colors.grey[200],
+        child: const Center(
+          child: Icon(Icons.photo, color: Colors.grey, size: 40),
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 180,
+        width: 180, // 카드의 너비
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha: 0.2),
+              color: Colors.grey.withOpacity(0.2), // withValues 대신 withOpacity 사용
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 3),
@@ -118,40 +182,8 @@ class ServiceCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: service.imageUrl.startsWith('http')
-                      ? Image.network(
-                          service.imageUrl,
-                          height: 140,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 140,
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: Icon(Icons.broken_image,
-                                    color: Colors.grey),
-                              ),
-                            );
-                          },
-                        )
-                      : Image.asset(
-                          service.imageUrl,
-                          height: 140,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 140,
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: Icon(Icons.broken_image,
-                                    color: Colors.grey),
-                              ),
-                            );
-                          },
-                        ),
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: imageWidget, // 수정된 이미지 위젯 사용
                 ),
                 Positioned(
                   top: 8,
@@ -161,14 +193,14 @@ class ServiceCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: Colors.white.withOpacity(0.8), // withValues 대신 withOpacity 사용
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         service.isLiked
-                            ? Icons.bookmark_outlined
+                            ? Icons.bookmark_outlined // 북마크 아이콘 일관성 유지 (선택)
                             : Icons.bookmark_border_outlined,
-                        color: service.isLiked ? Colors.orange : Colors.black,
+                        color: service.isLiked ? AppColors.primary : Colors.black, // AppColors.primary 사용
                       ),
                     ),
                   ),
@@ -194,23 +226,25 @@ class ServiceCard extends StatelessWidget {
                     spacing: 6.0,
                     runSpacing: 4.0,
                     children: service.categories
-                        .take(3)
+                        .take(3) // 최대 3개 카테고리 표시
                         .map((categoryName) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                              child: Text(
-                                categoryName,
-                                style: AppTextStyles.categoryName,
-                              ),
-                            ))
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 4.0),
+                      decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1), // 카테고리 배경색 약간 투명하게
+                          borderRadius: BorderRadius.circular(16.0),
+                          border: Border.all(color: AppColors.primary, width: 0.5) // 테두리 추가
+                      ),
+                      child: Text(
+                        categoryName,
+                        style: AppTextStyles.categoryName.copyWith(color: AppColors.primary), // AppTextStyles 사용
+                      ),
+                    ))
                         .toList(),
                   ),
                   const SizedBox(height: 8),
                   Text(
+                    // 가격 포맷팅 (예: 10,000원~)
                     '${service.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원~',
                     style: const TextStyle(
                       fontSize: 16,

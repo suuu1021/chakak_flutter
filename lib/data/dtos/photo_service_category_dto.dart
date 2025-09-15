@@ -13,9 +13,9 @@ class PhotoServiceCategoryDto {
 
   factory PhotoServiceCategoryDto.fromJson(Map<String, dynamic> json) {
     return PhotoServiceCategoryDto(
-      id: json['id'],
-      name: json['name'],
-      categoryImageData: json['category_image_data'],
+      id: json['categoryId']?.toString() ?? '', // int를 String으로 변환, null일 경우 빈 문자열
+      name: json['categoryName'] as String? ?? '', // null일 경우 빈 문자열
+      categoryImageData: json['categoryImageData'] as String? ?? '', // null일 경우 빈 문자열
     );
   }
 

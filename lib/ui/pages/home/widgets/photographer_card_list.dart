@@ -1,4 +1,6 @@
 // lib/ui/pages/home/widgets/photographer_card_list.dart
+import 'dart:convert'; // Base64 디코딩을 위해 추가
+import 'dart:typed_data'; // Uint8List를 위해 추가
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
@@ -38,7 +40,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
-            '추천 작가',
+            '작가 목록',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -46,7 +48,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
           ),
         ),
         SizedBox(
-          height: 220,
+          height: 220, // 카드의 높이에 따라 조정
           child: _buildContent(photographerState),
         ),
       ],
@@ -99,6 +101,71 @@ class PhotographerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget imageWidget;
+    final String imageUrl = photographer.imageUrl; // Assume this is the Base64 string or a network URL
+
+    if (imageUrl.startsWith('http')) {
+      // Handle network image
+      imageWidget = Image.network(
+        imageUrl,
+        height: 120,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 120,
+            color: Colors.grey[200],
+            child: const Center(
+              child: Icon(Icons.person, color: Colors.grey, size: 40),
+            ),
+          );
+        },
+      );
+    } else if (imageUrl.isNotEmpty) {
+      // Handle Base64 image
+      try {
+        String base64String = imageUrl;
+        if (base64String.startsWith('data:image')) {
+          base64String = base64String.split(',').last;
+        }
+        Uint8List imageBytes = base64Decode(base64String);
+        imageWidget = Image.memory(
+          imageBytes,
+          height: 120,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('Error decoding Base64 image for photographer ${photographer.businessName}: $error');
+            return Container(
+              height: 120,
+              color: Colors.grey[200],
+              child: const Center(
+                child: Icon(Icons.person, color: Colors.grey, size: 40),
+              ),
+            );
+          },
+        );
+      } catch (e) {
+        print('Error processing Base64 string for photographer ${photographer.businessName}: $e');
+        imageWidget = Container(
+          height: 120,
+          color: Colors.grey[200],
+          child: const Center(
+            child: Icon(Icons.person, color: Colors.grey, size: 40),
+          ),
+        );
+      }
+    } else {
+      // Handle empty or null imageUrl (fallback)
+      imageWidget = Container(
+        height: 120,
+        color: Colors.grey[200],
+        child: const Center(
+          child: Icon(Icons.person, color: Colors.grey, size: 40),
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -122,23 +189,8 @@ class PhotographerCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.asset(
-                    photographer.imageUrl,
-                    height: 120,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 120,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child:
-                              Icon(Icons.person, color: Colors.grey, size: 40),
-                        ),
-                      );
-                    },
-                  ),
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: imageWidget, // Display the determined image widget
                 ),
                 Positioned(
                   top: 8,
@@ -153,7 +205,7 @@ class PhotographerCard extends StatelessWidget {
                       ),
                       child: Icon(
                         photographer.isLiked
-                            ? Icons.favorite
+                            ? Icons.favorite // 좋아요 아이콘
                             : Icons.favorite_border,
                         color: photographer.isLiked ? Colors.red : Colors.black,
                       ),
@@ -182,19 +234,20 @@ class PhotographerCard extends StatelessWidget {
                       spacing: 6.0,
                       runSpacing: 4.0,
                       children: photographer.categories
-                          .take(3)
+                          .take(3) // 최대 3개 카테고리 표시
                           .map((categoryName) => Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(16.0),
-                                ),
-                                child: Text(
-                                  categoryName,
-                                  style: AppTextStyles.categoryName,
-                                ),
-                              ))
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1), // AppColors 사용 및 투명도 조절
+                            borderRadius: BorderRadius.circular(16.0),
+                            border: Border.all(color: AppColors.primary, width: 0.5)
+                        ),
+                        child: Text(
+                          categoryName,
+                          style: AppTextStyles.categoryName.copyWith(color: AppColors.primary), // AppTextStyles 사용
+                        ),
+                      ))
                           .toList(),
                     ),
                   const SizedBox(height: 6),
@@ -217,3 +270,4 @@ class PhotographerCard extends StatelessWidget {
     );
   }
 }
+

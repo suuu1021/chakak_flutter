@@ -21,13 +21,13 @@ class PhotographerDto {
 
   factory PhotographerDto.fromJson(Map<String, dynamic> json) {
     return PhotographerDto(
-      id: json['id'],
-      businessName: json['business_name'],
-      imageUrl: json['image_url'],
-      categories: List<String>.from(json['categories'] ?? []),
-      rating: (json['rating'] ?? 0.0).toDouble(),
-      reviewCount: json['review_count'] ?? 0,
-      isLiked: json['is_liked'] ?? false,
+      id: json['photographerId'] as int? ?? 0, // id도 null일 수 있다면 기본값 처리
+      businessName: json['businessName'] as String? ?? '',
+      imageUrl: json['imageUrl'] as String? ?? '', // 수정된 부분
+      categories: List<String>.from((json['categories'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? []), // categories 내부 요소도 String으로 명시적 변환
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0, // num?으로 받고 toDouble()
+      reviewCount: json['reviewCount'] as int? ?? 0,
+      isLiked: json['is_liked'] as bool? ?? false,
     );
   }
 
@@ -35,7 +35,7 @@ class PhotographerDto {
     return {
       'id': id,
       'business_name': businessName,
-      'image_url': imageUrl,
+      'imageUrl': imageUrl,
       'categories': categories,
       'rating': rating,
       'review_count': reviewCount,

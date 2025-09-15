@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:chakak_flutter/_core/constants/app_images.dart';
+import 'package:chakak_flutter/data/dtos/photo_service_dto.dart';
+import 'package:dio/dio.dart';
 
 import '../photo_service/photo_service.dart';
 import '../photo_service/price_option.dart';
@@ -11,8 +15,108 @@ abstract class PhotoServiceRepository {
 }
 
 class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
+  final Dio _dio = Dio();
+
+  String get serverUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8080'; // Android emulator
+    } else if (Platform.isIOS) {
+      return 'http://localhost:8080'; // iOS simulator
+    } else {
+      // Wi-Fi 또는 다른 네트워크 환경에서의 PC IP (실제 개발 환경의 IP로 변경하세요)
+      // 예: return 'http://192.168.1.100:8080';
+      return 'http://192.168.0.85:8080'; // 현재 설정된 IP (사용자 환경에 맞게 수정 필요)
+    }
+  }
+
   @override
   Future<List<PhotoService>> getServices() async {
+    final String apiUrl = '$serverUrl/api/photo/services/list'; // 실제 API 엔드포인트
+    try {
+      final response = await _dio.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data;
+        // 서버 응답 구조에 'body' 키가 있고, 그 값이 리스트인지 확인
+        if (responseData.containsKey('body') && responseData['body'] is List) {
+          final List<dynamic> serviceListFromResponse = responseData['body'] as List<dynamic>;
+          final List<PhotoService> services = serviceListFromResponse
+              .map((item) {
+            // 각 아이템이 Map 형태인지 확인 후 DTO로 변환
+            if (item is Map<String, dynamic>) {
+              final dto = PhotoServiceDto.fromJson(item);
+              return dto.toModel(); // PhotoServiceDto에 toModel() 메서드가 있다고 가정
+            } else {
+              // 예외 처리 또는 로그: 리스트 내 아이템 형식이 올바르지 않음
+              print('Invalid item format in service list: $item');
+              return null; // 또는 예외를 던짐
+            }
+          })
+              .where((service) => service != null) // null이 아닌 객체만 필터링
+              .cast<PhotoService>() // 타입 캐스팅
+              .toList();
+          return services;
+        } else {
+          print('Error: Response "body" is not a list or "body" key is missing. URL: $apiUrl, Response: $responseData');
+          return [];
+        }
+      } else {
+        print('Error fetching services: ${response.statusCode}, URL: $apiUrl');
+        return [];
+      }
+    } on DioException catch (e) {
+      print('DioError fetching services: ${e.message}, URL: $apiUrl');
+      return [];
+    } catch (e) {
+      print('Unexpected error fetching services: $e, URL: $apiUrl');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<PhotoService>> getServicesByPhotographer(int photographerId) async {
+    // TODO: 실제 API 엔드포인트로 교체 (예: /api/photo/services/photographer/{photographerId} 또는 /api/photo/services?photographerId={photographerId})
+    final String apiUrl = '$serverUrl/api/photo/services/photographer/$photographerId';
+    try {
+      final response = await _dio.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data;
+        if (responseData.containsKey('body') && responseData['body'] is List) {
+          final List<dynamic> serviceListFromResponse = responseData['body'] as List<dynamic>;
+          final List<PhotoService> services = serviceListFromResponse
+              .map((item) {
+            if (item is Map<String, dynamic>) {
+              final dto = PhotoServiceDto.fromJson(item);
+              return dto.toModel();
+            } else {
+              print('Invalid item format in photographer service list: $item');
+              return null;
+            }
+          })
+              .where((service) => service != null)
+              .cast<PhotoService>()
+              .toList();
+          return services;
+        } else {
+          print('Error: Response "body" is not a list or "body" key is missing for photographer services. URL: $apiUrl, Response: $responseData');
+          return [];
+        }
+      } else {
+        print('Error fetching services by photographer: ${response.statusCode}, URL: $apiUrl');
+        return [];
+      }
+    } on DioException catch (e) {
+      print('DioError fetching services by photographer: ${e.message}, URL: $apiUrl');
+      return [];
+    } catch (e) {
+      print('Unexpected error fetching services by photographer: $e, URL: $apiUrl');
+      return [];
+    }
+  }
+
+
+  Future<List<PhotoService>> _getMockData() async {
     // TODO: 실제 API 호출로 교체
     await Future.delayed(const Duration(milliseconds: 500));
 
@@ -229,19 +333,6 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
     ];
 
     return mockData;
-  }
-
-  @override
-  Future<List<PhotoService>> getServicesByPhotographer(
-      int photographerId) async {
-    // TODO: 실제 API 호출로 교체 (예: GET /api/photographers/{photographerId}/services)
-    await Future.delayed(const Duration(milliseconds: 300));
-
-    // 전체 서비스에서 해당 포토그래퍼의 서비스만 필터링
-    final allServices = await getServices();
-    return allServices
-        .where((service) => service.photographerId == photographerId)
-        .toList();
   }
 
   @override

@@ -104,8 +104,7 @@ class HomeContent extends ConsumerWidget {
 
           // 카테고리
           PhotoServiceCategoryWidget(
-            onCategoryTap: (category) => _onCategoryTap(context, category),
-            showSeeAll: true,
+            onCategorySelected: (category) => _onCategoryTap(context, category),
           ),
 
           const SizedBox(height: 10),

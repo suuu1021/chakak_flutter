@@ -1,6 +1,8 @@
-import 'package:chakak_flutter/_core/constants/app_strings.dart';
-import 'package:chakak_flutter/_core/constants/app_images.dart';
-import '../photographer.dart';
+import 'dart:io' show Platform;
+import 'package:dio/dio.dart';
+import 'package:chakak_flutter/data/dtos/photographer_dto.dart'; // PhotographerDto 경로 (실제 경로로 수정 필요)
+import 'package:chakak_flutter/data/models/photographer.dart';
+// AppStrings, AppImages 등 목 데이터 관련 import는 제거됩니다.
 
 abstract class PhotographerRepository {
   Future<List<Photographer>> getPhotographers();
@@ -8,59 +10,87 @@ abstract class PhotographerRepository {
 }
 
 class PhotographerRepositoryImpl implements PhotographerRepository {
+  final Dio _dio = Dio();
+
+  String get serverUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8080'; // Android emulator
+    } else if (Platform.isIOS) {
+      return 'http://localhost:8080'; // iOS simulator
+    } else {
+      // Wi-Fi 또는 다른 네트워크 환경에서의 PC IP (실제 개발 환경의 IP로 변경하세요)
+      return 'http://192.168.0.85:8080'; // 현재 설정된 IP (사용자 환경에 맞게 수정 필요)
+    }
+  }
+
   @override
   Future<List<Photographer>> getPhotographers() async {
-    // TODO: 실제 API 호출로 교체
-    await Future.delayed(const Duration(milliseconds: 500));
+    // TODO: 실제 API 엔드포인트로 교체 (예: /api/photographers 또는 /api/photographers/list)
+    final String apiUrl = '$serverUrl/api/photographers';
+    try {
+      final response = await _dio.get(apiUrl);
 
-    final mockData = [
-      Photographer(
-        id: 1,
-        businessName: '감성 포토 스튜디오',
-        imageUrl: AppImages.onboarding,
-        categories: [
-          AppStrings.categoryWedding,
-          AppStrings.categoryCouple,
-          AppStrings.categoryEvent,
-        ],
-        rating: 4.8,
-        reviewCount: 120,
-        isLiked: true,
-      ),
-      Photographer(
-        id: 2,
-        businessName: '모던 스냅',
-        imageUrl: AppImages.onboarding2,
-        categories: [
-          AppStrings.categoryCouple,
-          AppStrings.categoryEvent,
-          AppStrings.categoryPersonal,
-        ],
-        rating: 4.9,
-        reviewCount: 98,
-        isLiked: false,
-      ),
-      Photographer(
-        id: 3,
-        businessName: '빛을 담는 사진관',
-        imageUrl: AppImages.onboarding,
-        categories: [
-          AppStrings.categoryCouple,
-          AppStrings.categoryEvent,
-          AppStrings.categoryPersonal,
-        ],
-        rating: 4.7,
-        reviewCount: 75,
-        isLiked: true,
-      ),
-    ];
-
-    return mockData;
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data;
+        // 서버 응답 구조에 'body' 키가 있고, 그 값이 리스트인지 확인
+        if (responseData.containsKey('body') && responseData['body'] is List) {
+          final List<dynamic> photographerListFromResponse = responseData['body'] as List<dynamic>;
+          final List<Photographer> photographers = photographerListFromResponse
+              .map((item) {
+            // 각 아이템이 Map 형태인지 확인 후 DTO로 변환
+            if (item is Map<String, dynamic>) {
+              // PhotographerDto가 정의되어 있고 fromJson, toModel 메서드가 있다고 가정
+              final dto = PhotographerDto.fromJson(item);
+              return dto.toModel();
+            } else {
+              print('Invalid item format in photographer list: $item');
+              return null;
+            }
+          })
+              .where((photographer) => photographer != null) // null이 아닌 객체만 필터링
+              .cast<Photographer>() // 타입 캐스팅
+              .toList();
+          return photographers;
+        } else {
+          print('Error: Response "body" is not a list or "body" key is missing for photographers. URL: $apiUrl, Response: $responseData');
+          return [];
+        }
+      } else {
+        print('Error fetching photographers: ${response.statusCode}, URL: $apiUrl');
+        return [];
+      }
+    } on DioException catch (e) {
+      print('DioError fetching photographers: ${e.message}, URL: $apiUrl');
+      return [];
+    } catch (e) {
+      print('Unexpected error fetching photographers: $e, URL: $apiUrl');
+      return [];
+    }
   }
 
   @override
   Future<void> updateLikeStatus(int photographerId, bool isLiked) async {
-    // TODO: 실제 API 호출로 교체
-    print('포토그래퍼 좋아요 상태 업데이트: $photographerId, $isLiked');
+    // TODO: 실제 API 엔드포인트 및 HTTP 메서드 (POST, PUT 등)로 교체
+    final String apiUrl = '$serverUrl/api/photographers/$photographerId/like';
+    try {
+      final response = await _dio.post( // 또는 _dio.put 등 API 명세에 따름
+        apiUrl,
+        data: {'isLiked': isLiked}, // 서버가 기대하는 요청 본문 형식으로 수정
+      );
+
+      // 성공 응답 코드 확인 (200, 204 등 API 명세에 따름)
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('Photographer like status updated successfully: $photographerId, $isLiked. URL: $apiUrl');
+      } else {
+        print('Error updating photographer like status: ${response.statusCode}, Message: ${response.data}, URL: $apiUrl');
+        // 필요시 예외 발생 또는 사용자에게 오류 알림
+      }
+    } on DioException catch (e) {
+      print('DioError updating photographer like status: ${e.message}, URL: $apiUrl');
+      // 필요시 예외 발생 또는 사용자에게 오류 알림
+    } catch (e) {
+      print('Unexpected error updating photographer like status: $e, URL: $apiUrl');
+      // 필요시 예외 발생 또는 사용자에게 오류 알림
+    }
   }
 }
