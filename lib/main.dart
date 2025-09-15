@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '_core/constants/app_routes.dart';
+import 'package:chakak_flutter/ui/pages/payment/payment_form_screen.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -21,8 +21,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      initialRoute: AppRoutes.initialRoute,
-      routes: AppRoutes.routes,
+      //initialRoute: AppRoutes.initialRoute,
+      // routes: AppRoutes.routes,
+      home: PaymentFormScreen(amount: 50000),
     );
   }
 }

@@ -5,7 +5,6 @@ import '../../ui/pages/auth/login_screen.dart';
 import '../../ui/pages/auth/signup_screen.dart';
 import '../../ui/pages/auth/social_login_screen.dart';
 import '../../ui/pages/booking/user_booking_list_page.dart';
-import '../../ui/pages/chat/chat_screen.dart';
 import '../../ui/pages/help_center/help_center_screen.dart';
 import '../../ui/pages/home/home_screen.dart';
 import '../../ui/pages/notification/notification_screen.dart';
@@ -20,6 +19,7 @@ import '../../ui/pages/splash/splash_screen.dart';
 
 import 'user_type.dart'; // ✅ ReviewManagerScreen용
 import '../../data/models/portfolio.dart'; //
+import '../../ui/pages/payment/payment_form_screen.dart';
 
 class AppRoutes {
   // 라우트 이름 상수
@@ -39,8 +39,7 @@ class AppRoutes {
   static const String portfolioDetail = '/portfolio-detail';
   static const String userBookingList = '/user-booking-list';
   static const String search = '/search';
-  static const String chat = '/chat';
-
+  static const String paymentForm = '/payment-form';
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
         splash: (context) => const SplashScreen(),
@@ -65,10 +64,10 @@ class AppRoutes {
         },
         userBookingList: (context) => const UserBookingListPage(),
         search: (context) => const SearchScreen(),
-        chat: (context) {
-          final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
-          return ChatScreen(chatRoomId: chatRoomId);
-        },
+       paymentForm: (context) {
+      final amount = ModalRoute.of(context)!.settings.arguments as int;
+      return PaymentFormScreen(amount: amount);
+    },
       };
 
   // 초기 라우트
