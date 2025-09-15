@@ -1,10 +1,11 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+import '../../../_core/utils/validator_util.dart';
 import '../../widgets/custom_auth_text_form_field.dart';
 import '../../widgets/custom_logo.dart';
-import '../../widgets/custom_auth_button_widgets.dart';
-import '../../../_core/utils/validator_util.dart';
 import 'profile_setup_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -57,7 +58,9 @@ class _SignupScreenState extends State<SignupScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("요청 실패: ${response.statusCode} / ${response.body}")),
+          SnackBar(
+              content:
+                  Text("요청 실패: ${response.statusCode} / ${response.body}")),
         );
       }
     } catch (e) {
@@ -118,7 +121,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   /// ✅ 회원 유형만 선택 후 프로필 설정으로 이동
   void _goToProfileSetup() {
-    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty || userType.isEmpty) {
+    if (email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        userType.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("모든 정보를 입력하세요.")),
       );
@@ -256,7 +262,8 @@ class _SignupScreenState extends State<SignupScreen> {
               onPressed: _goToProfileSetup,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
               child: const Text(
                 "다음",

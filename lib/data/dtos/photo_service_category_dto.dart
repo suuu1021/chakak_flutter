@@ -1,15 +1,14 @@
-// lib/data/dto/photo_service_category_dto.dart
+import '../models/photo_service_category.dart';
+
 class PhotoServiceCategoryDto {
   final String id;
   final String name;
   final String categoryImageData;
-  final String? backgroundColor;
 
   PhotoServiceCategoryDto({
     required this.id,
     required this.name,
     required this.categoryImageData,
-    this.backgroundColor,
   });
 
   factory PhotoServiceCategoryDto.fromJson(Map<String, dynamic> json) {
@@ -17,7 +16,6 @@ class PhotoServiceCategoryDto {
       id: json['id'],
       name: json['name'],
       categoryImageData: json['category_image_data'],
-      backgroundColor: json['background_color'],
     );
   }
 
@@ -26,7 +24,23 @@ class PhotoServiceCategoryDto {
       'id': id,
       'name': name,
       'category_image_data': categoryImageData,
-      'background_color': backgroundColor,
     };
+  }
+
+  factory PhotoServiceCategoryDto.fromModel(PhotoServiceCategory model) {
+    return PhotoServiceCategoryDto(
+      id: model.id,
+      name: model.name,
+      categoryImageData: model.categoryImageData,
+    );
+  }
+
+  // DTO에서 Model로 변환
+  PhotoServiceCategory toModel() {
+    return PhotoServiceCategory(
+      id: id,
+      name: name,
+      categoryImageData: categoryImageData,
+    );
   }
 }

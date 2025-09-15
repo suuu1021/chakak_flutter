@@ -7,7 +7,7 @@ class ContactCard extends StatelessWidget {
   final String? imagePath;
   final String title;
   final String? subtitle;
-  final Color color;       // 배경 색상 외부에서 전달받음
+  final Color color;
 
   const ContactCard({
     super.key,
@@ -22,26 +22,26 @@ class ContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 120,
+      height: 100, // 🔽 카드 크기 줄임 (기존 120 → 100)
       decoration: BoxDecoration(
-        color: color, // 외부에서 전달된 색상 사용
-        borderRadius: BorderRadius.circular(12),
+        color: color,
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (icon != null)
-            Icon(icon, size: 36, color: Colors.black87)
+            Icon(icon, size: 30, color: Colors.black87) // 🔽 아이콘 크기 축소
           else if (imagePath != null)
-            Image.asset(imagePath!, width: 40, height: 40),
-          const SizedBox(height: 8),
+            Image.asset(imagePath!, width: 32, height: 32), // 🔽 이미지 축소
+          const SizedBox(height: 6),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // 🔽 텍스트 축소
           ),
           if (subtitle != null)
-            Text(subtitle!, style: const TextStyle(fontSize: 12)),
+            Text(subtitle!, style: const TextStyle(fontSize: 11)), // 🔽 작은 텍스트 축소
         ],
       ),
     );

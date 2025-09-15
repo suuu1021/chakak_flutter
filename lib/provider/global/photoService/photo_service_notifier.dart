@@ -1,7 +1,7 @@
 import 'package:chakak_flutter/provider/global/photoService/photo_service_api_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/models/photo_service.dart';
+import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/repositories/photo_service_repository.dart';
 
 final photoServiceRepositoryProvider = Provider<PhotoServiceRepository>((ref) {
@@ -17,22 +17,26 @@ final photoServiceApiServiceProvider = Provider<PhotoServiceApiService>((ref) {
 // State 클래스
 class ServiceState {
   final List<PhotoService> services;
+  final Map<int, List<PhotoService>> photographerServices; // 포토그래퍼별 서비스 캐시
   final bool isLoading;
   final String? error;
 
   ServiceState({
     this.services = const [],
+    this.photographerServices = const {},
     this.isLoading = false,
     this.error,
   });
 
   ServiceState copyWith({
     List<PhotoService>? services,
+    Map<int, List<PhotoService>>? photographerServices,
     bool? isLoading,
     String? error,
   }) {
     return ServiceState(
       services: services ?? this.services,
+      photographerServices: photographerServices ?? this.photographerServices,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -55,8 +59,42 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
     }
   }
 
+  // 포토그래퍼별 서비스 로드 메서드 추가
+  Future<void> loadServicesByPhotographer(int photographerId) async {
+    try {
+      // 이미 캐시된 데이터가 있으면 로딩 상태 표시 안함
+      final isAlreadyCached =
+          state.photographerServices.containsKey(photographerId);
+
+      if (!isAlreadyCached) {
+        state = state.copyWith(isLoading: true, error: null);
+      }
+
+      final services =
+          await _apiService.getServicesByPhotographer(photographerId);
+
+      // 캐시에 저장
+      final updatedCache =
+          Map<int, List<PhotoService>>.from(state.photographerServices);
+      updatedCache[photographerId] = services;
+
+      state = state.copyWith(
+        photographerServices: updatedCache,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  // 포토그래퍼의 서비스 목록 가져오기 (캐시된 데이터 반환)
+  List<PhotoService> getPhotographerServices(int photographerId) {
+    return state.photographerServices[photographerId] ?? [];
+  }
+
   Future<void> toggleLike(int serviceId) async {
     try {
+      // 전체 서비스 목록에서 업데이트
       final services = state.services.map((service) {
         if (service.id == serviceId) {
           final newLikeStatus = !service.isLiked;
@@ -66,7 +104,23 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
         return service;
       }).toList();
 
-      state = state.copyWith(services: services);
+      // 포토그래퍼별 캐시에서도 업데이트
+      final updatedCache =
+          Map<int, List<PhotoService>>.from(state.photographerServices);
+      for (final photographerId in updatedCache.keys) {
+        updatedCache[photographerId] =
+            updatedCache[photographerId]!.map((service) {
+          if (service.id == serviceId) {
+            return service.copyWith(isLiked: !service.isLiked);
+          }
+          return service;
+        }).toList();
+      }
+
+      state = state.copyWith(
+        services: services,
+        photographerServices: updatedCache,
+      );
     } catch (e) {
       print('서비스 좋아요 상태 변경 실패: $e');
     }

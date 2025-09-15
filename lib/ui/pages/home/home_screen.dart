@@ -1,26 +1,28 @@
+import 'package:chakak_flutter/_core/constants/app_routes.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/service_card_list.dart';
-import 'package:chakak_flutter/ui/pages/search/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/banner.dart';
-import '../../../data/models/photo_service.dart';
+import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../profile/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
+import '../search/search_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   static const List<Widget> _pages = [
     HomeContent(),
-    SearchPage(),
+    SearchScreen(),
     Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
-    PhotographerProfilePage(),
+    MyProfilePage(), // PhotographerProfilePage에서 MyProfilePage로 변경
   ];
 
   @override
@@ -49,8 +51,16 @@ class HomeContent extends ConsumerWidget {
     print('포토 서비스 클릭 : ${service.title}');
   }
 
-  void _onPhotographerTap(Photographer photographer) {
-    print('포토그래퍼 클릭 : ${photographer.businessName}');
+  void _onPhotographerTap(BuildContext context, Photographer photographer) {
+    // 포토그래퍼 클릭시 프로필 페이지로 이동
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotographerProfilePage(
+          photographerId: photographer.id, // 포토그래퍼 ID 전달
+        ),
+      ),
+    );
   }
 
   @override
@@ -60,6 +70,16 @@ class HomeContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // TODO: 테스트용 나중에 지워야함
+          ElevatedButton(
+            onPressed: () {
+              // 채팅방 ID 1번으로 입장 (테스트용)
+              Navigator.pushNamed(context, AppRoutes.chat, arguments: 1);
+            },
+            child: const Text("채팅 테스트 (임시)"),
+          ),
+          const SizedBox(height: 16), // 버튼과 배너 사이 간격
+
           // 배너 영역
           BannerWidget(
             height: 180,
@@ -81,7 +101,8 @@ class HomeContent extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           PhotographerCardList(
-            onPhotographerTap: _onPhotographerTap,
+            onPhotographerTap: (photographer) =>
+                _onPhotographerTap(context, photographer),
           ),
         ],
       ),

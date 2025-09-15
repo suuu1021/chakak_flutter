@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'package:chakak_flutter/data/dtos/help_dto.dart';
-import 'widgets/contact_card.dart';
+import 'package:chakak_flutter/ui/pages/help_center/widgets/contact_card.dart';
 
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});
@@ -20,8 +20,8 @@ class HelpCenterScreen extends StatelessWidget {
 
   // 📌 카카오톡 채널 열기
   Future<void> _openKakaoChannel(BuildContext context) async {
-    const String kakaoAppUrl = 'kakaoplus://plusfriend/_igsxmn'; // 앱 링크 (실제 ID로 변경)
-    const String kakaoWebUrl = 'http://pf.kakao.com/_igsxmn';   // 웹 링크 (실제 URL로 변경)
+    const String kakaoAppUrl = 'kakaoplus://plusfriend/_igsxmn';
+    const String kakaoWebUrl = 'http://pf.kakao.com/_igsxmn';
 
     try {
       final Uri kakaoAppUri = Uri.parse(kakaoAppUrl);
@@ -71,6 +71,7 @@ class HelpCenterScreen extends StatelessWidget {
     );
 
     return Scaffold(
+      backgroundColor: Colors.white, // 배경 흰색
       appBar: AppBar(
         title: const Text("고객센터"),
         centerTitle: true,
@@ -78,48 +79,125 @@ class HelpCenterScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: Padding(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.white,
         padding: const EdgeInsets.all(20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 화면 전체 균등 배치
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text("도움이 필요하신가요?",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Text(helpInfo.content,
-                style: const TextStyle(fontSize: 14, color: Colors.black54)),
-            const SizedBox(height: 20),
-            const Text("원하시는 방식을 선택해주세요.",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 20),
+            // 대표번호 + 운영시간 + 이미지
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      "대표번호",
+                      style: TextStyle(fontSize: 20, color: Colors.black54),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "1588-8282",
+                      style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "상담시간 10:00 ~ 18:00",
+                      style: TextStyle(fontSize: 18, color: Colors.black54),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 24),
+                Image.asset(
+                  "assets/images/helpcall.png", // 새 이미지
+                  width: 130,  // 🔼 이미지 크게
+                  height: 130,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
+
+            // 공지 배너
+            Container(
+              width: double.infinity,
+              padding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE500),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: const [
+                  Text("📢", style: TextStyle(fontSize: 20)), // 이모지 크게
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      "* 사칭 사이트 주의 안내 *",
+                      style:
+                      TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 안내 문구
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: const [
+                Text(
+                  "도움이 필요하신가요?",
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  "FAQ, 1:1 문의\n카카오톡 CHAKAK 채널을 통해 \n 앱의 FAQ, 1:1 문의를 확인할 수 있습니다.",
+                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 12),
+                Text(
+                  "빠른 확인이 필요할 땐\n고객 센터로 연락주시면 빠르게 해결을 \n 도와드리겠습니다.",
+                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+
+            // 전화 & 카카오 카드
             Row(
               children: [
-                // 📌 전화 카드
                 Expanded(
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     onTap: () => _makePhoneCall("15888282"),
                     child: ContactCard(
                       dto: helpInfo,
                       icon: Icons.phone,
-                      title: "1588-8282",
-                      subtitle: "상담시간 : 10:00 ~ 18:00",
-                      color: Colors.grey.withOpacity(0.2),
+                      title: "전화 상담",
+                      subtitle: "1588-8282",
+                      color: Colors.grey.shade200,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
-                // 📌 카카오 카드
+                const SizedBox(width: 24),
                 Expanded(
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     onTap: () => _openKakaoChannel(context),
                     child: ContactCard(
                       dto: helpInfo,
                       imagePath: "assets/images/kakaotalk-seeklogo.png",
                       title: "CHAKAK 카카오 채널",
-                      color: const Color(0xFFFEE500), // 카카오톡 공식 노란색
+                      color: const Color(0xFFFEE500),
                     ),
                   ),
                 ),

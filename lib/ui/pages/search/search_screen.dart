@@ -1,20 +1,22 @@
-import 'package:chakak_flutter/_core/constants/app_colors.dart';
+import 'package:chakak_flutter/ui/pages/search/serch_result_page.dart';
+import 'package:chakak_flutter/ui/pages/search/widgets/category_grid.dart';
+import 'package:chakak_flutter/ui/pages/search/widgets/custom_search_field.dart';
+import 'package:chakak_flutter/ui/pages/search/widgets/photographer_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../../provider/global/search/search_notifier.dart';
-import '../home/widgets/photographer_card_list.dart';
-import '../home/widgets/photo_service_category_widget.dart';
 
-class SearchPage extends ConsumerStatefulWidget {
-  const SearchPage({super.key});
+class SearchScreen extends ConsumerStatefulWidget {
+  const SearchScreen({super.key});
 
   @override
-  ConsumerState<SearchPage> createState() => _SearchPageState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchPageState extends ConsumerState<SearchPage> {
+class _SearchScreenState extends ConsumerState<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
@@ -35,16 +37,17 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   void _onSearchSubmitted(String query) async {
     if (query.trim().isNotEmpty) {
-      // 검색어 추가
+      // 검색 결과 페이지로 이동
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SearchResultsPage(searchQuery: query.trim()),
+        ),
+      );
+
+      // 검색어 저장
       await ref.read(searchNotifierProvider.notifier).addSearch(query.trim());
-
-      // 검색 데이터 다시 로드해서 UI 업데이트
       await ref.read(searchNotifierProvider.notifier).loadSearchData();
-
-      _focusNode.unfocus(); // 키보드 숨기기
-
-      print('검색 실행: $query');
-      print('최근 검색어 저장 완료');
     }
   }
 
@@ -71,41 +74,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final searchState = ref.watch(searchNotifierProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'CHAKAK',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.calendar_today_outlined),
-            onPressed: () {},
-          ),
-        ],
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-      ),
-      body: GestureDetector(
-        onTap: () {
-          _focusNode.unfocus();
-        },
+      body: SafeArea(
         child: Column(
           children: [
-            // 검색 입력 필드
             _buildSearchField(),
-
-            // 메인 콘텐츠
-            Expanded(
-              child: _buildMainContent(searchState),
-            ),
+            Expanded(child: _buildMainContent(searchState)),
           ],
         ),
       ),
@@ -113,60 +86,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildSearchField() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              focusNode: _focusNode,
-              onChanged: (value) {
-                ref.read(searchNotifierProvider.notifier).updateQuery(value);
-              },
-              decoration: InputDecoration(
-                hintText: '검색어를 입력하세요',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ),
-          // 검색 버튼 추가
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ElevatedButton(
-              onPressed: () => _onSearchSubmitted(_searchController.text),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-              ),
-              child: const Text(
-                '검색',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return CustomSearchField(
+      controller: _searchController,
+      focusNode: _focusNode,
+      onChanged: (value) {
+        ref.read(searchNotifierProvider.notifier).updateQuery(value);
+      },
+      onSubmitted: _onSearchSubmitted,
     );
   }
 
@@ -187,14 +113,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           const SizedBox(height: 24),
 
           // 인기 작가
-          PhotographerCardList(
+          PhotographerGrid(
             onPhotographerTap: _onPhotographerTap,
           ),
-
           const SizedBox(height: 24),
 
           // 카테고리
-          PhotoServiceCategoryWidget(
+          CategoryGrid(
             onCategoryTap: _onCategoryTap,
             showSeeAll: false,
           ),
@@ -203,7 +128,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     );
   }
 
-  // 최근 검색어 섹션 (추천 검색어와 같은 스타일)
+  // 최근 검색어
   Widget _buildRecentSearches(SearchState state) {
     if (state.recentSearches.isEmpty) {
       return const SizedBox.shrink();
@@ -309,7 +234,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey[300]!),
         ),

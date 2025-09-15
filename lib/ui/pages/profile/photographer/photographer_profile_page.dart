@@ -1,21 +1,30 @@
 import 'package:chakak_flutter/ui/pages/portfolio/portfolios_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import 'photographer_price_options.dart';
-import 'photographer_reviews.dart';
-import 'photographer_upper_profile.dart';
+import '../../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../photo_service/widgets/photo_service_list_widget.dart';
+import '../../photo_service/photo_service_detail_page.dart';
+import 'widgets/photographer_reviews.dart';
+import 'widgets/photographer_upper_profile.dart';
 
-class PhotographerProfilePage extends StatefulWidget {
-  const PhotographerProfilePage({super.key});
+class PhotographerProfilePage extends ConsumerStatefulWidget {
+  final int photographerId; // 포토그래퍼 ID 추가
+
+  const PhotographerProfilePage({
+    super.key,
+    required this.photographerId,
+  });
 
   @override
-  State<PhotographerProfilePage> createState() =>
+  ConsumerState<PhotographerProfilePage> createState() =>
       _PhotographerProfilePageState();
 }
 
-class _PhotographerProfilePageState extends State<PhotographerProfilePage>
+class _PhotographerProfilePageState
+    extends ConsumerState<PhotographerProfilePage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
@@ -23,6 +32,13 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
+    // 포토그래퍼의 서비스 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(photoServiceNotifierProvider.notifier)
+          .loadServicesByPhotographer(widget.photographerId);
+    });
   }
 
   @override
@@ -33,12 +49,17 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildProfileSection(),
-        _buildTabBar(),
-        _buildTabContent(),
-      ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('포토그래퍼 프로필'),
+      ),
+      body: Column(
+        children: [
+          _buildProfileSection(),
+          _buildTabBar(),
+          _buildTabContent(),
+        ],
+      ),
     );
   }
 
@@ -67,7 +88,7 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
           fontWeight: FontWeight.normal,
         ),
         tabs: const [
-          Tab(text: '가격 옵션'),
+          Tab(text: '서비스'),
           Tab(text: '포트폴리오'),
           Tab(text: '리뷰'),
         ],
@@ -80,11 +101,40 @@ class _PhotographerProfilePageState extends State<PhotographerProfilePage>
       child: TabBarView(
         controller: _tabController,
         children: [
-          _buildScrollableContent(const PhotographerPriceOptions()),
+          _buildServiceTab(), // 서비스 탭
           const PortfolioPage(),
           _buildScrollableContent(const PhotographerReviews()),
         ],
       ),
+    );
+  }
+
+  Widget _buildServiceTab() {
+    // 포토그래퍼의 서비스 가져오기
+    final services = ref
+        .read(photoServiceNotifierProvider.notifier)
+        .getPhotographerServices(widget.photographerId);
+
+    if (services.isEmpty) {
+      // 로딩 상태 확인
+      final isLoading = ref.watch(photoServiceNotifierProvider).isLoading;
+
+      if (isLoading) {
+        return const Center(child: CircularProgressIndicator());
+      } else {
+        return const Center(child: Text('등록된 서비스가 없습니다.'));
+      }
+    }
+
+    return PhotoServiceListWidget(
+      services: services,
+      onServiceTap: (service) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    PhotoServiceDetailPage(service: service)));
+      },
     );
   }
 
