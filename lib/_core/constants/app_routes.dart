@@ -5,6 +5,7 @@ import '../../ui/pages/auth/login_screen.dart';
 import '../../ui/pages/auth/signup_screen.dart';
 import '../../ui/pages/auth/social_login_screen.dart';
 import '../../ui/pages/booking/user_booking_list_page.dart';
+import '../../ui/pages/chat/chat_screen.dart';
 import '../../ui/pages/help_center/help_center_screen.dart';
 import '../../ui/pages/home/home_screen.dart';
 import '../../ui/pages/notification/notification_screen.dart';
@@ -38,6 +39,8 @@ class AppRoutes {
   static const String portfolioDetail = '/portfolio-detail';
   static const String userBookingList = '/user-booking-list';
   static const String search = '/search';
+  static const String chat = '/chat';
+
   // 라우트 테이블
   static Map<String, WidgetBuilder> get routes => {
         splash: (context) => const SplashScreen(),
@@ -61,7 +64,11 @@ class AppRoutes {
           return PortfolioDetailPage(portfolio: portfolio);
         },
         userBookingList: (context) => const UserBookingListPage(),
-        search: (context) => const SearchScreen()
+        search: (context) => const SearchScreen(),
+        chat: (context) {
+          final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
+          return ChatScreen(chatRoomId: chatRoomId);
+        },
       };
 
   // 초기 라우트

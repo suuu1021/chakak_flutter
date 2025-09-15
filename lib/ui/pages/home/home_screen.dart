@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/_core/constants/app_routes.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
@@ -60,6 +61,16 @@ class HomeContent extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // TODO: 테스트용 나중에 지워야함
+          ElevatedButton(
+            onPressed: () {
+              // 채팅방 ID 1번으로 입장 (테스트용)
+              Navigator.pushNamed(context, AppRoutes.chat, arguments: 1);
+            },
+            child: const Text("채팅 테스트 (임시)"),
+          ),
+          const SizedBox(height: 16), // 버튼과 배너 사이 간격
+
           // 배너 영역
           BannerWidget(
             height: 180,

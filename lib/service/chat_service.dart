@@ -11,7 +11,7 @@ import '../data/dtos/chat_room_list_item_dto.dart';
 
 class ChatService {
   final Dio _dio;
-  final String _apiBaseUrl = ""; //TODO 추후 추가하기
+  final String _apiBaseUrl = "http://192.168.0.184:8080"; //TODO 자기 ip로 수정하세요
   final String stompConnectUrl = 'ws://localhost:8080/ws';
 
   StompClient? _stompClient;
