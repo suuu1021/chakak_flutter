@@ -28,8 +28,7 @@ class AuthNotifier extends Notifier<AuthState> {
 
   @override
   AuthState build() {
-    _repo =
-        AuthRepository(baseUrl: 'http://localhost:8080'); // TODO: .env 처리 가능
+    _repo = AuthRepository(baseUrl: 'http://10.0.2.2:8080'); // TODO: .env 처리 가능
     return const AuthState();
   }
 
