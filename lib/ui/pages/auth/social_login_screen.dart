@@ -21,6 +21,8 @@ class SocialLoginScreen extends StatelessWidget {
         builder: (_) => const ProfileSetupScreen(userType: "social"),
       ),
     );
+
+
   }
 
   Widget _buildSocialButton({

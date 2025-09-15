@@ -6,11 +6,12 @@ import 'package:chakak_flutter/ui/pages/home/widgets/service_card_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/banner.dart';
-import '../../../data/models/photo_service.dart';
+import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../profile/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../search/search_screen.dart';
 
@@ -21,7 +22,7 @@ class HomeScreen extends ConsumerWidget {
     HomeContent(),
     SearchScreen(),
     Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
-    PhotographerProfilePage(),
+    MyProfilePage(), // PhotographerProfilePage에서 MyProfilePage로 변경
   ];
 
   @override
@@ -50,8 +51,16 @@ class HomeContent extends ConsumerWidget {
     print('포토 서비스 클릭 : ${service.title}');
   }
 
-  void _onPhotographerTap(Photographer photographer) {
-    print('포토그래퍼 클릭 : ${photographer.businessName}');
+  void _onPhotographerTap(BuildContext context, Photographer photographer) {
+    // 포토그래퍼 클릭시 프로필 페이지로 이동
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotographerProfilePage(
+          photographerId: photographer.id, // 포토그래퍼 ID 전달
+        ),
+      ),
+    );
   }
 
   @override
@@ -92,7 +101,8 @@ class HomeContent extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
           PhotographerCardList(
-            onPhotographerTap: _onPhotographerTap,
+            onPhotographerTap: (photographer) =>
+                _onPhotographerTap(context, photographer),
           ),
         ],
       ),
