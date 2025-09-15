@@ -1,26 +1,25 @@
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../../data/models/portfolio.dart'; //
 import '../../ui/pages/auth/login_choice_screen.dart';
 import '../../ui/pages/auth/login_screen.dart';
 import '../../ui/pages/auth/signup_screen.dart';
 import '../../ui/pages/auth/social_login_screen.dart';
-import '../../ui/pages/booking/user_booking_list_page.dart';
+import '../../ui/pages/booking/booking_management_screen.dart';
 import '../../ui/pages/chat/chat_screen.dart';
 import '../../ui/pages/help_center/help_center_screen.dart';
 import '../../ui/pages/home/home_screen.dart';
 import '../../ui/pages/notification/notification_screen.dart';
+import '../../ui/pages/portfolio/portfolio_detail_page.dart';
 import '../../ui/pages/profile/photographer/photographer_profile_form_page.dart';
 import '../../ui/pages/review/my_review_screen.dart';
 import '../../ui/pages/review/photographer_review_screen.dart';
 import '../../ui/pages/review/review_manager_screen.dart';
-import '../../ui/pages/portfolio/portfolio_detail_page.dart';
 import '../../ui/pages/search/search_screen.dart';
 import '../../ui/pages/splash/onboarding_screen.dart';
 import '../../ui/pages/splash/splash_screen.dart';
-
 import 'user_type.dart'; // ✅ ReviewManagerScreen용
-import '../../data/models/portfolio.dart'; //
 
 class AppRoutes {
   // 라우트 이름 상수
@@ -65,7 +64,7 @@ class AppRoutes {
               ModalRoute.of(context)!.settings.arguments as Portfolio;
           return PortfolioDetailPage(portfolio: portfolio);
         },
-        userBookingList: (context) => const UserBookingListPage(),
+        userBookingList: (context) => const BookingManagementScreen(),
         search: (context) => const SearchScreen(),
         chat: (context) {
           final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
