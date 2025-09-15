@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 class AuthService {
   static final Dio _dio = Dio(BaseOptions(
-    baseUrl: "http://localhost:8080", // 👉 백엔드 서버 주소로 변경 필요
+    baseUrl: "http://10.0.2.2:8080", // 👉 백엔드 서버 주소로 변경 필요
     connectTimeout: const Duration(seconds: 5),
     receiveTimeout: const Duration(seconds: 5),
     headers: {"Content-Type": "application/json"},
