@@ -3,6 +3,8 @@ import 'package:chakak_flutter/ui/pages/help_center/widgets/contact_card.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../_core/constants/app_colors.dart';
+
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});
 
@@ -74,7 +76,7 @@ class HelpCenterScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("고객센터"),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
         foregroundColor: Colors.black,
         elevation: 0,
       ),

@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
@@ -46,6 +47,7 @@ class _CategoryServiceListPageState
       appBar: AppBar(
         title: Text(widget.category.name),
         surfaceTintColor: Colors.transparent,
+        backgroundColor: AppColors.primaryLight,
       ),
       body: _buildBody(serviceState, filteredServices),
     );

@@ -51,6 +51,7 @@ class _PhotographerProfilePageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: AppColors.primaryLight,
         title: const Text('포토그래퍼 프로필'),
       ),
       body: Column(

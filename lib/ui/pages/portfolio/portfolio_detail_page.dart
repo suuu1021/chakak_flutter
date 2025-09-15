@@ -40,7 +40,7 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       title: Text(widget.portfolio.category),
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.primaryLight,
       elevation: 0,
       actions: [
         // 수정 버튼 (소유자만 표시)

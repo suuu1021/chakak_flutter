@@ -1,6 +1,7 @@
 import 'package:chakak_flutter/data/dtos/notification_dto.dart';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_colors.dart';
 import 'widgets/notification_item.dart';
 
 class NotificationScreen extends StatelessWidget {
@@ -47,7 +48,7 @@ class NotificationScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("알림"),
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
         foregroundColor: Colors.black,
         elevation: 0,
       ),
