@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'package:chakak_flutter/data/dtos/help_dto.dart';
-import 'widgets/contact_card.dart';
+import 'package:chakak_flutter/ui/pages/help_center/widgets/contact_card.dart';
 
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});
@@ -92,10 +92,22 @@ class HelpCenterScreen extends StatelessWidget {
             const SizedBox(height: 20),
             const Text("원하시는 방식을 선택해주세요.",
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+
+            // 👩 상담원 이미지 추가
+            Center(
+              child: Image.asset(
+                "assets/images/agent.png",
+                width: 300,
+                height: 300,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+
             Row(
               children: [
-                // 📌 전화 카드
                 Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
@@ -110,7 +122,6 @@ class HelpCenterScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                // 📌 카카오 카드
                 Expanded(
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),

@@ -14,9 +14,8 @@ import '../../ui/pages/review/review_manager_screen.dart';
 import '../../ui/pages/portfolio/portfolio_detail_page.dart';
 import '../../ui/pages/splash/onboarding_screen.dart';
 import '../../ui/pages/splash/splash_screen.dart';
-
-import 'user_type.dart';              // ✅ ReviewManagerScreen용
-import '../../data/models/portfolio.dart'; //
+import 'user_type.dart';
+import '../../data/models/portfolio.dart';
 
 class AppRoutes {
   // 라우트 이름 상수
