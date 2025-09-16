@@ -62,7 +62,9 @@ class User {
     return User(
       userId: json['userId'] as int? ?? json['id'] as int? ?? 0,
       email: json['email'] as String? ?? '',
-      userTypeName: json['userTypeName'] as String? ?? 'UNKNOWN',
+      userTypeName: json['userTypeName'] as String? ??
+          json['userTypeCode'] as String? ??
+          'UNKNOWN',
       status: statusValue,
       emailVerified: json['emailVerified'] as bool? ?? false,
       provider: json['provider'] as String?,

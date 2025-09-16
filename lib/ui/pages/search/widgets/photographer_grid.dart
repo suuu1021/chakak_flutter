@@ -78,22 +78,41 @@ class PhotographerGrid extends ConsumerWidget {
                         topLeft: Radius.circular(12),
                         topRight: Radius.circular(12),
                       ),
-                      child: Image.asset(
-                        photographer.imageUrl,
-                        height: double.infinity,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: double.infinity,
-                            width: double.infinity,
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: Icon(Icons.person, color: Colors.grey),
+                      child: photographer.imageUrl.startsWith('http')
+                          ? Image.network(
+                              photographer.imageUrl,
+                              height: double.infinity,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: double.infinity,
+                                  width: double.infinity,
+                                  color: Colors.grey[200],
+                                  child: const Center(
+                                    child:
+                                        Icon(Icons.person, color: Colors.grey),
+                                  ),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              photographer.imageUrl,
+                              height: double.infinity,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  height: double.infinity,
+                                  width: double.infinity,
+                                  color: Colors.grey[200],
+                                  child: const Center(
+                                    child:
+                                        Icon(Icons.person, color: Colors.grey),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                     Positioned(
                       top: 8,

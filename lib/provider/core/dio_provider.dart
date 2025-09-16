@@ -1,16 +1,14 @@
+import 'package:chakak_flutter/_core/constants/api_config.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/session_provider.dart';
 
-// TODO: 앱 전체에서 사용할 API 서버의 기본 주소로 변경하세요.
-const String apiBaseUrl = "http://192.168.0.82:8080";
-
 // Dio 인스턴스를 제공하는 Provider
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: apiBaseUrl,
+      baseUrl: ApiConfig.baseUrl,
       connectTimeout: const Duration(seconds: 10), // 연결 타임아웃
       receiveTimeout: const Duration(seconds: 10), // 응답 타임아웃
     ),
@@ -24,9 +22,20 @@ final dioProvider = Provider<Dio>((ref) {
         // SessionProvider에서 현재 로그인 정보를 가져옵니다.
         final session = ref.read(sessionProvider);
 
+        // 디버그 로그 추가
+        print('[DIO] 세션 상태 확인:');
+        print('[DIO] - isLogin: ${session.isLogin}');
+        print('[DIO] - jwtToken 존재: ${session.jwtToken != null}');
+        if (session.jwtToken != null) {
+          print('[DIO] - 토큰 앞부분: ${session.jwtToken!.substring(0, 20)}...');
+        }
+
         // 로그인 상태이고, 토큰이 존재한다면 헤더에 추가합니다.
         if (session.isLogin && session.jwtToken != null) {
           options.headers['Authorization'] = 'Bearer ${session.jwtToken}';
+          print('[DIO] Authorization 헤더 추가 완료');
+        } else {
+          print('[DIO] 토큰이 없어서 Authorization 헤더 추가하지 않음');
         }
 
         print('[REQ] [${options.method}] ${options.uri}'); // API 요청 로그

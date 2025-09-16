@@ -4,6 +4,7 @@ import 'package:chakak_flutter/_core/constants/app_images.dart';
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:dio/dio.dart';
 
+import '../../../_core/constants/api_config.dart';
 import '../../dtos/photo_service_category_dto.dart';
 import '../photo_service_category.dart';
 
@@ -19,13 +20,13 @@ class PhotoServiceCategoryRepositoryImpl
   static String get serverUrl {
     if (Platform.isAndroid) {
       print("object 1");
-      return 'http://192.168.0.82:8080';
+      return ApiConfig.baseUrl;
     } else if (Platform.isIOS) {
       print("object 2");
-      return 'http://192.168.0.82:8080';
+      return ApiConfig.baseUrl;
     } else {
       print("object 3");
-      return 'http://192.168.0.82:8080';
+      return ApiConfig.baseUrl;
     }
   }
 

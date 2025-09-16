@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 import '../data/dtos/auth_dto.dart';
 import '../data/models/repositories/auth_repository.dart';
 import 'auth/session_provider.dart'; // ✅ 경로 수정
@@ -50,18 +49,17 @@ class AuthNotifier extends Notifier<AuthState> {
       final loginResponse = await repo.login(request);
       print("[AuthProvider] Repository로부터 응답 성공!");
 
-      // ✅ [수정] SessionProvider의 명세에 맞게 올바른 메소드와 인자로 호출합니다.
       print("[AuthProvider] 세션 저장 시도...");
       await session.login(
         loginResponse.accessToken,
         loginResponse.userId,
         loginResponse.nickname,
+        loginResponse.userTypeCode,
       );
       print("[AuthProvider] 세션 저장 성공. 로그인 상태 업데이트 시도.");
 
       state = state.copyWith(login: loginResponse, isProgress: false);
       print("[AuthProvider] 로그인 성공 상태로 업데이트 완료. isProgress=false");
-
     } catch (e) {
       print("[AuthProvider] !!!!! 로그인 에러 발생 !!!!!: $e");
       state = state.copyWith(isProgress: false);
@@ -83,7 +81,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = state.copyWith(social: socialResponse, isProgress: false);
       print("[AuthProvider] 소셜 로그인 성공 상태로 업데이트 완료. isProgress=false");
-
     } catch (e) {
       print("[AuthProvider] !!!!! 소셜 로그인 에러 발생 !!!!!: $e");
       state = state.copyWith(isProgress: false);
@@ -100,4 +97,5 @@ class AuthNotifier extends Notifier<AuthState> {
 }
 
 // Provider 정의
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

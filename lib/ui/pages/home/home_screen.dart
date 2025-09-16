@@ -117,6 +117,7 @@ class _HomeContentState extends ConsumerState<HomeContent>
 
             // 카테고리
             PhotoServiceCategoryWidget(
+              height: 120,
               onCategorySelected: (category) =>
                   _onCategoryTap(context, category),
             ),

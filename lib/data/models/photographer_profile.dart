@@ -23,11 +23,23 @@ class PhotographerProfile {
 
   /// JSON에서 Model 생성 (서버 통신용)
   factory PhotographerProfile.fromJson(Map<String, dynamic> json) {
+    // 필수 필드가 없을 경우 예외 발생
+    if (json['id'] == null ||
+        json['businessName'] == null ||
+        json['location'] == null) {
+      throw FormatException('필수 프로필 정보가 누락되었습니다.');
+    }
+
+    // 데이터 타입 안전성 확보
+    final String id = json['id'].toString();
+    final String businessName = json['businessName'] as String;
+    final String location = json['location'] as String;
+
     return PhotographerProfile(
-      id: json['id']?.toString() ?? '',
-      businessName: json['businessName'] as String? ?? '',
+      id: id,
+      businessName: businessName,
       introduction: json['introduction'] as String?,
-      location: json['location'] as String? ?? '',
+      location: location,
       experienceYears: json['experienceYears'] as int?,
       status: json['status'] as String? ?? 'active',
       profileImageUrl: json['profileImageUrl'] as String?,

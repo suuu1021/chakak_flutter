@@ -30,50 +30,83 @@ class PhotographerReviews extends StatelessWidget {
   static final List<ReviewData> _sampleReviews = [
     ReviewData(
       userName: "김민수",
-      userProfileImage: "https://via.placeholder.com/40",
+      userProfileImage:
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
       rating: 5.0,
       reviewText:
           "정말 만족스러운 촬영이었습니다! 포토그래퍼님이 디렉팅도 잘해주시고, 자연스러운 표정을 잘 이끌어내주셨어요. 결과물도 기대 이상으로 만족합니다.",
       reviewDate: DateTime(2024, 8, 15),
       reviewImages: [
-        "https://via.placeholder.com/80x80",
-        "https://via.placeholder.com/80x80",
+        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=150&h=150&fit=crop",
+        "https://images.unsplash.com/photo-1519741497674-611481863552?w=150&h=150&fit=crop",
       ],
       serviceType: "프리미엄",
     ),
     ReviewData(
       userName: "박지영",
-      userProfileImage: "https://via.placeholder.com/40",
+      userProfileImage:
+          "https://images.unsplash.com/photo-1494790108755-2616b612b093?w=80&h=80&fit=crop&crop=face",
       rating: 4.5,
       reviewText: "세심한 준비와 꼼꼼한 촬영 진행이 인상적이었습니다. 다양한 컨셉으로 촬영해주셔서 선택의 폭이 넓었어요.",
       reviewDate: DateTime(2024, 8, 10),
       reviewImages: [
-        "https://via.placeholder.com/80x80",
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
       ],
       serviceType: "시그니처",
     ),
     ReviewData(
       userName: "이동훈",
-      userProfileImage: "https://via.placeholder.com/40",
+      userProfileImage:
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face",
       rating: 5.0,
       reviewText:
           "커플 촬영으로 이용했는데 분위기 연출을 정말 잘해주세요. 둘 다 사진 찍는 게 어색했는데 편안하게 촬영할 수 있었습니다.",
       reviewDate: DateTime(2024, 8, 5),
-      reviewImages: [],
+      reviewImages: [
+        "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=150&h=150&fit=crop",
+        "https://images.unsplash.com/photo-1516589091380-5d8e87df6999?w=150&h=150&fit=crop",
+      ],
       serviceType: "에센셜",
     ),
     ReviewData(
       userName: "최수빈",
-      userProfileImage: "https://via.placeholder.com/40",
+      userProfileImage:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
       rating: 4.8,
       reviewText: "프로필 사진 촬영 목적으로 방문했는데 결과가 너무 만족스럽네요. 보정도 자연스럽게 잘해주셨습니다.",
       reviewDate: DateTime(2024, 7, 28),
       reviewImages: [
-        "https://via.placeholder.com/80x80",
-        "https://via.placeholder.com/80x80",
-        "https://via.placeholder.com/80x80",
+        "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=150&h=150&fit=crop",
+        "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=150&h=150&fit=crop",
+        "https://images.unsplash.com/photo-1515488764276-beab7607c1e6?w=150&h=150&fit=crop",
       ],
       serviceType: "프리미엄",
+    ),
+    ReviewData(
+      userName: "정현우",
+      userProfileImage:
+          "https://images.unsplash.com/photo-1463453091185-61582044d556?w=80&h=80&fit=crop&crop=face",
+      rating: 4.7,
+      reviewText: "졸업사진 촬영으로 갔는데 다양한 각도와 표정으로 찍어주셔서 선택하기 어려울 정도였어요. 만족합니다!",
+      reviewDate: DateTime(2024, 7, 20),
+      reviewImages: [
+        "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150&h=150&fit=crop",
+      ],
+      serviceType: "에센셜",
+    ),
+    ReviewData(
+      userName: "안소현",
+      userProfileImage:
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face",
+      rating: 4.9,
+      reviewText:
+          "아이 돌잔치 촬영 정말 잘해주세요! 아기가 울어도 참을성 있게 기다려주시고 자연스러운 순간들을 포착해주셨어요.",
+      reviewDate: DateTime(2024, 7, 15),
+      reviewImages: [
+        "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=150&h=150&fit=crop",
+        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=150&h=150&fit=crop",
+      ],
+      serviceType: "시그니처",
     ),
   ];
 
@@ -176,13 +209,36 @@ class PhotographerReviews extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: AppColors.gray300,
-                child: Text(
-                  review.userName[0],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
+                child: review.userProfileImage.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          review.userProfileImage,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const CircularProgressIndicator(
+                                strokeWidth: 2);
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Text(
+                              review.userName[0],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            );
+                          },
+                        ),
+                      )
+                    : Text(
+                        review.userName[0],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(

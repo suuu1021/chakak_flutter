@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
-
+import '../_core/constants/api_config.dart';
 import '../data/dtos/chat_room_create_request_dto.dart';
 import '../data/dtos/chat_room_response_dto.dart';
 import '../data/dtos/chat_message_dto.dart';
@@ -11,7 +11,7 @@ import '../data/dtos/chat_room_list_item_dto.dart';
 
 class ChatService {
   final Dio _dio;
-  final String _apiBaseUrl = "http://192.168.0.184:8080"; //TODO 자기 ip로 수정하세요
+  final String _apiBaseUrl = ApiConfig.baseUrl;
   final String stompConnectUrl = 'ws://localhost:8080/ws';
 
   StompClient? _stompClient;
@@ -23,7 +23,8 @@ class ChatService {
   ChatService(this._dio);
 
   // 채팅방 생성 및 조회
-  Future<ChatRoomResponseDto> createOrGetChatRoom(ChatRoomCreateRequestDto requestDto) async {
+  Future<ChatRoomResponseDto> createOrGetChatRoom(
+      ChatRoomCreateRequestDto requestDto) async {
     try {
       final response = await _dio.post(
         '$_apiBaseUrl/api/chat/rooms',
@@ -42,7 +43,8 @@ class ChatService {
   // 채팅방 메시지 조회
   Future<List<ChatMessageDto>> getMessagesByRoomId(int chatRoomId) async {
     try {
-      final response = await _dio.get('$_apiBaseUrl/api/chat/rooms/$chatRoomId/messages');
+      final response =
+          await _dio.get('$_apiBaseUrl/api/chat/rooms/$chatRoomId/messages');
       if (response.statusCode == 200) {
         final List<dynamic> responseData = response.data as List<dynamic>;
         return responseData.map((e) => ChatMessageDto.fromJson(e)).toList();
@@ -57,7 +59,8 @@ class ChatService {
   // 메시지 읽음 처리
   Future<void> markMessagesAsRead(int chatRoomId) async {
     try {
-      final response = await _dio.post('$_apiBaseUrl/api/chat/rooms/$chatRoomId/read');
+      final response =
+          await _dio.post('$_apiBaseUrl/api/chat/rooms/$chatRoomId/read');
       if (response.statusCode != 200) {
         throw Exception('메시지 읽음 처리 실패: ${response.statusCode}');
       }
@@ -72,7 +75,9 @@ class ChatService {
       final response = await _dio.get('$_apiBaseUrl/api/chat/my/rooms');
       if (response.statusCode == 200) {
         final List<dynamic> responseData = response.data as List<dynamic>;
-        return responseData.map((e) => ChatRoomListItemDto.fromJson(e)).toList();
+        return responseData
+            .map((e) => ChatRoomListItemDto.fromJson(e))
+            .toList();
       } else {
         throw Exception('내 채팅방 목록 조회 실패: ${response.statusCode}');
       }

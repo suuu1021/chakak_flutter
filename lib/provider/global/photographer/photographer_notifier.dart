@@ -49,8 +49,89 @@ class PhotographerNotifier extends StateNotifier<PhotographerState> {
   Future<void> loadPhotographers() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final photographers = await _apiService.getPhotographers();
-      state = state.copyWith(photographers: photographers, isLoading: false);
+
+      // 시연용 더미 데이터
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      final mockPhotographers = [
+        Photographer(
+          id: 1,
+          businessName: '스냅스튜디오',
+          imageUrl:
+              'https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop',
+          categories: ['웨딩', '프로필', '가족사진'],
+          rating: 4.8,
+          reviewCount: 124,
+          isLiked: false,
+        ),
+        Photographer(
+          id: 2,
+          businessName: '모멘트 포토',
+          imageUrl:
+              'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=400&h=300&fit=crop',
+          categories: ['스냅', '커플'],
+          rating: 4.7,
+          reviewCount: 89,
+          isLiked: true,
+        ),
+        Photographer(
+          id: 3,
+          businessName: '아트필름',
+          imageUrl:
+              'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&h=300&fit=crop',
+          categories: ['프로필', '상업촬영'],
+          rating: 4.9,
+          reviewCount: 156,
+          isLiked: false,
+        ),
+        Photographer(
+          id: 4,
+          businessName: '클래식 포토',
+          imageUrl:
+              'https://images.unsplash.com/photo-1463453091185-61582044d556?w=400&h=300&fit=crop&crop=face',
+          categories: ['웨딩', '클래식'],
+          rating: 4.6,
+          reviewCount: 98,
+          isLiked: false,
+        ),
+        Photographer(
+          id: 5,
+          businessName: '라이프 스튜디오',
+          imageUrl:
+              'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=300&fit=crop&crop=face',
+          categories: ['가족사진', '돌잔치'],
+          rating: 4.8,
+          reviewCount: 76,
+          isLiked: true,
+        ),
+        Photographer(
+          id: 6,
+          businessName: '프리즘 포토',
+          imageUrl:
+              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=300&fit=crop&crop=face',
+          categories: ['컨셉촬영', '프로필'],
+          rating: 4.5,
+          reviewCount: 67,
+          isLiked: false,
+        ),
+        Photographer(
+          id: 7,
+          businessName: '내츄럴 스냅',
+          imageUrl:
+              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=300&fit=crop&crop=face',
+          categories: ['자연스냅', '가족사진'],
+          rating: 4.9,
+          reviewCount: 143,
+          isLiked: false,
+        ),
+      ];
+
+      state =
+          state.copyWith(photographers: mockPhotographers, isLoading: false);
+
+      // 원래 API 호출 코드 (시연 후 되돌릴 때 사용)
+      // final photographers = await _apiService.getPhotographers();
+      // state = state.copyWith(photographers: photographers, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
