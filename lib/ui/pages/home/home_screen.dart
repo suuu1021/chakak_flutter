@@ -43,11 +43,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-<<<<<<< HEAD
-class HomeContent extends StatelessWidget {
-=======
 class HomeContent extends ConsumerStatefulWidget {
->>>>>>> 7cafa2fe81e4a749b9726d8ab280e9809c7fab6f
   const HomeContent({super.key});
 
   @override
@@ -100,21 +96,6 @@ class _HomeContentState extends ConsumerState<HomeContent>
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 배너 영역
-          BannerWidget(
-            height: 180,
-            autoSlideInterval: const Duration(seconds: 3),
-            showIndicators: true,
-            onBannerTap: _onBannerTap,
-            margin: const EdgeInsets.all(16),
-          ),
-=======
     super.build(context);
 
     return RefreshIndicator(
@@ -133,7 +114,6 @@ class _HomeContentState extends ConsumerState<HomeContent>
               onBannerTap: _onBannerTap,
               margin: const EdgeInsets.all(16),
             ),
->>>>>>> 7cafa2fe81e4a749b9726d8ab280e9809c7fab6f
 
             // 카테고리
             PhotoServiceCategoryWidget(
