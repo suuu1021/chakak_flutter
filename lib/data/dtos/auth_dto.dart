@@ -33,6 +33,8 @@ class LoginResponse {
 
   // JSON 파싱 로직 수정
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    print('LoginResponse 파싱 중: ${json['userTypeCode']}');
+
     return LoginResponse(
       tokenType: json['tokenType'] ?? '',
       accessToken: json['accessToken'] ?? '',

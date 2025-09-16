@@ -92,20 +92,35 @@ class CategoryGrid extends ConsumerWidget {
                 ],
               ),
               child: ClipOval(
-                child: Image.asset(
-                  category.categoryImageData,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[200],
-                      child: Icon(
-                        Icons.category,
-                        color: Colors.grey,
-                        size: 24,
+                child: category.categoryImageData.startsWith('http')
+                    ? Image.network(
+                        category.categoryImageData,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.category,
+                              color: Colors.grey,
+                              size: 24,
+                            ),
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        category.categoryImageData,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.category,
+                              color: Colors.grey,
+                              size: 24,
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ),
             const SizedBox(height: 8),

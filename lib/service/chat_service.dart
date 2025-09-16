@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 
-
+import '../_core/constants/api_config.dart';
 import '../data/dtos/chat_room_create_request_dto.dart';
 import '../data/dtos/chat_room_response_dto.dart';
 import '../data/dtos/chat_message_dto.dart';
@@ -11,8 +11,8 @@ import '../data/dtos/chat_room_list_item_dto.dart';
 
 class ChatService {
   final Dio _dio;
-  final String _apiBaseUrl = "http://10.0.2.2:8080"; //TODO 자기 ip로 수정하세요
-  final String stompConnectUrl = 'ws://10.0.2.2:8080/ws';
+  final String _apiBaseUrl = ApiConfig.baseUrl;
+  final String stompConnectUrl = 'ws://localhost:8080/ws';
 
   StompClient? _stompClient;
   StompUnsubscribe? _currentSubscription; //
@@ -25,7 +25,8 @@ class ChatService {
   }
 
   // 채팅방 생성 및 조회
-  Future<ChatRoomResponseDto> createOrGetChatRoom(ChatRoomCreateRequestDto requestDto) async {
+  Future<ChatRoomResponseDto> createOrGetChatRoom(
+      ChatRoomCreateRequestDto requestDto) async {
     print("[ChatService] createOrGetChatRoom 호출됨. 요청: ${requestDto.toJson()}");
     try {
       final response = await _dio.post(
@@ -39,7 +40,8 @@ class ChatService {
         throw Exception('채팅방 생성 또는 조회 실패: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print("[ChatService] !!!!! createOrGetChatRoom DioException: ${e.message}");
+      print(
+          "[ChatService] !!!!! createOrGetChatRoom DioException: ${e.message}");
       throw Exception('채팅방 생성/조회 실패: ${e.message}');
     }
   }
@@ -48,7 +50,8 @@ class ChatService {
   Future<List<ChatMessageDto>> getMessagesByRoomId(int chatRoomId) async {
     print("[ChatService] getMessagesByRoomId 호출됨. 채팅방 ID: $chatRoomId");
     try {
-      final response = await _dio.get('$_apiBaseUrl/api/chat/rooms/$chatRoomId/messages');
+      final response =
+          await _dio.get('$_apiBaseUrl/api/chat/rooms/$chatRoomId/messages');
       if (response.statusCode == 200) {
         final List<dynamic> responseData = response.data as List<dynamic>;
         print("[ChatService] 메시지 목록 조회 성공. ${responseData.length}개 메시지 수신.");
@@ -57,7 +60,8 @@ class ChatService {
         throw Exception('메시지 목록 불러오기 실패: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print("[ChatService] !!!!! getMessagesByRoomId DioException: ${e.message}");
+      print(
+          "[ChatService] !!!!! getMessagesByRoomId DioException: ${e.message}");
       throw Exception('메시지 목록 불러오기 실패: ${e.message}');
     }
   }
@@ -66,14 +70,16 @@ class ChatService {
   Future<void> markMessagesAsRead(int chatRoomId) async {
     print("[ChatService] markMessagesAsRead 호출됨. 채팅방 ID: $chatRoomId");
     try {
-      final response = await _dio.post('$_apiBaseUrl/api/chat/rooms/$chatRoomId/read');
+      final response =
+          await _dio.post('$_apiBaseUrl/api/chat/rooms/$chatRoomId/read');
       if (response.statusCode == 200) {
         print("[ChatService] 메시지 읽음 처리 요청 성공. 채팅방 ID: $chatRoomId");
       } else {
         throw Exception('메시지 읽음 처리 실패: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print("[ChatService] !!!!! markMessagesAsRead DioException: ${e.message}");
+      print(
+          "[ChatService] !!!!! markMessagesAsRead DioException: ${e.message}");
       throw Exception('메시지 읽음 처리 실패: ${e.message}');
     }
   }
@@ -86,7 +92,9 @@ class ChatService {
       if (response.statusCode == 200) {
         final List<dynamic> responseData = response.data as List<dynamic>;
         print("[ChatService] 내 채팅방 목록 조회 성공. ${responseData.length}개 채팅방 수신.");
-        return responseData.map((e) => ChatRoomListItemDto.fromJson(e)).toList();
+        return responseData
+            .map((e) => ChatRoomListItemDto.fromJson(e))
+            .toList();
       } else {
         throw Exception('내 채팅방 목록 조회 실패: ${response.statusCode}');
       }
@@ -118,7 +126,6 @@ class ChatService {
           _currentSubscription = null;
           print('[ChatService] 이전 구독 해제 완료.');
 
-
           // 새 구독 등록
           final destination = '/topic/chat/room/$chatRoomId';
           print('[ChatService] 새 구독 시작 -> $destination');
@@ -139,8 +146,10 @@ class ChatService {
             },
           );
         },
-        onWebSocketError: (err) => print('[ChatService] !!!!! 웹소켓 오류 !!!!!: $err'),
-        onStompError: (frame) => print('[ChatService] !!!!! STOMP 프로토콜 오류 !!!!!: ${frame.body}'),
+        onWebSocketError: (err) =>
+            print('[ChatService] !!!!! 웹소켓 오류 !!!!!: $err'),
+        onStompError: (frame) =>
+            print('[ChatService] !!!!! STOMP 프로토콜 오류 !!!!!: ${frame.body}'),
         onDisconnect: (_) {
           print('[ChatService] STOMP 연결 끊김. Room: $chatRoomId');
           _currentSubscription?.call();

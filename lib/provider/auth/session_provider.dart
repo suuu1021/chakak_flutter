@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-
 class AppSession {
   final String? jwtToken;
   final int? userId;
@@ -73,13 +72,19 @@ class SessionNotifier extends StateNotifier<AppSession> {
   }
 
   // 로그인 성공 시 호출될 메서드
-  Future<void> login(String token, int userId, String nickname, String userTypeCode) async {
+  Future<void> login(
+      String token, int userId, String nickname, String userTypeCode) async {
     try {
       await _secureStorage.write(key: _jwtTokenKey, value: token);
       await _secureStorage.write(key: _userIdKey, value: userId.toString());
       await _secureStorage.write(key: _userNicknameKey, value: nickname);
       await _secureStorage.write(key: _userTypeCodeKey, value: userTypeCode);
-      state = AppSession(jwtToken: token, userId: userId, userNickname: nickname, userTypeCode: userTypeCode, isLogin: true);
+      state = AppSession(
+          jwtToken: token,
+          userId: userId,
+          userNickname: nickname,
+          userTypeCode: userTypeCode,
+          isLogin: true);
     } catch (e) {
       print("세션 정보 저장 실패 (로그인): $e");
     }
@@ -97,6 +102,7 @@ class SessionNotifier extends StateNotifier<AppSession> {
 }
 
 // 앱 전역에서 SessionNotifier를 사용할 수 있도록 하는 프로바이더
-final sessionProvider = StateNotifierProvider<SessionNotifier, AppSession>((ref) {
+final sessionProvider =
+    StateNotifierProvider<SessionNotifier, AppSession>((ref) {
   return SessionNotifier();
 });

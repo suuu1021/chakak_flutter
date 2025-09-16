@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-
 import '../data/dtos/auth_dto.dart';
 import '../data/models/repositories/auth_repository.dart';
 import 'auth/session_provider.dart';
@@ -61,7 +60,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = state.copyWith(login: loginResponse, isProgress: false);
       print("[AuthProvider] 로그인 성공 상태로 업데이트 완료. isProgress=false");
-
     } catch (e) {
       print("[AuthProvider] !!!!! 로그인 에러 발생 !!!!!: $e");
       state = state.copyWith(isProgress: false);
@@ -83,7 +81,6 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = state.copyWith(social: socialResponse, isProgress: false);
       print("[AuthProvider] 소셜 로그인 성공 상태로 업데이트 완료. isProgress=false");
-
     } catch (e) {
       print("[AuthProvider] !!!!! 소셜 로그인 에러 발생 !!!!!: $e");
       state = state.copyWith(isProgress: false);
@@ -100,4 +97,5 @@ class AuthNotifier extends Notifier<AuthState> {
 }
 
 // Provider 정의
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

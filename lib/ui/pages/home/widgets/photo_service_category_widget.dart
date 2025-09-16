@@ -74,58 +74,88 @@ class _PhotoServiceCategoryWidgetState
   }
 
   Widget _buildCategoryItem(PhotoServiceCategory category) {
-    final bool isSelected = _selectedCategory?.id ==
-        category.id;
+    final bool isSelected = _selectedCategory?.id == category.id;
 
     Widget imageWidget;
-    if (category.categoryImageData != null &&
-        category.categoryImageData!.isNotEmpty) {
-      try {
-        // Base64 문자열에서 데이터 부분만 추출 (예: "data:image/png;base64," 같은 프리픽스가 있다면 제거)
-        String base64String = category.categoryImageData!;
-        if (base64String.startsWith('data:image')) {
-          base64String = base64String
-              .split(',')
-              .last;
+    if (category.categoryImageData.isNotEmpty) {
+      // URL인지 Base64인지 확인
+      if (category.categoryImageData.startsWith('http')) {
+        // 네트워크 이미지 처리
+        imageWidget = ClipOval(
+          child: Image.network(
+            category.categoryImageData,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(Icons.photo, color: Colors.grey[400], size: 24),
+                ),
+              );
+            },
+          ),
+        );
+      } else {
+        // Base64 이미지 처리
+        try {
+          String base64String = category.categoryImageData;
+          if (base64String.startsWith('data:image')) {
+            base64String = base64String.split(',').last;
+          }
+          Uint8List imageBytes = base64Decode(base64String);
+          imageWidget = ClipOval(
+            child: Image.memory(
+              imageBytes,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(Icons.photo, color: Colors.grey[400], size: 24),
+                  ),
+                );
+              },
+            ),
+          );
+        } catch (e) {
+          imageWidget = Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Icon(Icons.photo, color: Colors.grey[400], size: 24),
+            ),
+          );
         }
-        Uint8List imageBytes = base64Decode(base64String);
-        imageWidget = Image.memory(
-          imageBytes,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Icon(Icons.broken_image, color: Colors.grey[400]),
-              ),
-            );
-          },
-        );
-      } catch (e) {
-        print('Error decoding base64 image for category ${category
-            .name}: $e');
-        imageWidget = Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Center(
-            child: Icon(Icons.broken_image, color: Colors.grey[400], size: 30),
-          ),
-        );
       }
     } else {
-      // categoryImageData가 없거나 비어있을 경우 대체 위젯
+      // 기본 이미지
       imageWidget = Container(
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10),
+          shape: BoxShape.circle,
         ),
         child: Center(
-          child: Icon(Icons.photo, color: Colors.grey[400], size: 30),
+          child: Icon(Icons.photo, color: Colors.grey[400], size: 24),
         ),
       );
     }
@@ -138,72 +168,44 @@ class _PhotoServiceCategoryWidgetState
         widget.onCategorySelected(category);
       },
       child: Container(
-        width: widget.height - 20, // 높이에서 약간의 패딩을 뺀 너비
+        width: 80,
         margin: const EdgeInsets.symmetric(horizontal: 8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: isSelected
-              ? Border.all(color: Theme
-              .of(context)
-              .primaryColor, width: 2)
-              : null,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 1,
-              blurRadius: 3,
-              offset: const Offset(0, 1),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                // border: isSelected
+                //     ? Border.all(
+                //         color: Theme.of(context).primaryColor, width: 2)
+                //     : null,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: imageWidget,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              category.name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                // color: isSelected
+                //     ? Theme.of(context).primaryColor
+                //     : Colors.black87,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8.0), // 컨테이너보다 약간 작은 값으로 조정
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: imageWidget, // 여기에 디코딩된 이미지 위젯 사용
-              ),
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 4.0, horizontal: 6.0),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                  ),
-                  child: Text(
-                    category.name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              if (isSelected)
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Theme
-                          .of(context)
-                          .primaryColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                        Icons.check, color: Colors.white, size: 12),
-                  ),
-                ),
-            ],
-          ),
         ),
       ),
     );
@@ -215,9 +217,8 @@ class _PhotoServiceCategoryWidgetState
       padding: widget.padding,
       child: Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Theme
-              .of(context)
-              .primaryColor),
+          valueColor:
+              AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
         ),
       ),
     );

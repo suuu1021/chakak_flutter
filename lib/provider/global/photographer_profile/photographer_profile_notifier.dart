@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/dtos/photographer_profile_dto.dart';
 import '../../../data/models/photographer_profile.dart';
 import '../../../data/models/repositories/photographer_profile_repository.dart';
+import '../../core/dio_provider.dart';
 
 /// 사진작가 프로필 상태
 class PhotographerProfileState {
@@ -46,8 +47,8 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
 
   @override
   PhotographerProfileState build() {
-    _repository = PhotographerProfileRepositoryImpl();
-
+    final dio = ref.watch(dioProvider); // DioProvider 사용하는지 확인
+    _repository = PhotographerProfileRepositoryImpl(dio);
     return const PhotographerProfileState();
   }
 
@@ -57,7 +58,6 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
 
     try {
       final profile = await _repository.getMyProfile();
-
       state = state.copyWith(
         profile: profile,
         isLoading: false,
