@@ -5,6 +5,8 @@ import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../../../provider/auth/session_provider.dart';
+import '../../../../../_core/constants/user_type.dart';
+import '../profile_form_page.dart';
 
 class ProfileHeader extends ConsumerWidget {
   final AppSession session;
@@ -30,7 +32,7 @@ class ProfileHeader extends ConsumerWidget {
       return _buildErrorHeader(context, ref, profileState.errorMessage!);
     }
 
-    return _buildUserHeader(context, profileState.profile);
+    return _buildUserHeader(context, ref, profileState.profile);
   }
 
   // 비로그인 사용자 헤더
@@ -134,7 +136,7 @@ class ProfileHeader extends ConsumerWidget {
   }
 
   // 로그인된 사용자 헤더
-  Widget _buildUserHeader(BuildContext context, profile) {
+  Widget _buildUserHeader(BuildContext context, WidgetRef ref, profile) {
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacing16),
       decoration: _headerDecoration(),
@@ -149,7 +151,7 @@ class ProfileHeader extends ConsumerWidget {
           ),
           // 편집 버튼
           IconButton(
-            onPressed: () => _showProfileEditDialog(context, profile),
+            onPressed: () => _showProfileEditDialog(context, ref, profile),
             icon: const Icon(Icons.edit),
             color: AppColors.gray600,
           ),
@@ -257,40 +259,29 @@ class ProfileHeader extends ConsumerWidget {
     );
   }
 
-  // 프로필 편집 다이얼로그
-  void _showProfileEditDialog(BuildContext context, profile) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+  void _showProfileEditDialog(BuildContext context, WidgetRef ref, profile) {
+    // 사용자 타입 판별 로직
+    UserType userType;
+
+    if (profile?.userTypeName?.toLowerCase() == 'photographer') {
+      userType = UserType.photographer;
+    } else {
+      userType = UserType.user;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileFormPage(
+          userType: userType,
+          currentProfile: profile,
         ),
-        title: Text(
-          '프로필 편집',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Text(
-          '프로필 편집 기능을 구현해주세요.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              '확인',
-              style: TextStyle(
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        ],
       ),
-    );
+    ).then((success) {
+      if (success == true) {
+        // 프로필 다시 로드
+        ref.read(userProfileProvider.notifier).loadMyProfile();
+      }
+    });
   }
 }
