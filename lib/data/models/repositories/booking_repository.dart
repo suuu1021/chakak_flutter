@@ -1,12 +1,10 @@
-// features/booking/data/repository/booking_repository.dart
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../dtos/booking/booking_request_dto.dart';
-import '../../dtos/booking_detail_dto.dart';
-import '../../dtos/booking_photographer_list_dto.dart';
-import '../../dtos/booking_user_list_dto.dart';
+import '../../dtos/booking/booking_detail_dto.dart';
+import '../../dtos/booking/booking_photographer_list_dto.dart';
+import '../../dtos/booking/booking_user_list_dto.dart';
 
 class BookingRepository {
   late http.Client _client;
@@ -15,15 +13,16 @@ class BookingRepository {
   // 플랫폼별 서버 주소 설정
   static String get serverUrl {
     if (Platform.isAndroid) {
-      return 'http://localhost:8080';
+      return 'http://192.168.0.82:8080'; // 실제 IP로 수정
+      // return 'http://10.0.2.2:8080'; // Android 에뮬레이터
     } else if (Platform.isIOS) {
-      return 'http://localhost:8080';
+      return 'http://localhost:8080'; // iOS 시뮬레이터
     } else {
       return 'http://localhost:8080';
     }
   }
 
-  // 인증 토큰 설정
+  // 인증 토큰 설정 메서드
   void setAuthToken(String? token) {
     _authToken = token;
   }
@@ -63,7 +62,7 @@ class BookingRepository {
   ) {
     try {
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
+        final jsonData = json.decode(utf8.decode(response.bodyBytes));
         return parser(jsonData);
       } else if (response.statusCode == 401) {
         onAuthRequired?.call();
@@ -81,22 +80,35 @@ class BookingRepository {
     }
   }
 
-  // 사용자 예약 목록 조회
+  // 사용자 예약 목록 조회 (디버깅 로그 포함)
   Future<List<BookingUserListDto>> getUserBookingList(int userId) async {
+    print('=== 예약 목록 API 호출 ===');
+    print('URL: $serverUrl/api/v1/users/booking/$userId/list');
+    print('인증됨: $isAuthenticated');
+    print('토큰: $_authToken');
+
     if (!isAuthenticated) {
       onAuthRequired?.call();
       throw Exception('로그인이 필요합니다');
     }
 
     try {
-      final response = await _client.get(
-        Uri.parse('$serverUrl/api/v1/users/booking/$userId/list'),
-        headers: _getHeaders(),
-      );
+      final response = await _client
+          .get(
+            Uri.parse('$serverUrl/api/v1/users/booking/$userId/list'),
+            headers: _getHeaders(),
+          )
+          .timeout(Duration(seconds: 10));
+
+      print('응답 상태: ${response.statusCode}');
+      print('응답 내용: ${response.body}');
 
       return _handleResponse(response, (jsonData) {
+        print('파싱할 JSON: $jsonData');
+
         // API 응답이 배열인 경우
         if (jsonData is List) {
+          print('배열 형태 응답, 길이: ${jsonData.length}');
           return jsonData
               .map((item) => BookingUserListDto.fromJson(item))
               .toList();
@@ -105,6 +117,7 @@ class BookingRepository {
         // API 응답이 객체로 감싸진 경우
         if (jsonData is Map<String, dynamic> && jsonData.containsKey('data')) {
           final List<dynamic> dataList = jsonData['data'];
+          print('객체 형태 응답, 데이터 길이: ${dataList.length}');
           return dataList
               .map((item) => BookingUserListDto.fromJson(item))
               .toList();
@@ -113,6 +126,7 @@ class BookingRepository {
         throw Exception('예상치 못한 응답 형식입니다');
       }, '사용자 예약 목록 조회');
     } catch (e) {
+      print('에러 발생: $e');
       throw Exception('사용자 예약 목록 조회 실패: $e');
     }
   }

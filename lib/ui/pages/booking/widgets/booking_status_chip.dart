@@ -1,7 +1,7 @@
 // features/booking/presentation/ui/widgets/booking_status_chip.dart
 
 import 'package:flutter/material.dart';
-import '../../../../data/models/booking_model.dart';
+import '../../../../data/models/booking/booking_model.dart';
 
 /// 예약 상태 칩 위젯
 class BookingStatusChip extends StatelessWidget {
