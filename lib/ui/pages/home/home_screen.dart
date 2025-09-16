@@ -14,7 +14,7 @@ import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../photo_service/category_service_list_page.dart';
 import '../photo_service/photo_service_detail_page.dart';
-import '../profile/my_profile_page.dart';
+import '../profile/user/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../search/search_screen.dart';
 
@@ -24,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
   static const List<Widget> _pages = [
     HomeContent(),
     SearchScreen(),
-    Center(child: Text("예약 화면", style: TextStyle(fontSize: 24))),
+    Center(child: Text("커뮤니티 화면", style: TextStyle(fontSize: 24))),
     ChatListScreen(),
     MyProfilePage(),
   ];
@@ -34,14 +34,30 @@ class HomeScreen extends ConsumerWidget {
     final int currentIndex = ref.watch(bottomNavIndexProvider);
     return Scaffold(
       appBar: CustomAppbar(),
-      body: _pages[currentIndex],
+      body: IndexedStack(
+        index: currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }
 }
 
+<<<<<<< HEAD
 class HomeContent extends StatelessWidget {
+=======
+class HomeContent extends ConsumerStatefulWidget {
+>>>>>>> 7cafa2fe81e4a749b9726d8ab280e9809c7fab6f
   const HomeContent({super.key});
+
+  @override
+  ConsumerState<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends ConsumerState<HomeContent>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   void _onCategoryTap(BuildContext context, PhotoServiceCategory category) {
     Navigator.push(
@@ -70,14 +86,21 @@ class HomeContent extends StatelessWidget {
       context,
       MaterialPageRoute(
         builder: (context) => PhotographerProfilePage(
-          photographerId: photographer.id, // 포토그래퍼 ID 전달
+          photographerId: photographer.id,
         ),
       ),
     );
   }
 
+  Future<void> _onRefresh() async {
+    await Future.wait([
+      Future.delayed(Duration(milliseconds: 500)),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -91,22 +114,44 @@ class HomeContent extends StatelessWidget {
             onBannerTap: _onBannerTap,
             margin: const EdgeInsets.all(16),
           ),
+=======
+    super.build(context);
 
-          // 카테고리
-          PhotoServiceCategoryWidget(
-            onCategorySelected: (category) => _onCategoryTap(context, category),
-          ),
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 배너 영역
+            BannerWidget(
+              height: 180,
+              autoSlideInterval: const Duration(seconds: 3),
+              showIndicators: true,
+              onBannerTap: _onBannerTap,
+              margin: const EdgeInsets.all(16),
+            ),
+>>>>>>> 7cafa2fe81e4a749b9726d8ab280e9809c7fab6f
 
-          const SizedBox(height: 10),
-          ServiceCardList(
-            onServiceTap: (service) => _onServiceTap(context, service),
-          ),
-          const SizedBox(height: 24),
-          PhotographerCardList(
-            onPhotographerTap: (photographer) =>
-                _onPhotographerTap(context, photographer),
-          ),
-        ],
+            // 카테고리
+            PhotoServiceCategoryWidget(
+              onCategorySelected: (category) =>
+                  _onCategoryTap(context, category),
+            ),
+
+            const SizedBox(height: 10),
+            ServiceCardList(
+              onServiceTap: (service) => _onServiceTap(context, service),
+            ),
+            const SizedBox(height: 24),
+            PhotographerCardList(
+              onPhotographerTap: (photographer) =>
+                  _onPhotographerTap(context, photographer),
+            ),
+          ],
+        ),
       ),
     );
   }

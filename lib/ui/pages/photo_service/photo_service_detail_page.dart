@@ -7,6 +7,7 @@ import '../../../../_core/utils/error_handler.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../provider/global/photoService/photo_service_notifier.dart';
 import '../profile/photographer/photographer_profile_page.dart';
+import '../review/review_list_screen.dart'; // ✅ 리뷰 화면 import
 import 'widgets/service_image_section.dart';
 import 'widgets/service_info_section.dart';
 import 'widgets/service_price_section.dart';
@@ -56,6 +57,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
               onServiceTap: (otherService) =>
                   _onOtherServiceTap(context, otherService),
             ),
+            // ✅ 리뷰 섹션 연결
             ServiceReviewSection(
               service: service,
               onViewAllTap: () => _onViewAllReviewsTap(context),
@@ -236,11 +238,12 @@ class PhotoServiceDetailPage extends ConsumerWidget {
 
   void _onViewAllReviewsTap(BuildContext context) {
     try {
-      // TODO: 모든 리뷰 페이지로 이동
-      print('모든 리뷰 보기 - serviceId: ${service.id}');
-
-      // 임시로 준비 중 메시지 표시
-      ErrorHandler.showWarning(context, '리뷰 전체보기 기능을 준비 중입니다');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ReviewListScreen(),
+        ),
+      );
     } catch (error) {
       ErrorHandler.handleError(
         context,

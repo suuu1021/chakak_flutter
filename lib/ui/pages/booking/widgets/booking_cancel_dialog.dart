@@ -1,7 +1,7 @@
 // features/booking/presentation/ui/widgets/booking_cancel_dialog.dart
 
 import 'package:flutter/material.dart';
-import '../../../../data/models/booking_model.dart';
+import '../../../../data/models/booking/booking_model.dart';
 
 /// 예약 취소 확인 다이얼로그 위젯
 class BookingCancelDialog extends StatelessWidget {
