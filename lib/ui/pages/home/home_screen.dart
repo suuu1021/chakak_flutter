@@ -1,4 +1,3 @@
-import 'package:chakak_flutter/_core/constants/app_routes.dart';
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
@@ -6,6 +5,7 @@ import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart
 import 'package:chakak_flutter/ui/pages/home/widgets/service_card_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../data/models/banner.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service_category.dart';

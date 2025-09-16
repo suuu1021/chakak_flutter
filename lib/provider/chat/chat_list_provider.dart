@@ -40,52 +40,17 @@ class ChatListNotifier extends StateNotifier<ChatListState> {
     try {
       state = state.copyWith(isLoading: true, clearErrorMessage: true);
 
-      // 실제 API 호출 (현재는 모의 데이터로 대체)
-      // final chatRooms = await _chatService.getChatRoomList();
-
-      // 임시 모의 데이터
-      await Future.delayed(const Duration(milliseconds: 500));
-      final mockData = [
-        ChatRoomListItemDto(
-          chatRoomId: 1,
-          opponentNickname: "김포토그래퍼",
-          opponentProfileImageUrl: null,
-          lastMessage: "웨딩 촬영 견적서입니다. 확인 후 결제 부탁드립니다.",
-          lastMessageCreatedAt: DateTime.now()
-              .subtract(const Duration(minutes: 30))
-              .toIso8601String(),
-          unreadMessageCount: 1,
-        ),
-        ChatRoomListItemDto(
-          chatRoomId: 2,
-          opponentNickname: "박작가님",
-          opponentProfileImageUrl: null,
-          lastMessage: "네, 좋습니다! 그때 뵙겠습니다.",
-          lastMessageCreatedAt: DateTime.now()
-              .subtract(const Duration(hours: 2))
-              .toIso8601String(),
-          unreadMessageCount: 0,
-        ),
-        ChatRoomListItemDto(
-          chatRoomId: 3,
-          opponentNickname: "이스튜디오",
-          opponentProfileImageUrl: null,
-          lastMessage: "프로필 촬영 예약 가능한 시간대 알려드릴게요.",
-          lastMessageCreatedAt: DateTime.now()
-              .subtract(const Duration(days: 1))
-              .toIso8601String(),
-          unreadMessageCount: 0,
-        ),
-      ];
+      // 실제 API 호출
+      final chatRooms = await _chatService.getMyChatRooms();
 
       state = state.copyWith(
-        chatRooms: mockData,
+        chatRooms: chatRooms,
         isLoading: false,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: '채팅방 목록을 불러오는데 실패했습니다.',
+        errorMessage: '채팅방 목록을 불러오는데 실패했습니다: ${e.toString()}',
       );
     }
   }

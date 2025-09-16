@@ -33,7 +33,7 @@ class ChatMessageDto {
       message: json['message'] as String?,
       paymentAmount: json['paymentAmount'] as int?,
       paymentOrderId: json['paymentOrderId'] as String?,
-      isRead: json['isRead'] as bool,
+      isRead: json['isRead'] as bool? ?? false,
       createdAt: json['createdAt'] as String,
     );
   }

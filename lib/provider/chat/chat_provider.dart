@@ -6,8 +6,9 @@ import '../../service/chat_service.dart';
 import '../../data/dtos/chat_message_dto.dart';
 import '../core/dio_provider.dart';
 
-// 1. ChatService 프로바이더 (변경 없음)
-final chatServiceProvider = Provider.autoDispose<ChatService>((ref) {
+// 1. ChatService 프로바이더 (수정)
+// autoDispose를 제거하여 ChatService 인스턴스가 앱 전역에서 단 하나만 생성되고 유지되도록 합니다.
+final chatServiceProvider = Provider<ChatService>((ref) {
   final dio = ref.watch(dioProvider);
   return ChatService(dio);
 });
@@ -116,10 +117,16 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
 
     // 내부 저장된 사용자 정보 사용
     final senderId = _currentUserId;
-    final senderType = _currentUserType;
+    var senderType = _currentUserType;
 
-    if (senderId == null || senderType == null) {
-      state = state.copyWith(errorMessage: "사용자 정보를 찾을 수 없습니다.");
+    // userType이 null이거나 비어있을 경우, 서버가 이해할 수 있는 기본값 'USER'를 할당합니다.
+    if (senderType == null || senderType.isEmpty) {
+      senderType = 'USER';
+    }
+
+    if (senderId == null) {
+      // 이제 senderId만 확인하면 됩니다.
+      state = state.copyWith(errorMessage: "사용자 정보를 찾을 수 없습니다 (ID 없음).");
       return;
     }
 
@@ -132,7 +139,12 @@ class ChatMessagesNotifier extends StateNotifier<ChatMessagesState> {
       isRead: false,
       createdAt: DateTime.now().toIso8601String(),
     );
-    _chatService.sendStompChatMessage(messageDto, _chatRoomId);
+
+    // [수정] 낙관적 UI 업데이트 코드를 제거합니다.
+    // 이제 메시지는 서버로부터 수신될 때만 상태에 추가됩니다.
+    // state = state.copyWith(messages: [...state.messages, messageDto]);
+
+    _chatService.sendStompChatMessage(messageDto);
   }
 
   void disconnect() {

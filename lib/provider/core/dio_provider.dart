@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth/session_provider.dart';
 
 // Dio 인스턴스를 제공하는 Provider
+// Provider가 생성될 때 Ref를 저장해두고, 인터셉터에서 사용합니다.
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(
     BaseOptions(
@@ -14,12 +15,13 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  // 인터셉터를 추가하여 모든 요청과 응답, 에러를 중간에 가로챕니다.
+  // QueuedInterceptorsWrapper를 사용하여 요청/응답/에러를 비동기적으로 처리합니다.
+  // 이렇게 하면 인터셉터 내에서 다른 Provider의 최신 상태를 안전하게 읽어올 수 있습니다.
   dio.interceptors.add(
-    InterceptorsWrapper(
+    QueuedInterceptorsWrapper(
       // 1. 요청을 보내기 전 (Request)
-      onRequest: (options, handler) {
-        // SessionProvider에서 현재 로그인 정보를 가져옵니다.
+      onRequest: (options, handler) async {
+        // 요청이 발생할 때마다 항상 최신 SessionProvider 상태를 읽어옵니다.
         final session = ref.read(sessionProvider);
 
         // 디버그 로그 추가
@@ -39,6 +41,10 @@ final dioProvider = Provider<Dio>((ref) {
         }
 
         print('[REQ] [${options.method}] ${options.uri}'); // API 요청 로그
+        // 요청 데이터가 있다면 함께 로그를 남깁니다.
+        if (options.data != null) {
+          print('[REQ-DATA] ${options.data}');
+        }
         return handler.next(options); // 요청을 계속 진행합니다.
       },
 

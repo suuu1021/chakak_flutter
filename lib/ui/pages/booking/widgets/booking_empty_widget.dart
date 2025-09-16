@@ -1,7 +1,7 @@
 // features/booking/presentation/ui/widgets/booking_empty_widget.dart
 
 import 'package:flutter/material.dart';
-import '../../../../data/models/booking_model.dart';
+import '../../../../data/models/booking/booking_model.dart';
 
 /// 빈 예약 목록 위젯
 class BookingEmptyWidget extends StatelessWidget {
