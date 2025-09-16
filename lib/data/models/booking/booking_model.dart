@@ -1,4 +1,4 @@
-// features/booking/domain/model/booking_model.dart
+import '../photo_service/photo_service.dart';
 
 /// 예약 상태 열거형
 enum BookingStatus {
@@ -19,12 +19,16 @@ class BookingListItem {
   final DateTime bookingDateTime;
   final BookingStatus status;
   final String photographerName;
+  final int? bookingInfoId;
+  final PhotoService? photoService;
 
   const BookingListItem({
     required this.photographerProfileId,
     required this.bookingDateTime,
     required this.status,
     required this.photographerName,
+    this.bookingInfoId,
+    this.photoService,
   });
 
   /// 날짜 포맷팅 (2024년 3월 15일)
@@ -66,6 +70,8 @@ class BookingListItem {
     DateTime? bookingDateTime,
     BookingStatus? status,
     String? photographerName,
+    int? bookingInfoId,
+    PhotoService? photoService,
   }) {
     return BookingListItem(
       photographerProfileId:
@@ -73,6 +79,8 @@ class BookingListItem {
       bookingDateTime: bookingDateTime ?? this.bookingDateTime,
       status: status ?? this.status,
       photographerName: photographerName ?? this.photographerName,
+      bookingInfoId: bookingInfoId ?? this.bookingInfoId,
+      photoService: photoService ?? this.photoService,
     );
   }
 
@@ -82,7 +90,9 @@ class BookingListItem {
         'photographerProfileId: $photographerProfileId, '
         'bookingDateTime: $bookingDateTime, '
         'status: $status, '
-        'photographerName: $photographerName'
+        'photographerName: $photographerName, '
+        'bookingInfoId: $bookingInfoId, '
+        'photoService: $photoService'
         ')';
   }
 
@@ -93,7 +103,9 @@ class BookingListItem {
         other.photographerProfileId == photographerProfileId &&
         other.bookingDateTime == bookingDateTime &&
         other.status == status &&
-        other.photographerName == photographerName;
+        other.photographerName == photographerName &&
+        other.bookingInfoId == bookingInfoId &&
+        other.photoService == photoService;
   }
 
   @override
@@ -103,6 +115,8 @@ class BookingListItem {
       bookingDateTime,
       status,
       photographerName,
+      bookingInfoId,
+      photoService,
     );
   }
 }

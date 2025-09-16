@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../../data/models/booking_model.dart';
+import '../../../../data/models/booking/booking_model.dart';
 import 'booking_status_chip.dart';
 
 /// 예약 카드 위젯

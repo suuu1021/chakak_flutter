@@ -4,31 +4,37 @@ class PaymentDto {
   final int paymentId;
   final String tid;
   final String partnerOrderId;
-  final String partnerUserId;
   final String itemName;
   final int totalAmount;
-  final int vatAmount;
-  final int taxFreeAmount;
   final String status;
   final String? paymentMethodType;
   final String? aid;
   final String createdAt;
   final String? approvedAt;
+  final int? bookingInfoId;
+  final String? photographerName;
+  final String? serviceTitle;
+  final bool? completed;
+  final bool? approved;
+  final String? statusDescription;
 
   PaymentDto({
     required this.paymentId,
     required this.tid,
     required this.partnerOrderId,
-    required this.partnerUserId,
     required this.itemName,
     required this.totalAmount,
-    required this.vatAmount,
-    required this.taxFreeAmount,
     required this.status,
     this.paymentMethodType,
     this.aid,
     required this.createdAt,
     this.approvedAt,
+    this.bookingInfoId,
+    this.photographerName,
+    this.serviceTitle,
+    this.completed,
+    this.approved,
+    this.statusDescription,
   });
 
   factory PaymentDto.fromJson(Map<String, dynamic> json) {
@@ -36,16 +42,19 @@ class PaymentDto {
       paymentId: json['paymentId'] ?? 0,
       tid: json['tid'] ?? '',
       partnerOrderId: json['partnerOrderId'] ?? '',
-      partnerUserId: json['partnerUserId'] ?? '',
       itemName: json['itemName'] ?? '',
       totalAmount: json['totalAmount'] ?? 0,
-      vatAmount: json['vatAmount'] ?? 0,
-      taxFreeAmount: json['taxFreeAmount'] ?? 0,
       status: json['status'] ?? 'READY',
       paymentMethodType: json['paymentMethodType'],
       aid: json['aid'],
       createdAt: json['createdAt'] ?? '',
       approvedAt: json['approvedAt'],
+      bookingInfoId: json['bookingInfoId'],
+      photographerName: json['photographerName'],
+      serviceTitle: json['serviceTitle'],
+      completed: json['completed'],
+      approved: json['approved'],
+      statusDescription: json['statusDescription'],
     );
   }
 
@@ -55,11 +64,8 @@ class PaymentDto {
       paymentId: payment.paymentId,
       tid: payment.tid,
       partnerOrderId: payment.partnerOrderId,
-      partnerUserId: payment.partnerUserId,
       itemName: payment.itemName,
       totalAmount: payment.totalAmount,
-      vatAmount: payment.vatAmount,
-      taxFreeAmount: payment.taxFreeAmount,
       status: payment.status.name.toUpperCase(),
       paymentMethodType: payment.paymentMethodType,
       aid: payment.aid,
@@ -74,11 +80,11 @@ class PaymentDto {
       paymentId: paymentId,
       tid: tid,
       partnerOrderId: partnerOrderId,
-      partnerUserId: partnerUserId,
+      partnerUserId: '', // 백엔드 응답에 없음
       itemName: itemName,
       totalAmount: totalAmount,
-      vatAmount: vatAmount,
-      taxFreeAmount: taxFreeAmount,
+      vatAmount: 0, // 백엔드 응답에 없음
+      taxFreeAmount: 0, // 백엔드 응답에 없음
       status: _parseStatus(status),
       paymentMethodType: paymentMethodType,
       aid: aid,
