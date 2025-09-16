@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/dtos/auth_dto.dart';
 import '../data/models/repositories/auth_repository.dart';
-import 'auth/session_provider.dart'; // ✅ 경로 수정
+import 'auth/session_provider.dart';
 
 // UI 상태를 나타내는 클래스 (일반 + 소셜 로그인 상태 통합)
 class AuthState {
@@ -50,13 +50,12 @@ class AuthNotifier extends Notifier<AuthState> {
       final loginResponse = await repo.login(request);
       print("[AuthProvider] Repository로부터 응답 성공!");
 
-      // ✅ [수정] SessionProvider의 명세에 맞게 올바른 메소드와 인자로 호출합니다.
       print("[AuthProvider] 세션 저장 시도...");
       await session.login(
         loginResponse.accessToken,
         loginResponse.userId,
         loginResponse.nickname,
-        loginResponse.userType,
+        loginResponse.userTypeCode, // 'userType' -> 'userTypeCode' 로 수정
       );
       print("[AuthProvider] 세션 저장 성공. 로그인 상태 업데이트 시도.");
 

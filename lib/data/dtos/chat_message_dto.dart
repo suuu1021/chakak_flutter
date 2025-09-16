@@ -1,14 +1,17 @@
+
+import 'package:flutter/foundation.dart';
+
 class ChatMessageDto {
-  final int? chatMessageId;
+  final int? chatMessageId; // 서버에서 발급, 보낼 땐 없음 (nullable)
   final int chatRoomId;
-  final String senderType; // USER 또는 PHOTOGRAPHER
+  final String senderType;
   final int senderId;
-  final String messageType; // TEXT 또는 PAYMENT_REQUEST
-  final String? message; // TEXT 타입일 때 메시지 내용
-  final int? paymentAmount; // PAYMENT_REQUEST 타입일 때 금액
-  final String? paymentOrderId; // PAYMENT_REQUEST 타입일 때 주문 ID
-  final bool isRead;
-  final String createdAt;
+  final String messageType;
+  final String message;
+  final int? paymentAmount; // 옵션
+  final String? paymentOrderId; // 옵션
+  final bool? isRead; // 서버에서 발급, 보낼 땐 없음 (nullable)
+  final String? createdAt; // 서버에서 발급, 보낼 땐 없음 (nullable String)
 
   ChatMessageDto({
     this.chatMessageId,
@@ -16,44 +19,62 @@ class ChatMessageDto {
     required this.senderType,
     required this.senderId,
     required this.messageType,
-    this.message,
+    required this.message,
     this.paymentAmount,
     this.paymentOrderId,
-    required this.isRead,
-    required this.createdAt,
+    this.isRead,
+    this.createdAt,
   });
 
   factory ChatMessageDto.fromJson(Map<String, dynamic> json) {
-    return ChatMessageDto(
+    final dto = ChatMessageDto(
       chatMessageId: json['chatMessageId'] as int?,
-      chatRoomId: json['chatRoomId'] as int,
-      senderType: json['senderType'] as String,
-      senderId: json['senderId'] as int,
-      messageType: json['messageType'] as String,
-      message: json['message'] as String?,
+      chatRoomId: json['chatRoomId'] as int? ?? 0,
+      senderType: json['senderType'] as String? ?? 'UNKNOWN',
+      senderId: json['senderId'] as int? ?? 0,
+      messageType: json['messageType'] as String? ?? 'UNKNOWN',
+      message: json['message'] as String? ?? '',
       paymentAmount: json['paymentAmount'] as int?,
       paymentOrderId: json['paymentOrderId'] as String?,
       isRead: json['isRead'] as bool? ?? false,
-      createdAt: json['createdAt'] as String,
+      createdAt: json['createdAt'] as String?, // String?으로 받음
     );
+
+    if (kDebugMode) {
+      print('[PARSED] ChatMessageDto: ${dto.toString()}');
+    }
+
+    return dto;
   }
 
   Map<String, dynamic> toJson() {
     return {
-      if (chatMessageId != null) 'chatMessageId': chatMessageId,
+      'chatMessageId': chatMessageId,
       'chatRoomId': chatRoomId,
       'senderType': senderType,
       'senderId': senderId,
       'messageType': messageType,
-      if (message != null) 'message': message,
-      if (paymentAmount != null) 'paymentAmount': paymentAmount,
-      if (paymentOrderId != null) 'paymentOrderId': paymentOrderId,
+      'message': message,
+      'paymentAmount': paymentAmount,
+      'paymentOrderId': paymentOrderId,
       'isRead': isRead,
-      'createdAt': createdAt,
+      'createdAt': createdAt, // String?을 그대로 전달
     };
   }
+
+  @override
+  String toString() {
+    return 'ChatMessageDto{\n'
+        '  chatMessageId: $chatMessageId,\n'
+        '  chatRoomId: $chatRoomId,\n'
+        '  senderType: $senderType,\n'
+        '  senderId: $senderId,\n'
+        '  messageType: $messageType,\n'
+        '  message: $message,\n'
+        '  paymentAmount: $paymentAmount,\n'
+        '  paymentOrderId: $paymentOrderId,\n'
+        '  isRead: $isRead,\n'
+        '  createdAt: $createdAt\n'
+        '}';
+  }
 }
-
-enum SenderType { USER, PHOTOGRAPHER }
-
-enum MessageType { TEXT, PAYMENT_REQUEST }

@@ -15,12 +15,12 @@ class LoginRequest {
 
 // 일반 로그인 응답 DTO
 class LoginResponse {
-  final String tokenType; // ex) "Bearer"
-  final String accessToken; // JWT
+  final String tokenType;
+  final String accessToken;
   final int userId;
   final String email;
   final String nickname;
-  final String userType;
+  final String userTypeCode; // 명세에 맞춰 필드명 수정 (userType -> userTypeCode)
 
   LoginResponse({
     required this.tokenType,
@@ -28,9 +28,10 @@ class LoginResponse {
     required this.userId,
     required this.email,
     required this.nickname,
-    required this.userType,
+    required this.userTypeCode,
   });
 
+  // JSON 파싱 로직 수정
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(
       tokenType: json['tokenType'] ?? '',
@@ -38,7 +39,7 @@ class LoginResponse {
       userId: json['userId'] ?? 0,
       email: json['email'] ?? '',
       nickname: json['nickname'] ?? '',
-      userType: json['userType'] ?? '',
+      userTypeCode: json['userTypeCode'] ?? '', // 명세에 맞춰 키 이름 수정
     );
   }
 }

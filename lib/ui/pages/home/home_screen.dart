@@ -1,4 +1,7 @@
+
+import 'package:chakak_flutter/provider/chat/chat_room_provider.dart';
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
+import 'package:chakak_flutter/ui/pages/chat/chat_screen.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
@@ -94,6 +97,29 @@ class _HomeContentState extends ConsumerState<HomeContent>
     ]);
   }
 
+  // 임시 채팅방 시작 함수
+  void _startTempChat(BuildContext context, WidgetRef ref) async {
+    try {
+      // 사진작가 1번과의 채팅방 생성/조회를 요청합니다.
+      final chatRoomResponse = await ref.read(createChatRoomProvider(1).future);
+
+      // 성공적으로 chatRoomId를 받아오면 채팅 화면으로 이동합니다.
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatRoomId: chatRoomResponse.chatRoomId,
+          ),
+        ),
+      );
+    } catch (e) {
+      // 에러 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅방 입장에 실패했습니다: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -106,6 +132,13 @@ class _HomeContentState extends ConsumerState<HomeContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 임시 채팅 시작 버튼
+            ElevatedButton(
+              onPressed: () => _startTempChat(context, ref),
+              child: const Text('작가 1과 임시 채팅 시작'),
+            ),
+            const SizedBox(height: 16),
+
             // 배너 영역
             BannerWidget(
               height: 180,

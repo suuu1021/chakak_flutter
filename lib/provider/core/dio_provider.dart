@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/session_provider.dart';
 
 // TODO: 앱 전체에서 사용할 API 서버의 기본 주소로 변경하세요.
-const String apiBaseUrl = "http://192.168.0.82:8080";
+const String apiBaseUrl = "http://10.0.2.2:8080";
 
 // Dio 인스턴스를 제공하는 Provider
 // Provider가 생성될 때 Ref를 저장해두고, 인터셉터에서 사용합니다.
@@ -31,9 +32,11 @@ final dioProvider = Provider<Dio>((ref) {
           options.headers['Authorization'] = 'Bearer ${session.jwtToken}';
         }
 
-        print('[REQ] [${options.method}] ${options.uri}'); // API 요청 로그
+        if (kDebugMode) {
+          print('[REQ] [${options.method}] ${options.uri}'); // API 요청 로그
+        }
         // 요청 데이터가 있다면 함께 로그를 남깁니다.
-        if (options.data != null) {
+        if (kDebugMode && options.data != null) {
           print('[REQ-DATA] ${options.data}');
         }
         return handler.next(options); // 요청을 계속 진행합니다.
@@ -41,15 +44,21 @@ final dioProvider = Provider<Dio>((ref) {
 
       // 2. 응답을 받은 후 (Response)
       onResponse: (response, handler) {
-        print(
-            '[RES] [${response.requestOptions.method}] ${response.requestOptions.uri}] ${response.statusCode}'); // API 응답 로그
+        if (kDebugMode) {
+          print(
+              '[RES] [${response.requestOptions.method}] ${response.requestOptions.uri}] ${response.statusCode}'); // API 응답 로그
+          // 서버에서 받은 원본 데이터를 그대로 출력합니다.
+          print('[RES-DATA] ${response.data}');
+        }
         return handler.next(response); // 응답을 계속 진행합니다.
       },
 
       // 3. 에러가 발생했을 때 (Error)
       onError: (DioException e, handler) async {
-        print(
-            '[ERR] [${e.requestOptions.method}] ${e.requestOptions.uri}] ${e.message}'); // API 에러 로그
+        if (kDebugMode) {
+          print(
+              '[ERR] [${e.requestOptions.method}] ${e.requestOptions.uri}] ${e.message}'); // API 에러 로그
+        }
 
         // 401 Unauthorized 에러(토큰 만료 등)가 발생했을 때
         if (e.response?.statusCode == 401) {
