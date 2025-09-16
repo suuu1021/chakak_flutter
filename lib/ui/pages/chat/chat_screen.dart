@@ -1,6 +1,8 @@
+import 'package:chakak_flutter/provider/auth/session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../provider/chat/chat_provider.dart';
+
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/chat_text_field.dart';
 
@@ -20,36 +22,53 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // [추가] 화면이 빌드된 직후, 채팅 서버에 연결하고 초기 메시지를 가져옵니다.
-    // TODO: 아래 jwtToken, userId, userType은 실제 로그인 유저의 정보로 반드시 교체해야 합니다.
+    // 화면이 빌드된 직후, SessionProvider에서 실제 유저 정보를 가져와 채팅서버에 연결합니다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(chatMessagesProvider(widget.chatRoomId).notifier)
-          .connectAndListen(
-            jwtToken: "YOUR_DUMMY_JWT", // <- 실제 유저의 JWT 토큰으로 교체하세요.
-            userId: 1, // <- 실제 유저의 ID로 교체하세요.
-            userType: "USER", // <- 실제 유저의 타입으로 교체하세요.
-          );
-      _scrollToBottom();
+      final session = ref.read(sessionProvider);
+
+      // jwtToken과 userId만 확인하고, userTypeCode는 null일 경우 빈 문자열을 전달합니다.
+      if (session.isLogin && session.jwtToken != null && session.userId != null) {
+        print(
+            '채팅방 입장. 유저 ID: ${session.userId}, 유저 타입 코드: ${session.userTypeCode ?? "null (기본값 사용 예정)"}');
+        ref
+            .read(chatMessagesProvider(widget.chatRoomId).notifier)
+            .connectAndListen(
+              jwtToken: session.jwtToken!,
+              userId: session.userId!,
+              // userTypeCode가 null이면 빈 문자열('')을 전달합니다.
+              userType: session.userTypeCode ?? '',
+            );
+        _scrollToBottom();
+      } else {
+        // 로그인 정보나 ID가 없는 치명적인 경우에만 연결을 시도하지 않습니다.
+        print('채팅방 입장 실패: 필수 로그인 정보 부족 (JWT 또는 ID 누락)');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('로그인 정보가 없어 채팅 서버에 연결할 수 없습니다.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     });
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+    // 위젯이 빌드된 후 스크롤하기 위해 약간의 지연을 줍니다.
+    Future.delayed(const Duration(milliseconds: 50), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
-    // [수정] 화면이 사라질 때 disconnect를 명시적으로 호출합니다.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatMessagesProvider(widget.chatRoomId).notifier).disconnect();
-    });
+    // 화면이 사라질 때 STOMP 연결을 해제합니다.
+    ref.read(chatMessagesProvider(widget.chatRoomId).notifier).disconnect();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -58,31 +77,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _sendMessage() {
     final text = _textController.text;
     if (text.isNotEmpty) {
-      // [수정] provider의 올바른 메소드를 호출합니다.
       ref
           .read(chatMessagesProvider(widget.chatRoomId).notifier)
           .sendMessage(messageContent: text);
       _textController.clear();
-      Future.delayed(const Duration(milliseconds: 50), () => _scrollToBottom());
+      _scrollToBottom();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // [수정] 올바른 provider를 watch 합니다.
+    // SessionProvider를 사용하여 현재 로그인한 유저의 ID를 가져옵니다.
+    final session = ref.watch(sessionProvider);
+    final currentUserId = session.userId;
+
     final chatState = ref.watch(chatMessagesProvider(widget.chatRoomId));
 
-    // [수정] 메시지 목록이 변경될 때 스크롤을 아래로 내립니다.
     ref.listen(chatMessagesProvider(widget.chatRoomId), (previous, next) {
       if (previous != null && next.messages.length > previous.messages.length) {
-        Future.delayed(
-            const Duration(milliseconds: 50), () => _scrollToBottom());
+        _scrollToBottom();
       }
     });
 
     return Scaffold(
       appBar: AppBar(
-        // [수정] chatRoom의 이름은 상태에 없으므로, 일단 고정 텍스트를 사용합니다.
         title: Text('채팅방'),
         centerTitle: true,
       ),
@@ -94,14 +112,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemCount: chatState.messages.length,
               itemBuilder: (context, index) {
                 final message = chatState.messages[index];
-                // [수정] isMe 로직을 실제 유저 ID와 비교해야 합니다. (현재는 임시로 1로 설정)
-                final bool isMe = message.senderId == 1;
+                // isMe 로직을 실제 로그인 유저 ID와 비교하도록 변경합니다.
+                final bool isMe = message.senderId == currentUserId;
                 return ChatBubble(
-                  // [수정] ChatMessageDto의 필드에 맞게 전달합니다.
                   message: message.message ?? "메시지 없음",
                   isMe: isMe,
-                  // [수정] String 타입의 날짜를 DateTime으로 변환하여 전달합니다.
-                  timestamp: DateTime.parse(message.createdAt!),
+                  timestamp: message.createdAt != null
+                      ? DateTime.parse(message.createdAt!)
+                      : DateTime.now(),
                 );
               },
             ),

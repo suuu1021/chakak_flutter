@@ -1,11 +1,17 @@
 class ChatRoomCreateRequestDto {
-  final int photographerProfileId;
+  final int? photographerProfileId;
+  final int? userProfileId;
 
-  ChatRoomCreateRequestDto({required this.photographerProfileId});
+  ChatRoomCreateRequestDto({this.photographerProfileId, this.userProfileId});
 
   Map<String, dynamic> toJson() {
-    return {
-      'photographerProfileId': photographerProfileId,
-    };
+    final Map<String, dynamic> data = {};
+    if (photographerProfileId != null) {
+      data['photographerProfileId'] = photographerProfileId;
+    }
+    if (userProfileId != null) {
+      data['userProfileId'] = userProfileId;
+    }
+    return data;
   }
 }

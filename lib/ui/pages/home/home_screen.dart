@@ -1,4 +1,3 @@
-import 'package:chakak_flutter/_core/constants/app_routes.dart';
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
@@ -6,6 +5,7 @@ import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart
 import 'package:chakak_flutter/ui/pages/home/widgets/service_card_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../data/models/banner.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service_category.dart';
@@ -40,7 +40,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class HomeContent extends ConsumerWidget {
+class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
 
   void _onCategoryTap(BuildContext context, PhotoServiceCategory category) {
@@ -77,22 +77,12 @@ class HomeContent extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // TODO: 테스트용 나중에 지워야함
-          ElevatedButton(
-            onPressed: () {
-              // 채팅방 ID 1번으로 입장 (테스트용)
-              Navigator.pushNamed(context, AppRoutes.chat, arguments: 1);
-            },
-            child: const Text("채팅 테스트 (임시)"),
-          ),
-          const SizedBox(height: 16), // 버튼과 배너 사이 간격
-
           // 배너 영역
           BannerWidget(
             height: 180,

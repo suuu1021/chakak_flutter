@@ -20,6 +20,7 @@ class LoginResponse {
   final int userId;
   final String email;
   final String nickname;
+  final String userType;
 
   LoginResponse({
     required this.tokenType,
@@ -27,6 +28,7 @@ class LoginResponse {
     required this.userId,
     required this.email,
     required this.nickname,
+    required this.userType,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
@@ -36,6 +38,7 @@ class LoginResponse {
       userId: json['userId'] ?? 0,
       email: json['email'] ?? '',
       nickname: json['nickname'] ?? '',
+      userType: json['userType'] ?? '',
     );
   }
 }

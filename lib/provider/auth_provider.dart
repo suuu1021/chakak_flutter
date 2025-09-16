@@ -56,6 +56,7 @@ class AuthNotifier extends Notifier<AuthState> {
         loginResponse.accessToken,
         loginResponse.userId,
         loginResponse.nickname,
+        loginResponse.userType,
       );
       print("[AuthProvider] 세션 저장 성공. 로그인 상태 업데이트 시도.");
 

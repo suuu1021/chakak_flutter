@@ -1,6 +1,3 @@
-
-
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -9,12 +6,14 @@ class AppSession {
   final String? jwtToken;
   final int? userId;
   final String? userNickname;
+  final String? userTypeCode;
   final bool isLogin;
 
   AppSession({
     this.jwtToken,
     this.userId,
     this.userNickname,
+    this.userTypeCode,
     this.isLogin = false,
   });
 
@@ -22,13 +21,15 @@ class AppSession {
     String? jwtToken,
     int? userId,
     String? userNickname,
-    bool? isLoggedIn,
+    String? userTypeCode,
+    bool? isLogin,
   }) {
     return AppSession(
       jwtToken: jwtToken ?? this.jwtToken,
       userId: userId ?? this.userId,
       userNickname: userNickname ?? this.userNickname,
-      isLogin: isLoggedIn ?? this.isLogin,
+      userTypeCode: userTypeCode ?? this.userTypeCode,
+      isLogin: isLogin ?? this.isLogin,
     );
   }
 }
@@ -39,6 +40,7 @@ class SessionNotifier extends StateNotifier<AppSession> {
   final String _jwtTokenKey = 'auth_jwt_token';
   final String _userIdKey = 'auth_user_id';
   final String _userNicknameKey = 'auth_user_nickname';
+  final String _userTypeCodeKey = 'auth_user_type_code';
 
   SessionNotifier() : super(AppSession()) {
     // 앱이 시작될 때 저장소에서 세션 정보를 로드합니다.
@@ -50,12 +52,14 @@ class SessionNotifier extends StateNotifier<AppSession> {
       final token = await _secureStorage.read(key: _jwtTokenKey);
       final userIdString = await _secureStorage.read(key: _userIdKey);
       final nickname = await _secureStorage.read(key: _userNicknameKey);
+      final userTypeCode = await _secureStorage.read(key: _userTypeCodeKey);
 
-      if (token != null && userIdString != null) {
+      if (token != null && userIdString != null && userTypeCode != null) {
         state = AppSession(
           jwtToken: token,
           userId: int.tryParse(userIdString),
           userNickname: nickname,
+          userTypeCode: userTypeCode,
           isLogin: true,
         );
       } else {
@@ -69,12 +73,13 @@ class SessionNotifier extends StateNotifier<AppSession> {
   }
 
   // 로그인 성공 시 호출될 메서드
-  Future<void> login(String token, int userId, String nickname) async {
+  Future<void> login(String token, int userId, String nickname, String userTypeCode) async {
     try {
       await _secureStorage.write(key: _jwtTokenKey, value: token);
       await _secureStorage.write(key: _userIdKey, value: userId.toString());
       await _secureStorage.write(key: _userNicknameKey, value: nickname);
-      state = AppSession(jwtToken: token, userId: userId, userNickname: nickname, isLogin: true);
+      await _secureStorage.write(key: _userTypeCodeKey, value: userTypeCode);
+      state = AppSession(jwtToken: token, userId: userId, userNickname: nickname, userTypeCode: userTypeCode, isLogin: true);
     } catch (e) {
       print("세션 정보 저장 실패 (로그인): $e");
     }
