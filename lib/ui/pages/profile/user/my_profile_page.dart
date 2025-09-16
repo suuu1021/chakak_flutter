@@ -9,6 +9,7 @@ import '../../../../_core/constants/user_type.dart';
 import '../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../../provider/auth/session_provider.dart';
 import '../../help_center/help_center_screen.dart';
+import 'widgets/logout_dialog.dart';
 
 class MyProfilePage extends ConsumerStatefulWidget {
   const MyProfilePage({super.key});
@@ -328,19 +329,6 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
   Widget _buildMenuList(BuildContext context, AppSession session) {
     final menuItems = [
       {
-        'icon': Icons.bookmark,
-        'title': '찜한 서비스',
-        'subtitle': '관심있는 서비스를 확인하세요',
-        'requireLogin': true,
-        'onTap': () {
-          if (!session.isLogin) {
-            _showLoginRequiredDialog(context);
-            return;
-          }
-          print('찜한 서비스 클릭');
-        },
-      },
-      {
         'icon': Icons.history,
         'title': '예약 내역',
         'subtitle': '지난 예약 내역을 확인하세요',
@@ -356,19 +344,6 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
               builder: (context) => const BookingManagementScreen(),
             ),
           );
-        },
-      },
-      {
-        'icon': Icons.camera_alt,
-        'title': '내 사진',
-        'subtitle': '촬영된 사진들을 확인하세요',
-        'requireLogin': true,
-        'onTap': () {
-          if (!session.isLogin) {
-            _showLoginRequiredDialog(context);
-            return;
-          }
-          print('내 사진 클릭');
         },
       },
       {
@@ -397,13 +372,6 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
         },
       },
       {
-        'icon': Icons.notifications,
-        'title': '알림 설정',
-        'subtitle': '알림 설정을 변경하세요',
-        'requireLogin': false,
-        'onTap': () => print('알림 설정 클릭'),
-      },
-      {
         'icon': Icons.help,
         'title': '고객센터',
         'subtitle': '문의사항이 있으시면 연락주세요',
@@ -415,13 +383,14 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
               ),
             ),
       },
-      {
-        'icon': Icons.settings,
-        'title': '설정',
-        'subtitle': '앱 설정을 변경하세요',
-        'requireLogin': false,
-        'onTap': () => print('설정 클릭'),
-      },
+      if (session.isLogin)
+        {
+          'icon': Icons.logout,
+          'title': '로그아웃',
+          'subtitle': '계정에서 로그아웃합니다',
+          'requireLogin': false,
+          'onTap': () => LogoutDialog.show(context),
+        },
     ];
 
     return Column(
