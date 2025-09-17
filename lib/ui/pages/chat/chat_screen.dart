@@ -1,9 +1,12 @@
+import 'package:chakak_flutter/ui/pages/chat/widgets/payment_request_bubble.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/dtos/chat_message_dto.dart';
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/chat_text_field.dart';
+// 결제 요청 버블 import
+import '../chat/widgets/payment_request_bubble.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final int chatRoomId;
@@ -25,7 +28,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   late final List<ChatMessageDto> _dummyMessages;
 
-  final _myUserId = 999;
+  final _myUserId = 999; // 임의의 내 ID
   final _myUserType = 'INDIVIDUAL';
 
   @override
@@ -44,7 +47,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     const opponentUserType = 'COMPANY';
 
     switch (chatRoomId) {
-      case 1:
+      case 1: // 김작가 스냅
         return [
           ChatMessageDto(
             chatRoomId: chatRoomId,
@@ -75,7 +78,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             senderId: opponentId,
             senderType: opponentUserType,
             messageType: 'TALK',
-            message: '네, 확인해보니 그날은 다행히 예약 가능합니다. 원하시는 상품이 있으실까요? 홈페이지에서 보신 패키지명을 알려주세요. 😊',
+            message: '네, 확인해보니 그날은 예약 가능합니다. 원하시는 상품이 있으실까요?',
             createdAt: now.subtract(const Duration(hours: 4, minutes: 55)).toIso8601String(),
           ),
           ChatMessageDto(
@@ -86,6 +89,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             message: '프리미엄 B 패키지로 하고 싶어요!',
             createdAt: now.subtract(const Duration(minutes: 30)).toIso8601String(),
           ),
+          // ✅ 결제 요청 메시지 추가
           ChatMessageDto(
             chatRoomId: chatRoomId,
             senderId: opponentId,
@@ -120,17 +124,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             chatRoomId: chatRoomId,
             senderId: opponentId,
             senderType: opponentUserType,
-            messageType: 'TALK',
-            message: '안녕하세요, 어제 공유드린 기획안 보셨을까요? 주요 기능 관련해서 논의할 부분이 있습니다.',
-            createdAt: now.subtract(const Duration(days: 3, hours: 8)).toIso8601String(),
-          ),
-          ChatMessageDto(
-            chatRoomId: chatRoomId,
-            senderId: _myUserId,
-            senderType: _myUserType,
-            messageType: 'TALK',
-            message: '아직 검토 중입니다. 오늘 오후 중으로 회신 드릴게요!',
-            createdAt: now.subtract(const Duration(days: 3, hours: 4)).toIso8601String(),
+            messageType: 'PAYMENT_REQUEST',
+            message: '프리미엄 B 패키지',   // 상품명
+            paymentAmount: 120000,        // 금액
+            paymentOrderId: 'ORDER12345', // 임시 주문번호
+            createdAt: now.subtract(const Duration(minutes: 10)).toIso8601String(),
           ),
           ChatMessageDto(
             chatRoomId: chatRoomId,
@@ -211,9 +209,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               itemBuilder: (context, index) {
                 final message = _dummyMessages[index];
                 final isMe = message.senderId == _myUserId;
-
                 final timestamp = DateTime.tryParse(message.createdAt ?? '') ?? DateTime.now();
 
+                // ✅ 결제 요청 타입 분기
+                if (message.messageType == 'PAYMENT_REQUEST') {
+                  return PaymentRequestBubble(
+                    title: message.message,
+                    price: message.paymentAmount ?? 0,
+                    description: "결제 요청 메시지",
+                    isMe: isMe,
+                  );
+                }
+
+                // 기본 채팅 버블
                 return ChatBubble(
                   message: message.message,
                   isMe: isMe,

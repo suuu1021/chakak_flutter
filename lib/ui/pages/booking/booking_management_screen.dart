@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'booking_list_tab.dart';
 import 'payment_history_tab.dart';
 
@@ -29,7 +30,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF4EA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
@@ -57,7 +58,7 @@ class _BookingManagementScreenState extends State<BookingManagementScreen>
       body: TabBarView(
         controller: _tabController,
         children: const [
-          // BookingListTab(),
+          BookingListTab(),
           PaymentHistoryTab(),
         ],
       ),
