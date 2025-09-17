@@ -1,4 +1,3 @@
-
 import 'package:chakak_flutter/provider/chat/chat_room_provider.dart';
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:chakak_flutter/ui/pages/chat/chat_screen.dart';
@@ -15,6 +14,7 @@ import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
+import '../community/commmunity_list_page.dart';
 import '../photo_service/category_service_list_page.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../profile/user/my_profile_page.dart';
@@ -27,7 +27,7 @@ class HomeScreen extends ConsumerWidget {
   static const List<Widget> _pages = [
     HomeContent(),
     SearchScreen(),
-    Center(child: Text("커뮤니티 화면", style: TextStyle(fontSize: 24))),
+    CommunityListPage(),
     ChatListScreen(),
     MyProfilePage(),
   ];
