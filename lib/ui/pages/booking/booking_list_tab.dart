@@ -475,9 +475,12 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
 
   Widget _buildDateTimeAndStatus(BookingListItem booking) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center, // 이 줄 추가
+
       children: [
         Expanded(
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center, // 이 줄 추가
             children: [
               const Icon(Icons.schedule,
                   size: 14, color: AppColors.textTertiary),
@@ -502,7 +505,7 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: getStatusColor(booking.status),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         booking.status.description,
