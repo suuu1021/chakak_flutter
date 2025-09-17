@@ -9,12 +9,10 @@ import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 import '../../../../data/models/photographer.dart';
 import '../../../../provider/global/photographer/photographer_notifier.dart';
 
-
 class PhotographerCardList extends ConsumerStatefulWidget {
   final Function(Photographer) onPhotographerTap;
 
-  const PhotographerCardList({Key? key, required this.onPhotographerTap})
-      : super(key: key);
+  const PhotographerCardList({super.key, required this.onPhotographerTap});
 
   @override
   ConsumerState<PhotographerCardList> createState() =>
@@ -102,7 +100,8 @@ class PhotographerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget imageWidget;
-    final String imageUrl = photographer.imageUrl; // Assume this is the Base64 string or a network URL
+    final String imageUrl = photographer
+        .imageUrl; // Assume this is the Base64 string or a network URL
 
     if (imageUrl.startsWith('http')) {
       // Handle network image
@@ -135,7 +134,8 @@ class PhotographerCard extends StatelessWidget {
           width: double.infinity,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            print('Error decoding Base64 image for photographer ${photographer.businessName}: $error');
+            print(
+                'Error decoding Base64 image for photographer ${photographer.businessName}: $error');
             return Container(
               height: 120,
               color: Colors.grey[200],
@@ -146,7 +146,8 @@ class PhotographerCard extends StatelessWidget {
           },
         );
       } catch (e) {
-        print('Error processing Base64 string for photographer ${photographer.businessName}: $e');
+        print(
+            'Error processing Base64 string for photographer ${photographer.businessName}: $e');
         imageWidget = Container(
           height: 120,
           color: Colors.grey[200],
@@ -189,7 +190,7 @@ class PhotographerCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+                      const BorderRadius.vertical(top: Radius.circular(12)),
                   child: imageWidget, // Display the determined image widget
                 ),
                 Positioned(
@@ -236,18 +237,21 @@ class PhotographerCard extends StatelessWidget {
                       children: photographer.categories
                           .take(3) // 최대 3개 카테고리 표시
                           .map((categoryName) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 4.0),
-                        decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1), // AppColors 사용 및 투명도 조절
-                            borderRadius: BorderRadius.circular(16.0),
-                            border: Border.all(color: AppColors.primary, width: 0.5)
-                        ),
-                        child: Text(
-                          categoryName,
-                          style: AppTextStyles.categoryName.copyWith(color: AppColors.primary), // AppTextStyles 사용
-                        ),
-                      ))
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(
+                                        0.1), // AppColors 사용 및 투명도 조절
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    border: Border.all(
+                                        color: AppColors.primary, width: 0.5)),
+                                child: Text(
+                                  categoryName,
+                                  style: AppTextStyles.categoryName.copyWith(
+                                      color: AppColors
+                                          .primary), // AppTextStyles 사용
+                                ),
+                              ))
                           .toList(),
                     ),
                   const SizedBox(height: 6),
@@ -270,4 +274,3 @@ class PhotographerCard extends StatelessWidget {
     );
   }
 }
-

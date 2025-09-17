@@ -8,6 +8,7 @@ import '../../../provider/global/photoService/photo_service_notifier.dart';
 import '../../../provider/global/photographer/photographer_notifier.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
+import '../profile/photographer/photographer_profile_page.dart';
 import 'widgets/custom_search_field.dart';
 
 class SearchResultsPage extends ConsumerStatefulWidget {
@@ -66,7 +67,30 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
               .any((category) => category.toLowerCase().contains(query));
     }).toList();
 
-    // 포트폴리오 더미데이터 필터링
+    // ==================== 시연용 실제 데이터 연동 (영상 촬영 후 삭제) ====================
+    // 실제 포트폴리오 데이터 생성
+    final allPortfolios = <Map<String, dynamic>>[];
+
+    for (final service in photoServiceState.services) {
+      final photographer = photographerState.photographers
+          .where((p) => p.id == service.photographerId)
+          .firstOrNull;
+
+      for (int i = 0; i < service.portfolioImages.length; i++) {
+        allPortfolios.add({
+          'id': '${service.id}_$i',
+          'title': '${service.title} 포트폴리오 ${i + 1}',
+          'artist': photographer?.businessName ?? '작가명 미상',
+          'categories': service.categories,
+          'imageUrl': service.portfolioImages[i],
+          'service': service,
+        });
+      }
+    }
+    // ==================== 시연용 실제 데이터 연동 끝 ====================
+
+    // ==================== 기존 더미데이터 (주석 보관) ====================
+    /*
     final allPortfolios = [
       {
         'title': '웨딩 포트폴리오 1',
@@ -94,6 +118,8 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
         'categories': ['프로필', '비즈니스']
       },
     ];
+    */
+    // ==================== 기존 더미데이터 끝 ====================
 
     filteredPortfolios = allPortfolios.where((portfolio) {
       return portfolio['title'].toString().toLowerCase().contains(query) ||
@@ -187,8 +213,15 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
 
     return PhotographerListWidget(
       photographers: filteredPhotographers,
-      onServiceTap: (service) {
-        print('포토그래퍼 선택: ${service.businessName}');
+      onServiceTap: (photographer) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PhotographerProfilePage(
+              photographerId: photographer.id,
+            ),
+          ),
+        );
       },
     );
   }
@@ -237,7 +270,33 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
                     ),
                     color: Colors.grey[300],
                   ),
-                  child: const Icon(Icons.photo, size: 40, color: Colors.grey),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    child: Image.network(
+                      portfolio['imageUrl'] ??
+                          'https://picsum.photos/400/300?random=1',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.photo,
+                              size: 40, color: Colors.grey),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
 
