@@ -84,14 +84,14 @@ class _CustomAppbarState extends State<CustomAppbar> {
                             .state = 1;
                       },
               ),
-              IconButton(
-                icon: const Icon(Icons.notifications),
-                onPressed: _isNavigating
-                    ? null
-                    : () {
-                        _navigateToRoute(AppRoutes.notification);
-                      },
-              ),
+              // IconButton(
+              //   icon: const Icon(Icons.notifications),
+              //   onPressed: _isNavigating
+              //       ? null
+              //       : () {
+              //           _navigateToRoute(AppRoutes.notification);
+              //         },
+              // ),
               IconButton(
                 icon: const Icon(Icons.calendar_month),
                 onPressed: _isNavigating
@@ -100,17 +100,17 @@ class _CustomAppbarState extends State<CustomAppbar> {
                         _navigateToRoute(AppRoutes.userBookingList);
                       },
               ),
-              IconButton(
-                icon: const Icon(Icons.reviews), //  리뷰 아이콘
-                onPressed: _isNavigating
-                    ? null
-                    : () {
-                        //  일반 사용자라면 내가 작성한 리뷰로
-                        _navigateToRoute(AppRoutes.myReviews);
-                        //  포토그래퍼 계정이면 아래 코드로 교체
-                        // _navigateToRoute('/photographer-reviews');
-                      },
-              ),
+              // IconButton(
+              //   icon: const Icon(Icons.reviews), //  리뷰 아이콘
+              //   onPressed: _isNavigating
+              //       ? null
+              //       : () {
+              //           //  일반 사용자라면 내가 작성한 리뷰로
+              //           _navigateToRoute(AppRoutes.myReviews);
+              //           //  포토그래퍼 계정이면 아래 코드로 교체
+              //           // _navigateToRoute('/photographer-reviews');
+              //         },
+              // ),
             ],
           ),
         ],
