@@ -7,7 +7,7 @@ enum BookingStatus {
   rejected('예약거절'),
   canceled('예약취소'),
   completed('촬영완료'),
-  reviewed('리뷰작성완료');
+  reviewed('리뷰완료');
 
   const BookingStatus(this.description);
   final String description;
