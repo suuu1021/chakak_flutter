@@ -39,8 +39,10 @@ class _PaymentFormBodyState extends State<PaymentFormBody> {
           const SizedBox(height: 30),
 
           // 결제자 정보
-          const Text("결제자 정보",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text(
+            "결제자 정보",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 16),
           CustomTextFormField(hint: "이름", controller: _nameController),
           const SizedBox(height: 12),
@@ -50,8 +52,10 @@ class _PaymentFormBodyState extends State<PaymentFormBody> {
           const SizedBox(height: 20),
 
           // 요청사항
-          const Text("추가 요청사항",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const Text(
+            "추가 요청사항",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           CustomTextArea(hint: "선택 입력", controller: _commentController),
           const SizedBox(height: 40),
@@ -59,10 +63,18 @@ class _PaymentFormBodyState extends State<PaymentFormBody> {
           // 결제 버튼
           PaymentSubmitButton(
             onSubmit: () {
-              // TODO: [1] 서버 API 호출 → 결제창 띄우기
-              // TODO: [2] 성공/실패 분기
-              //Navigator.pushNamed(context, '/payment-success');
-              Navigator.pushNamed(context, '/payment-fail', arguments: "각종 사유");
+              // TODO: [Backend 연결] 서버 결제 API 호출 후 결제 진행
+              // 1. 서버에 결제 승인 요청 보내기
+              // 2. 성공 시: /payment-success 화면 이동
+              // 3. 실패 시: /payment-fail 화면 이동 (실패 사유 전달)
+
+              // ✅ 현재는 테스트용 (백엔드 연결 전)
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("결제 테스트 성공!"),
+                  duration: Duration(seconds: 2),
+                ),
+              );
             },
           ),
         ],

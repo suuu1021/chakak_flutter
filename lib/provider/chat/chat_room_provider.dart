@@ -1,23 +1,28 @@
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/dtos/chat_room_create_request_dto.dart';
 import '../../data/dtos/chat_room_response_dto.dart';
 import '../auth/session_provider.dart';
-import 'chat_provider.dart';
+import 'chat_provider.dart'; // chat_service.dart -> chat_provider.dart 로 변경
 
 /// 채팅방 생성 또는 조회를 위한 FutureProvider
 final createChatRoomProvider = FutureProvider.family<ChatRoomResponseDto, int>(
     (ref, photographerId) async {
-  final session = ref.read(sessionProvider);
+  // chat_provider.dart에 정의된 중앙 chatServiceProvider를 사용합니다.
   final chatService = ref.read(chatServiceProvider);
+  final session = ref.read(sessionProvider);
 
-  // 서버에 보낼 요청 DTO 생성
+  final userId = session.userId;
+  if (userId == null) {
+    throw Exception('로그인 정보를 찾을 수 없습니다.');
+  }
+
   final requestDto = ChatRoomCreateRequestDto(
-    userProfileId: session.userId, // 현재 로그인한 사용자 ID
-    photographerProfileId: photographerId, // 채팅할 상대방 사진작가 ID
+    userProfileId: userId,
+    photographerProfileId: photographerId,
   );
 
-  // ChatService를 통해 채팅방 생성 또는 조회 요청
   final chatRoomResponse = await chatService.createOrGetChatRoom(requestDto);
 
   return chatRoomResponse;
