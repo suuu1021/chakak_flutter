@@ -1,9 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/dtos/chat_room_list_item_dto.dart';
-import '../../../service/chat_service.dart';
-import '../core/dio_provider.dart';
 
-// State 클래스
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../data/dtos/chat_room_list_item_dto.dart';
+import '../../service/chat_service.dart';
+import 'chat_provider.dart'; // chat_service.dart -> chat_provider.dart 로 변경
+
+// State 클래스는 변경 없음
 class ChatListState {
   final List<ChatRoomListItemDto> chatRooms;
   final bool isLoading;
@@ -24,34 +26,25 @@ class ChatListState {
     return ChatListState(
       chatRooms: chatRooms ?? this.chatRooms,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage:
-          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+      errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
     );
   }
 }
 
-// Notifier 클래스
+// Notifier 클래스는 변경 없음
 class ChatListNotifier extends StateNotifier<ChatListState> {
+  // Notifier의 생성자는 ChatService를 직접 받으므로 변경할 필요가 없습니다.
   final ChatService _chatService;
 
   ChatListNotifier(this._chatService) : super(const ChatListState());
 
   Future<void> loadChatRooms() async {
+    state = state.copyWith(isLoading: true, clearErrorMessage: true);
     try {
-      state = state.copyWith(isLoading: true, clearErrorMessage: true);
-
-      // 실제 API 호출
       final chatRooms = await _chatService.getMyChatRooms();
-
-      state = state.copyWith(
-        chatRooms: chatRooms,
-        isLoading: false,
-      );
+      state = state.copyWith(chatRooms: chatRooms, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: '채팅방 목록을 불러오는데 실패했습니다: ${e.toString()}',
-      );
+      state = state.copyWith(isLoading: false, errorMessage: '채팅방 목록을 불러오는데 실패했습니다: ${e.toString()}');
     }
   }
 
@@ -60,10 +53,8 @@ class ChatListNotifier extends StateNotifier<ChatListState> {
   }
 }
 
-// Provider
-final chatListProvider =
-    StateNotifierProvider<ChatListNotifier, ChatListState>((ref) {
-  final dio = ref.watch(dioProvider);
-  final chatService = ChatService(dio);
+// Provider 수정: chat_provider.dart에 정의된 chatServiceProvider를 사용합니다.
+final chatListProvider = StateNotifierProvider<ChatListNotifier, ChatListState>((ref) {
+  final chatService = ref.watch(chatServiceProvider);
   return ChatListNotifier(chatService);
 });

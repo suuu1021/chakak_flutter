@@ -109,6 +109,7 @@ class _HomeContentState extends ConsumerState<HomeContent>
         MaterialPageRoute(
           builder: (context) => ChatScreen(
             chatRoomId: chatRoomResponse.chatRoomId,
+            opponentNickname: '작가 1', // opponentNickname을 직접 지정
           ),
         ),
       );

@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../_core/constants/app_text_styles.dart';
-import '../../../provider/chat/chat_list_provider.dart';
 import '../../../data/dtos/chat_room_list_item_dto.dart';
 import 'chat_screen.dart';
 
@@ -16,13 +15,7 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(chatListProvider.notifier).loadChatRooms();
-    });
-  }
+  // initState와 서버에서 데이터를 로드하는 로직을 제거했습니다.
 
   void _navigateToChat(ChatRoomListItemDto chatRoom) {
     Navigator.push(
@@ -30,6 +23,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
       MaterialPageRoute(
         builder: (context) => ChatScreen(
           chatRoomId: chatRoom.chatRoomId,
+          opponentNickname: chatRoom.opponentNickname, // 닉네임 전달 추가
         ),
       ),
     );
@@ -64,72 +58,64 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatListState = ref.watch(chatListProvider);
+    // 실제 앱처럼 보이기 위한 더미 데이터를 생성합니다.
+    final now = DateTime.now();
+    final List<ChatRoomListItemDto> dummyChatRooms = [
+      ChatRoomListItemDto(
+        chatRoomId: 1,
+        opponentNickname: '김작가 스냅',
+        lastMessage: '알겠습니다. 프리미엄 B 패키지로 예약 진행 도와드리겠습니다. 계약서 작성을 위해 성함과 연락처를 알려주시겠어요?',
+        lastMessageCreatedAt:
+            now.subtract(const Duration(minutes: 5)).toIso8601String(),
+        unreadMessageCount: 2,
+      ),
+      ChatRoomListItemDto(
+        chatRoomId: 2,
+        opponentNickname: '디자이너 김민지',
+        lastMessage: '네, 확인했습니다. 시안 보내드릴게요.',
+        lastMessageCreatedAt:
+            now.subtract(const Duration(days: 1, hours: 2)).toIso8601String(),
+        unreadMessageCount: 0,
+      ),
+      ChatRoomListItemDto(
+        chatRoomId: 3,
+        opponentNickname: 'PM 이서준',
+        lastMessage: '회의록 확인 부탁드립니다. 금일 중으로 피드백 주세요.',
+        lastMessageCreatedAt: now.subtract(const Duration(days: 3)).toIso8601String(),
+        unreadMessageCount: 1,
+      ),
+      ChatRoomListItemDto(
+        chatRoomId: 4,
+        opponentNickname: '디자이너 곽충근',
+        lastMessage: '다음 주 스터디 주제는 Riverpod 심화 과정입니다.',
+        lastMessageCreatedAt: now.subtract(const Duration(days: 8)).toIso8601String(),
+        unreadMessageCount: 0,
+      ),
+      ChatRoomListItemDto(
+        chatRoomId: 5,
+        opponentNickname: '고양이 집사',
+        lastMessage: '감사합니다! 다음에 또 거래해요 :)',
+        lastMessageCreatedAt:
+            now.subtract(const Duration(days: 30)).toIso8601String(),
+        unreadMessageCount: 0,
+      ),
+    ];
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(AppStrings.chat, style: AppTextStyles.h4),
       ),
-      body: _buildBody(chatListState),
-    );
-  }
-
-  Widget _buildBody(ChatListState chatListState) {
-    if (chatListState.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (chatListState.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text('오류가 발생했습니다',
-                style: TextStyle(fontSize: 18, color: Colors.grey[700])),
-            const SizedBox(height: 8),
-            Text(chatListState.errorMessage!,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () =>
-                  ref.read(chatListProvider.notifier).loadChatRooms(),
-              child: const Text('다시 시도'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (chatListState.chatRooms.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text('아직 대화가 없습니다',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: () => ref.read(chatListProvider.notifier).refresh(),
-      child: ListView.separated(
-        itemCount: chatListState.chatRooms.length,
+      // 로딩이나 에러 상태 없이, 더미 데이터로 리스트를 바로 표시합니다.
+      body: ListView.separated(
+        itemCount: dummyChatRooms.length,
         separatorBuilder: (context, index) => Divider(
           height: 1,
           color: Colors.grey[300],
           indent: 72,
         ),
         itemBuilder: (context, index) {
-          final chatRoom = chatListState.chatRooms[index];
+          final chatRoom = dummyChatRooms[index];
           return _buildChatListItem(chatRoom);
         },
       ),
@@ -143,7 +129,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            // 프로필 이미지 (온라인 상태 제거)
+            // 프로필 이미지
             CircleAvatar(
               radius: 28,
               backgroundColor: Colors.grey[300],
@@ -155,7 +141,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 이름과 시간 (스타일링 제거)
+                  // 이름과 시간
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -193,7 +179,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                           ),
                         ),
                       ),
-                      // 읽지 않은 메시지 개수만 표시 (백엔드 필드)
+                      // 읽지 않은 메시지 개수
                       if (chatRoom.unreadMessageCount > 0)
                         Container(
                           margin: const EdgeInsets.only(left: 8),

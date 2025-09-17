@@ -73,8 +73,12 @@ class AppRoutes {
         userBookingList: (context) => const BookingManagementScreen(),
         search: (context) => const SearchScreen(),
         chat: (context) {
-          final chatRoomId = ModalRoute.of(context)!.settings.arguments as int;
-          return ChatScreen(chatRoomId: chatRoomId);
+          final args =
+              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final chatRoomId = args['chatRoomId'] as int;
+          final opponentNickname = args['opponentNickname'] as String;
+          return ChatScreen(
+              chatRoomId: chatRoomId, opponentNickname: opponentNickname);
         },
         chatList: (context) => const ChatListScreen(),
         paymentForm: (context) {

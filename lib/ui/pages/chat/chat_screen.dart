@@ -1,16 +1,19 @@
-
-import 'package:chakak_flutter/provider/auth/session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../provider/chat/chat_provider.dart';
 
+import '../../../data/dtos/chat_message_dto.dart';
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/chat_text_field.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final int chatRoomId;
+  final String opponentNickname; // 닉네임 파라미터 추가
 
-  const ChatScreen({super.key, required this.chatRoomId});
+  const ChatScreen({
+    Key? key,
+    required this.chatRoomId,
+    required this.opponentNickname, // 생성자에 추가
+  }) : super(key: key);
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -20,111 +23,214 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  late final List<ChatMessageDto> _dummyMessages;
+
+  final _myUserId = 999; // 임의의 내 ID
+  final _myUserType = 'INDIVIDUAL';
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final session = ref.read(sessionProvider);
+    _dummyMessages = _generateDummyMessages(widget.chatRoomId);
 
-      if (session.isLogin && session.jwtToken != null && session.userId != null) {
-        print(
-            '채팅방 입장. 유저 ID: ${session.userId}, 유저 타입 코드: ${session.userTypeCode ?? "null (기본값 사용 예정)"}');
-        ref
-            .read(chatMessagesProvider(widget.chatRoomId).notifier)
-            .connectAndListen(
-              jwtToken: session.jwtToken!,
-              userId: session.userId!,
-              userType: session.userTypeCode ?? '',
-            );
-        _scrollToBottom();
-      } else {
-        print('채팅방 입장 실패: 필수 로그인 정보 부족 (JWT 또는 ID 누락)');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('로그인 정보가 없어 채팅 서버에 연결할 수 없습니다.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
     });
   }
 
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 50), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+  List<ChatMessageDto> _generateDummyMessages(int chatRoomId) {
+    final now = DateTime.now();
+    final opponentId = chatRoomId;
+    const opponentUserType = 'COMPANY';
+
+    switch (chatRoomId) {
+      case 1: // 김작가 스냅
+        return [
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: _myUserId,
+            senderType: _myUserType,
+            messageType: 'TALK',
+            message: '안녕하세요, 돌잔치 스냅 예약 문의드립니다.',
+            createdAt: now.subtract(const Duration(days: 1, hours: 2)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '안녕하세요, 고객님! 문의 환영합니다. 언제쯤 행사 예정이신가요?',
+            createdAt: now.subtract(const Duration(days: 1, hours: 1, minutes: 58)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: _myUserId,
+            senderType: _myUserType,
+            messageType: 'TALK',
+            message: '다음 달 15일 토요일 점심입니다. 예약 가능할까요?',
+            createdAt: now.subtract(const Duration(hours: 5)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '네, 확인해보니 그날은 다행히 예약 가능합니다. 원하시는 상품이 있으실까요? 홈페이지에서 보신 패키지명을 알려주세요. 😊',
+            createdAt: now.subtract(const Duration(hours: 4, minutes: 55)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: _myUserId,
+            senderType: _myUserType,
+            messageType: 'TALK',
+            message: '프리미엄 B 패키지로 하고 싶어요!',
+            createdAt: now.subtract(const Duration(minutes: 30)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '알겠습니다. 프리미엄 B 패키지로 예약 진행 도와드리겠습니다. 계약서 작성을 위해 성함과 연락처를 알려주시겠어요?',
+            createdAt: now.subtract(const Duration(minutes: 5)).toIso8601String(),
+          ),
+        ];
+      case 2: // 디자이너 김민지
+        return [
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '요청하신 로고 시안 보내드립니다. 확인 후 피드백 부탁드려요.',
+            createdAt: now.subtract(const Duration(days: 1, hours: 5)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: _myUserId,
+            senderType: _myUserType,
+            messageType: 'TALK',
+            message: '네, 확인했습니다. 시안 보내드릴게요.',
+            createdAt: now.subtract(const Duration(days: 1, hours: 2)).toIso8601String(),
+          ),
+        ];
+      case 3: // PM 이서준
+        return [
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '안녕하세요, 어제 공유드린 기획안 보셨을까요? 주요 기능 관련해서 논의할 부분이 있습니다.',
+            createdAt: now.subtract(const Duration(days: 3, hours: 8)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: _myUserId,
+            senderType: _myUserType,
+            messageType: 'TALK',
+            message: '아직 검토 중입니다. 오늘 오후 중으로 회신 드릴게요!',
+            createdAt: now.subtract(const Duration(days: 3, hours: 4)).toIso8601String(),
+          ),
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '회의록 확인 부탁드립니다. 금일 중으로 피드백 주세요.',
+            createdAt: now.subtract(const Duration(days: 3)).toIso8601String(),
+          ),
+        ];
+      default: // 그 외의 채팅방은 기본 메시지를 표시합니다.
+        return [
+          ChatMessageDto(
+            chatRoomId: chatRoomId,
+            senderId: opponentId,
+            senderType: opponentUserType,
+            messageType: 'TALK',
+            message: '안녕하세요, 문의드립니다.',
+            createdAt: now.subtract(const Duration(days: 10)).toIso8601String(),
+          ),
+        ];
+    }
+  }
+
+  void _handleSubmitted(String text) {
+    if (text.trim().isEmpty) return;
+
+    _textController.clear();
+    final newMessage = ChatMessageDto(
+      chatRoomId: widget.chatRoomId,
+      senderId: _myUserId,
+      senderType: _myUserType,
+      messageType: 'TALK',
+      message: text,
+      createdAt: DateTime.now().toIso8601String(),
+    );
+
+    setState(() {
+      _dummyMessages.add(newMessage);
     });
+
+    Future.delayed(const Duration(milliseconds: 50), () => _scrollToBottom());
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 
   @override
   void dispose() {
-    ref.read(chatMessagesProvider(widget.chatRoomId).notifier).disconnect();
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _sendMessage() {
-    final text = _textController.text;
-    if (text.isNotEmpty) {
-      ref
-          .read(chatMessagesProvider(widget.chatRoomId).notifier)
-          .sendMessage(messageContent: text);
-      _textController.clear();
-      _scrollToBottom();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final session = ref.watch(sessionProvider);
-    final currentUserId = session.userId;
-
-    final chatState = ref.watch(chatMessagesProvider(widget.chatRoomId));
-
-    ref.listen(chatMessagesProvider(widget.chatRoomId), (previous, next) {
-      if (previous != null && next.messages.length > previous.messages.length) {
-        _scrollToBottom();
-      }
-    });
+    final opponentName = widget.opponentNickname;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('채팅방'),
-        centerTitle: true,
+        title: Text(opponentName),
+        centerTitle: false,
       ),
-      body: chatState.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(8.0),
-              itemCount: chatState.messages.length,
+              padding: const EdgeInsets.all(16.0),
+              itemCount: _dummyMessages.length,
               itemBuilder: (context, index) {
-                final message = chatState.messages[index];
-                final bool isMe = message.senderId == currentUserId;
-                
-                DateTime timestamp;
-                if (message.createdAt != null && message.createdAt!.isNotEmpty) {
-                  timestamp = DateTime.parse(message.createdAt!);
-                } else {
-                  timestamp = DateTime.now(); // createdAt이 null이거나 비어있으면 현재 시간으로 대체
-                }
+                final message = _dummyMessages[index];
+                final isMe = message.senderId == _myUserId;
+
+                final timestamp = DateTime.tryParse(message.createdAt ?? '') ?? DateTime.now();
 
                 return ChatBubble(
-                  message: message.message ?? "메시지 없음",
+                  message: message.message,
                   isMe: isMe,
                   timestamp: timestamp,
                 );
               },
             ),
-      bottomNavigationBar: ChatTextField(
-        controller: _textController,
-        onSend: _sendMessage,
+          ),
+          ChatTextField(
+            controller: _textController,
+            onSend: () {
+              if (_textController.text.trim().isNotEmpty) {
+                _handleSubmitted(_textController.text);
+              }
+            },
+          ),
+        ],
       ),
     );
   }
