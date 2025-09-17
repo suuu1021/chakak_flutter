@@ -42,6 +42,40 @@ class AuthNotifier extends Notifier<AuthState> {
     state = state.copyWith(isProgress: true);
 
     try {
+      // ==================== 시연용 더미 로그인 (영상 촬영 후 삭제) ====================
+      // 더미 계정 체크
+      if (request.email == "test@test.com" && request.password == "123456") {
+        print("[AuthProvider] 더미 계정으로 로그인 시도");
+        await Future.delayed(const Duration(milliseconds: 800)); // 로딩 시뮬레이션
+
+        // 더미 응답 생성
+        final dummyLoginResponse = LoginResponse(
+          tokenType: "Bearer",
+          accessToken: "dummy_access_token_12345",
+          userId: 1,
+          email: "test@test.com",
+          nickname: "테스트 유저",
+          userTypeCode: "USER", // 일반 사용자
+        );
+
+        print("[AuthProvider] 더미 세션 저장 시도...");
+        final session = ref.read(sessionProvider.notifier);
+        await session.login(
+          dummyLoginResponse.accessToken,
+          dummyLoginResponse.userId,
+          dummyLoginResponse.nickname,
+          dummyLoginResponse.userTypeCode,
+        );
+        print("[AuthProvider] 더미 세션 저장 성공!");
+
+        state = state.copyWith(login: dummyLoginResponse, isProgress: false);
+        print("[AuthProvider] 더미 로그인 성공 완료!");
+        return;
+      }
+      // ==================== 시연용 더미 로그인 끝 ====================
+
+      // ==================== 기존 실제 로그인 로직 (주석 보관) ====================
+      /*
       final repo = ref.read(authRepositoryProvider);
       final session = ref.read(sessionProvider.notifier);
 
@@ -60,6 +94,12 @@ class AuthNotifier extends Notifier<AuthState> {
 
       state = state.copyWith(login: loginResponse, isProgress: false);
       print("[AuthProvider] 로그인 성공 상태로 업데이트 완료. isProgress=false");
+      */
+      // ==================== 기존 실제 로그인 로직 끝 ====================
+
+      // 더미 계정이 아닌 경우 에러 발생
+      await Future.delayed(const Duration(milliseconds: 500)); // 로딩 시뮬레이션
+      throw Exception("잘못된 이메일 또는 비밀번호입니다");
     } catch (e) {
       print("[AuthProvider] !!!!! 로그인 에러 발생 !!!!!: $e");
       state = state.copyWith(isProgress: false);

@@ -6,12 +6,15 @@ class CustomAuthTextFormField extends StatelessWidget {
   final String errorText; // 검증 실패시 표시될 에러 메세지
   final Function(String)? onChanged; // 사용자 입력값이 변경될 때 호출되는 콜백 함수
   final bool obscureText;
+  final String?
+      initialValue; // ==================== 시연용 초기값 파라미터 추가 (영상 촬영 후 삭제) ====================
 
   CustomAuthTextFormField({
     required this.title,
     this.errorText = "",
     this.onChanged,
     this.obscureText = false,
+    this.initialValue, // ==================== 시연용 초기값 파라미터 추가 (영상 촬영 후 삭제) ====================
   }); // 입력값 숨길지 여부 설정
 
   @override
@@ -22,6 +25,8 @@ class CustomAuthTextFormField extends StatelessWidget {
         Text(title),
         const SizedBox(height: smallGap),
         TextFormField(
+          initialValue:
+              initialValue, // ==================== 시연용 초기값 설정 (영상 촬영 후 삭제) ====================
           onChanged: onChanged,
           obscureText: obscureText,
           decoration: InputDecoration(
