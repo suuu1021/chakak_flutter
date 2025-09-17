@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/dtos/chat_room_list_item_dto.dart';
 import '../../service/chat_service.dart';
-import 'chat_provider.dart'; // chat_service.dart -> chat_provider.dart 로 변경
+import 'chat_provider.dart';
 
-// State 클래스는 변경 없음
 class ChatListState {
   final List<ChatRoomListItemDto> chatRooms;
   final bool isLoading;
@@ -31,9 +30,7 @@ class ChatListState {
   }
 }
 
-// Notifier 클래스는 변경 없음
 class ChatListNotifier extends StateNotifier<ChatListState> {
-  // Notifier의 생성자는 ChatService를 직접 받으므로 변경할 필요가 없습니다.
   final ChatService _chatService;
 
   ChatListNotifier(this._chatService) : super(const ChatListState());
@@ -53,7 +50,6 @@ class ChatListNotifier extends StateNotifier<ChatListState> {
   }
 }
 
-// Provider 수정: chat_provider.dart에 정의된 chatServiceProvider를 사용합니다.
 final chatListProvider = StateNotifierProvider<ChatListNotifier, ChatListState>((ref) {
   final chatService = ref.watch(chatServiceProvider);
   return ChatListNotifier(chatService);

@@ -133,10 +133,13 @@ class _HomeContentState extends ConsumerState<HomeContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 임시 채팅 시작 버튼
-            ElevatedButton(
-              onPressed: () => _startTempChat(context, ref),
-              child: const Text('작가 1과 임시 채팅 시작'),
+            // 임시 채팅 시작 버튼 (숨김 처리)
+            Opacity(
+              opacity: 0.0,
+              child: ElevatedButton(
+                onPressed: () => _startTempChat(context, ref),
+                child: const Text('작가 1과 임시 채팅 시작'),
+              ),
             ),
             const SizedBox(height: 16),
 

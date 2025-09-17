@@ -46,7 +46,7 @@ class ChatBubble extends StatelessWidget {
             ),
             const SizedBox(height: 4.0),
             Text(
-              DateFormat('HH:mm').format(timestamp), // 시간 포맷팅 (intl 패키지 필요)
+              DateFormat('HH:mm').format(timestamp),
               style: TextStyle(
                 color: isMe ? Colors.white70 : Colors.black54,
                 fontSize: 10.0,

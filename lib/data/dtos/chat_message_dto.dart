@@ -2,16 +2,16 @@
 import 'package:flutter/foundation.dart';
 
 class ChatMessageDto {
-  final int? chatMessageId; // 서버에서 발급, 보낼 땐 없음 (nullable)
+  final int? chatMessageId;
   final int chatRoomId;
   final String senderType;
   final int senderId;
   final String messageType;
   final String message;
-  final int? paymentAmount; // 옵션
-  final String? paymentOrderId; // 옵션
-  final bool? isRead; // 서버에서 발급, 보낼 땐 없음 (nullable)
-  final String? createdAt; // 서버에서 발급, 보낼 땐 없음 (nullable String)
+  final int? paymentAmount;
+  final String? paymentOrderId;
+  final bool? isRead;
+  final String? createdAt;
 
   ChatMessageDto({
     this.chatMessageId,
@@ -37,7 +37,7 @@ class ChatMessageDto {
       paymentAmount: json['paymentAmount'] as int?,
       paymentOrderId: json['paymentOrderId'] as String?,
       isRead: json['isRead'] as bool? ?? false,
-      createdAt: json['createdAt'] as String?, // String?으로 받음
+      createdAt: json['createdAt'] as String?,
     );
 
     if (kDebugMode) {
@@ -58,7 +58,7 @@ class ChatMessageDto {
       'paymentAmount': paymentAmount,
       'paymentOrderId': paymentOrderId,
       'isRead': isRead,
-      'createdAt': createdAt, // String?을 그대로 전달
+      'createdAt': createdAt,
     };
   }
 

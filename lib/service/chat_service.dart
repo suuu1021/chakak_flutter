@@ -10,8 +10,6 @@ import '../data/dtos/chat_room_create_request_dto.dart';
 import '../data/dtos/chat_room_list_item_dto.dart';
 import '../data/dtos/chat_room_response_dto.dart';
 
-// 이 파일에서 Provider 정의를 완전히 제거합니다.
-
 class ChatService {
   final Dio _dio;
   final String stompConnectUrl = 'ws://localhost:8080/ws';

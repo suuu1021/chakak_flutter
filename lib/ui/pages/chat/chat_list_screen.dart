@@ -15,7 +15,6 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
-  // initState와 서버에서 데이터를 로드하는 로직을 제거했습니다.
 
   void _navigateToChat(ChatRoomListItemDto chatRoom) {
     Navigator.push(
@@ -23,7 +22,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
       MaterialPageRoute(
         builder: (context) => ChatScreen(
           chatRoomId: chatRoom.chatRoomId,
-          opponentNickname: chatRoom.opponentNickname, // 닉네임 전달 추가
+          opponentNickname: chatRoom.opponentNickname,
         ),
       ),
     );
@@ -38,17 +37,13 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
       final difference = now.difference(dateTime);
 
       if (difference.inDays == 0) {
-        // 오늘
         return DateFormat('HH:mm').format(dateTime);
       } else if (difference.inDays == 1) {
-        // 어제
         return '어제';
       } else if (difference.inDays < 7) {
-        // 일주일 이내
         final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
         return weekdays[dateTime.weekday - 1];
       } else {
-        // 일주일 이상
         return DateFormat('M월 d일').format(dateTime);
       }
     } catch (e) {
@@ -58,7 +53,6 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 실제 앱처럼 보이기 위한 더미 데이터를 생성합니다.
     final now = DateTime.now();
     final List<ChatRoomListItemDto> dummyChatRooms = [
       ChatRoomListItemDto(
@@ -106,7 +100,6 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
         backgroundColor: Colors.white,
         title: Text(AppStrings.chat, style: AppTextStyles.h4),
       ),
-      // 로딩이나 에러 상태 없이, 더미 데이터로 리스트를 바로 표시합니다.
       body: ListView.separated(
         itemCount: dummyChatRooms.length,
         separatorBuilder: (context, index) => Divider(
@@ -129,19 +122,16 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            // 프로필 이미지
             CircleAvatar(
               radius: 28,
               backgroundColor: Colors.grey[300],
               child: Icon(Icons.person, color: Colors.grey[600], size: 32),
             ),
             const SizedBox(width: 12),
-            // 채팅 정보
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 이름과 시간
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -165,7 +155,6 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  // 마지막 메시지와 읽지 않은 개수
                   Row(
                     children: [
                       Expanded(
@@ -179,7 +168,6 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                           ),
                         ),
                       ),
-                      // 읽지 않은 메시지 개수
                       if (chatRoom.unreadMessageCount > 0)
                         Container(
                           margin: const EdgeInsets.only(left: 8),

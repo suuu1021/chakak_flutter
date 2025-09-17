@@ -1,9 +1,9 @@
 class ChatRoomListItemDto {
   final int chatRoomId;
   final String opponentNickname;
-  final String? opponentProfileImageUrl; // nullable로 처리
-  final String? lastMessage; // nullable (메시지가 없을 수 있음)
-  final String? lastMessageCreatedAt; // nullable, ISO 8601 형식
+  final String? opponentProfileImageUrl;
+  final String? lastMessage;
+  final String? lastMessageCreatedAt;
   final int unreadMessageCount;
 
   ChatRoomListItemDto({
@@ -26,7 +26,6 @@ class ChatRoomListItemDto {
     );
   }
 
-  // toJson은 이 DTO가 서버로 전송될 일이 없으면 생략 가능
   Map<String, dynamic> toJson() {
     return {
       'chatRoomId': chatRoomId,

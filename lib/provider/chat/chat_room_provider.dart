@@ -4,12 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/dtos/chat_room_create_request_dto.dart';
 import '../../data/dtos/chat_room_response_dto.dart';
 import '../auth/session_provider.dart';
-import 'chat_provider.dart'; // chat_service.dart -> chat_provider.dart 로 변경
+import 'chat_provider.dart';
 
-/// 채팅방 생성 또는 조회를 위한 FutureProvider
 final createChatRoomProvider = FutureProvider.family<ChatRoomResponseDto, int>(
     (ref, photographerId) async {
-  // chat_provider.dart에 정의된 중앙 chatServiceProvider를 사용합니다.
   final chatService = ref.read(chatServiceProvider);
   final session = ref.read(sessionProvider);
 

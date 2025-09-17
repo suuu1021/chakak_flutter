@@ -7,12 +7,12 @@ import '../../widgets/chat_text_field.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final int chatRoomId;
-  final String opponentNickname; // 닉네임 파라미터 추가
+  final String opponentNickname;
 
   const ChatScreen({
     Key? key,
     required this.chatRoomId,
-    required this.opponentNickname, // 생성자에 추가
+    required this.opponentNickname,
   }) : super(key: key);
 
   @override
@@ -25,7 +25,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   late final List<ChatMessageDto> _dummyMessages;
 
-  final _myUserId = 999; // 임의의 내 ID
+  final _myUserId = 999;
   final _myUserType = 'INDIVIDUAL';
 
   @override
@@ -44,7 +44,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     const opponentUserType = 'COMPANY';
 
     switch (chatRoomId) {
-      case 1: // 김작가 스냅
+      case 1:
         return [
           ChatMessageDto(
             chatRoomId: chatRoomId,
@@ -95,7 +95,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             createdAt: now.subtract(const Duration(minutes: 5)).toIso8601String(),
           ),
         ];
-      case 2: // 디자이너 김민지
+      case 2:
         return [
           ChatMessageDto(
             chatRoomId: chatRoomId,
@@ -114,7 +114,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             createdAt: now.subtract(const Duration(days: 1, hours: 2)).toIso8601String(),
           ),
         ];
-      case 3: // PM 이서준
+      case 3:
         return [
           ChatMessageDto(
             chatRoomId: chatRoomId,
@@ -141,7 +141,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             createdAt: now.subtract(const Duration(days: 3)).toIso8601String(),
           ),
         ];
-      default: // 그 외의 채팅방은 기본 메시지를 표시합니다.
+      default:
         return [
           ChatMessageDto(
             chatRoomId: chatRoomId,

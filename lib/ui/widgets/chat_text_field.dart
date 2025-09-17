@@ -12,10 +12,8 @@ class ChatTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // SafeArea를 적용하여 하단 시스템 UI(예: 홈 인디케이터)를 피합니다.
     return SafeArea(
       child: Container(
-        // 키보드가 올라올 때 배경색이 비어보이지 않도록 색상 지정
         color: Theme.of(context).cardColor,
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: Row(
