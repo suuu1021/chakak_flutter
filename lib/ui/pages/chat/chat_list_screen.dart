@@ -1,8 +1,8 @@
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
+import 'package:chakak_flutter/provider/chat/chat_list_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
 import '../../../_core/constants/app_text_styles.dart';
 import '../../../data/dtos/chat_room_list_item_dto.dart';
 import 'chat_screen.dart';
@@ -15,6 +15,13 @@ class ChatListScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatListProvider.notifier).loadChatRooms();
+    });
+  }
 
   void _navigateToChat(ChatRoomListItemDto chatRoom) {
     Navigator.push(
@@ -25,7 +32,13 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
           opponentNickname: chatRoom.opponentNickname,
         ),
       ),
-    );
+    ).then((_) {
+      ref.read(chatListProvider.notifier).refresh();
+    });
+  }
+
+  Future<void> _onRefresh() async {
+    await ref.read(chatListProvider.notifier).refresh();
   }
 
   String _formatTime(String? dateTimeString) {
@@ -53,64 +66,52 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
-    final List<ChatRoomListItemDto> dummyChatRooms = [
-      ChatRoomListItemDto(
-        chatRoomId: 1,
-        opponentNickname: '김작가 스냅',
-        lastMessage: '알겠습니다. 프리미엄 B 패키지로 예약 진행 도와드리겠습니다. 계약서 작성을 위해 성함과 연락처를 알려주시겠어요?',
-        lastMessageCreatedAt:
-            now.subtract(const Duration(minutes: 5)).toIso8601String(),
-        unreadMessageCount: 2,
-      ),
-      ChatRoomListItemDto(
-        chatRoomId: 2,
-        opponentNickname: '디자이너 김민지',
-        lastMessage: '네, 확인했습니다. 시안 보내드릴게요.',
-        lastMessageCreatedAt:
-            now.subtract(const Duration(days: 1, hours: 2)).toIso8601String(),
-        unreadMessageCount: 0,
-      ),
-      ChatRoomListItemDto(
-        chatRoomId: 3,
-        opponentNickname: 'PM 이서준',
-        lastMessage: '회의록 확인 부탁드립니다. 금일 중으로 피드백 주세요.',
-        lastMessageCreatedAt: now.subtract(const Duration(days: 3)).toIso8601String(),
-        unreadMessageCount: 1,
-      ),
-      ChatRoomListItemDto(
-        chatRoomId: 4,
-        opponentNickname: '디자이너 곽충근',
-        lastMessage: '다음 주 스터디 주제는 Riverpod 심화 과정입니다.',
-        lastMessageCreatedAt: now.subtract(const Duration(days: 8)).toIso8601String(),
-        unreadMessageCount: 0,
-      ),
-      ChatRoomListItemDto(
-        chatRoomId: 5,
-        opponentNickname: '고양이 집사',
-        lastMessage: '감사합니다! 다음에 또 거래해요 :)',
-        lastMessageCreatedAt:
-            now.subtract(const Duration(days: 30)).toIso8601String(),
-        unreadMessageCount: 0,
-      ),
-    ];
+    final chatListState = ref.watch(chatListProvider);
+    final chatRooms = chatListState.chatRooms;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(AppStrings.chat, style: AppTextStyles.h4),
       ),
-      body: ListView.separated(
-        itemCount: dummyChatRooms.length,
-        separatorBuilder: (context, index) => Divider(
-          height: 1,
-          color: Colors.grey[300],
-          indent: 72,
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: Stack(
+          children: [
+            ListView.separated(
+              itemCount: chatRooms.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: Colors.grey[300],
+                indent: 72,
+              ),
+              itemBuilder: (context, index) {
+                final chatRoom = chatRooms[index];
+                return _buildChatListItem(chatRoom);
+              },
+            ),
+            if (chatListState.isLoading && chatRooms.isEmpty)
+              const Center(child: CircularProgressIndicator()),
+            if (chatListState.errorMessage != null && chatRooms.isEmpty)
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(chatListState.errorMessage!),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _onRefresh,
+                      child: const Text('다시 시도'),
+                    ),
+                  ],
+                ),
+              ),
+            if (!chatListState.isLoading && chatRooms.isEmpty)
+              const Center(
+                child: Text('채팅 내역이 없습니다.\n작가에게 먼저 말을 걸어보세요!'),
+              ),
+          ],
         ),
-        itemBuilder: (context, index) {
-          final chatRoom = dummyChatRooms[index];
-          return _buildChatListItem(chatRoom);
-        },
       ),
     );
   }
@@ -168,7 +169,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                           ),
                         ),
                       ),
-                      if (chatRoom.unreadMessageCount > 0)
+                      if ((chatRoom.unreadMessageCount ?? 0) > 0)
                         Container(
                           margin: const EdgeInsets.only(left: 8),
                           padding: const EdgeInsets.symmetric(

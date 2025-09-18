@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -12,7 +11,7 @@ import '../../dtos/chat_room_response_dto.dart';
 
 class ChatRepository {
   final Dio _dio;
-  final String stompConnectUrl = 'ws://localhost:8080/ws';
+  final String stompConnectUrl = 'ws://10.0.2.2:8080/ws';
 
   StompClient? _stompClient;
   StompUnsubscribe? _currentSubscription;
@@ -63,9 +62,11 @@ class ChatRepository {
           print('[ChatRepository] STOMP 연결 성공! Room: $chatRoomId');
           _currentSubscription?.call();
           final destination = '/topic/chat/room/$chatRoomId';
+          print('[ChatRepository] 구독 시작 -> Destination: $destination');
           _currentSubscription = _stompClient!.subscribe(
             destination: destination,
             callback: (StompFrame frame) {
+              print('[ChatRepository] 메시지 수신! Body: ${frame.body}');
               if (frame.body != null) {
                 try {
                   final data = jsonDecode(frame.body!);
@@ -99,10 +100,13 @@ class ChatRepository {
       return;
     }
     final destination = '/app/chat/room/${message.chatRoomId}';
+    print('[ChatRepository] 메시지 전송 시도 -> Destination: $destination');
+    print('[ChatRepository] 메시지 내용: ${jsonEncode(message.toJson())}');
     _stompClient!.send(
       destination: destination,
       body: jsonEncode(message.toJson()),
     );
+    print('[ChatRepository] 메시지 전송 요청 완료.');
   }
 
   void disconnectStomp() {

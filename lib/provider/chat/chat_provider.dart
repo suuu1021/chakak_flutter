@@ -1,7 +1,7 @@
-
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../_core/constants/sender_type.dart';
 import '../../data/models/repositories/chat_repository.dart';
 import '../../data/dtos/chat_message_dto.dart';
 import '../core/dio_provider.dart';
@@ -118,9 +118,9 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     }
 
     final senderId = _currentUserId;
-    final senderType = _currentUserType;
+    final senderTypeString = _currentUserType;
 
-    if (senderId == null || senderType == null) {
+    if (senderId == null || senderTypeString == null) {
       state = state.copyWith(errorMessage: "사용자 정보를 찾을 수 없습니다.");
       return;
     }
@@ -128,7 +128,7 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     final messageDto = ChatMessageDto(
       chatRoomId: _chatRoomId,
       senderId: senderId,
-      senderType: senderType,
+      senderType: SenderType.fromJson(senderTypeString), // String을 Enum으로 변환
       messageType: 'TEXT',
       message: messageContent,
       isRead: false,
