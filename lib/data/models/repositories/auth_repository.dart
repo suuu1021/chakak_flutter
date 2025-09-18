@@ -51,4 +51,14 @@ class AuthRepository {
     final res = await _dio.post('/api/auth/kakao/login', data: request.toJson());
     return SocialLoginResponse.fromJson(res.data);
   }
+
+  Future<void> deleteUser(int userId) async {
+    try {
+      await _dio.delete('/api/users/delete/$userId');
+    } on DioException catch (e) {
+      throw Exception('회원 탈퇴 실패: ${e.message ?? e.toString()}');
+    } catch (e) {
+      throw Exception('회원 탈퇴 실패: $e');
+    }
+  }
 }
