@@ -2,13 +2,13 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../service/chat_service.dart';
+import '../../data/models/repositories/chat_repository.dart';
 import '../../data/dtos/chat_message_dto.dart';
 import '../core/dio_provider.dart';
 
-final chatServiceProvider = Provider<ChatService>((ref) {
+final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   final dio = ref.watch(dioProvider);
-  return ChatService(dio);
+  return ChatRepository(dio);
 });
 
 class ChatMessagesState {
@@ -45,7 +45,7 @@ class ChatMessagesState {
 }
 
 class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, int> {
-  late final ChatService _chatService;
+  late final ChatRepository _chatRepository;
   late final int _chatRoomId;
   StreamSubscription<ChatMessageDto>? _messagesSubscription;
 
@@ -55,11 +55,11 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
   @override
   ChatMessagesState build(int chatRoomId) {
     _chatRoomId = chatRoomId;
-    _chatService = ref.watch(chatServiceProvider);
+    _chatRepository = ref.watch(chatRepositoryProvider);
 
     ref.onDispose(() {
       _messagesSubscription?.cancel();
-      _chatService.disconnectStomp();
+      _chatRepository.disconnectStomp();
     });
 
     return ChatMessagesState();
@@ -79,11 +79,11 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     try {
       await fetchInitialMessages();
 
-      await _chatService.connectStomp(_chatRoomId, jwtToken);
+      await _chatRepository.connectStomp(_chatRoomId, jwtToken);
       state = state.copyWith(isConnected: true, isConnecting: false);
 
       _messagesSubscription?.cancel();
-      _messagesSubscription = _chatService.messages.listen(
+      _messagesSubscription = _chatRepository.messages.listen(
         (message) {
           if (!state.messages.any((m) => m.chatMessageId != null && m.chatMessageId == message.chatMessageId)) {
              state = state.copyWith(messages: [...state.messages, message]);
@@ -104,7 +104,7 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
   Future<void> fetchInitialMessages() async {
     state = state.copyWith(isLoading: true, clearErrorMessage: true);
     try {
-      final initialMessages = await _chatService.getMessagesByRoomId(_chatRoomId);
+      final initialMessages = await _chatRepository.getMessagesByRoomId(_chatRoomId);
       state = state.copyWith(messages: initialMessages, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: '대화 기록을 불러오지 못했습니다.');
@@ -135,7 +135,7 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
       createdAt: DateTime.now().toIso8601String(),
     );
 
-    _chatService.sendStompChatMessage(messageDto);
+    _chatRepository.sendStompChatMessage(messageDto);
   }
 }
 

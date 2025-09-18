@@ -1,8 +1,7 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/dtos/chat_room_list_item_dto.dart';
-import '../../service/chat_service.dart';
+import '../../data/models/repositories/chat_repository.dart';
 import 'chat_provider.dart';
 
 class ChatListState {
@@ -30,15 +29,17 @@ class ChatListState {
   }
 }
 
-class ChatListNotifier extends StateNotifier<ChatListState> {
-  final ChatService _chatService;
-
-  ChatListNotifier(this._chatService) : super(const ChatListState());
+class ChatListNotifier extends Notifier<ChatListState> {
+  @override
+  ChatListState build() {
+    return const ChatListState();
+  }
 
   Future<void> loadChatRooms() async {
     state = state.copyWith(isLoading: true, clearErrorMessage: true);
     try {
-      final chatRooms = await _chatService.getMyChatRooms();
+      final chatRepository = ref.read(chatRepositoryProvider);
+      final chatRooms = await chatRepository.getMyChatRooms();
       state = state.copyWith(chatRooms: chatRooms, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: '채팅방 목록을 불러오는데 실패했습니다: ${e.toString()}');
@@ -50,7 +51,4 @@ class ChatListNotifier extends StateNotifier<ChatListState> {
   }
 }
 
-final chatListProvider = StateNotifierProvider<ChatListNotifier, ChatListState>((ref) {
-  final chatService = ref.watch(chatServiceProvider);
-  return ChatListNotifier(chatService);
-});
+final chatListProvider = NotifierProvider<ChatListNotifier, ChatListState>(ChatListNotifier.new);

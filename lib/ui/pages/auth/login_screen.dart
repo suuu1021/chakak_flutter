@@ -22,7 +22,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   // ==================== 시연용 미리 입력된 계정 (영상 촬영 후 삭제) ====================
   String email = "test@test.com";
   String password = "123456";
-  // ==================== 시연용 미리 입력된 계정 끝 ====================
+  // ==================== 시연용 미리 입력된 g계정 끝 ====================
 
   // 기존 코드 (주석 보관): String email = ""; String password = "";
   String emailError = "";

@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/dtos/chat_room_create_request_dto.dart';
@@ -8,7 +7,7 @@ import 'chat_provider.dart';
 
 final createChatRoomProvider = FutureProvider.family<ChatRoomResponseDto, int>(
     (ref, photographerId) async {
-  final chatService = ref.read(chatServiceProvider);
+  final chatRepository = ref.read(chatRepositoryProvider);
   final session = ref.read(sessionProvider);
 
   final userId = session.userId;
@@ -21,7 +20,7 @@ final createChatRoomProvider = FutureProvider.family<ChatRoomResponseDto, int>(
     photographerProfileId: photographerId,
   );
 
-  final chatRoomResponse = await chatService.createOrGetChatRoom(requestDto);
+  final chatRoomResponse = await chatRepository.createOrGetChatRoom(requestDto);
 
   return chatRoomResponse;
 });
