@@ -10,8 +10,9 @@ class Portfolio {
   final int likes;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  final String photographerId; // 서버의 photographerId
+  final String photographerProfileId; // 서버의 photographerId
   final String? photographerName; // 서버의 photographerName (추가)
+  final String photographerUserId;
 
   const Portfolio({
     required this.id,
@@ -23,8 +24,9 @@ class Portfolio {
     required this.likes,
     required this.createdAt,
     this.updatedAt,
-    required this.photographerId,
+    required this.photographerProfileId,
     this.photographerName,
+    required this.photographerUserId,
   });
 
   // Normal portfolio constructor (Named)
@@ -35,6 +37,7 @@ class Portfolio {
     required List<String> categories,
     required String photographerId,
     String? photographerName,
+    String? photographerUserId,
   }) {
     return Portfolio(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -46,8 +49,9 @@ class Portfolio {
       categories: categories,
       likes: 0,
       createdAt: DateTime.now(),
-      photographerId: photographerId,
+      photographerProfileId: photographerId,
       photographerName: photographerName,
+      photographerUserId: '0',
     );
   }
 
@@ -78,8 +82,9 @@ class Portfolio {
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt:
           json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
-      photographerId: json['photographerId'].toString(),
+      photographerProfileId: json['photographerId'].toString(),
       photographerName: json['photographerName'],
+      photographerUserId: json['photographerUserId']?.toString() ?? '',
     );
   }
 
@@ -91,7 +96,7 @@ class Portfolio {
       'thumbnailUrl': thumbnailUrl,
       'imageUrls': imageUrls,
       'categories': categories,
-      'photographerId': photographerId,
+      'photographerId': photographerProfileId,
     };
   }
 
@@ -118,7 +123,7 @@ class Portfolio {
 
   // My portfolio bool (UI checking)
   bool isMyPortfolio(String currentPhotographerId) {
-    return photographerId == currentPhotographerId;
+    return photographerProfileId == currentPhotographerId;
   }
 
   // copyWith 메서드 추가 (수정 시 사용)
@@ -134,6 +139,7 @@ class Portfolio {
     DateTime? updatedAt,
     String? photographerId,
     String? photographerName,
+    String? photographerUserId,
   }) {
     return Portfolio(
       id: id ?? this.id,
@@ -145,8 +151,9 @@ class Portfolio {
       likes: likes ?? this.likes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      photographerId: photographerId ?? this.photographerId,
+      photographerProfileId: photographerId ?? photographerProfileId,
       photographerName: photographerName ?? this.photographerName,
+      photographerUserId: photographerUserId ?? this.photographerUserId,
     );
   }
 }

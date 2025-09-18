@@ -1,5 +1,6 @@
 class PhotographerProfile {
   final String id;
+  final String userId; // 추가: 실제 User ID
   final String businessName;
   final String? introduction;
   final String location;
@@ -11,6 +12,7 @@ class PhotographerProfile {
 
   PhotographerProfile({
     required this.id,
+    required this.userId, // 추가
     required this.businessName,
     this.introduction,
     required this.location,
@@ -24,19 +26,28 @@ class PhotographerProfile {
   /// JSON에서 Model 생성 (서버 통신용)
   factory PhotographerProfile.fromJson(Map<String, dynamic> json) {
     // 필수 필드가 없을 경우 예외 발생
-    if (json['id'] == null ||
+    if (json['photographerProfileId'] == null ||
         json['businessName'] == null ||
         json['location'] == null) {
       throw FormatException('필수 프로필 정보가 누락되었습니다.');
     }
 
     // 데이터 타입 안전성 확보
-    final String id = json['id'].toString();
+    final String id = json['photographerProfileId'].toString();
     final String businessName = json['businessName'] as String;
     final String location = json['location'] as String;
 
+    // User 객체에서 userId 추출
+    String userId;
+    if (json['user'] != null && json['user']['id'] != null) {
+      userId = json['user']['id'].toString();
+    } else {
+      throw FormatException('User 정보가 누락되었습니다.');
+    }
+
     return PhotographerProfile(
       id: id,
+      userId: userId, // 추가
       businessName: businessName,
       introduction: json['introduction'] as String?,
       location: location,
@@ -55,7 +66,7 @@ class PhotographerProfile {
   /// Model을 JSON으로 변환 (서버 통신용)
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'photographerProfileId': id,
       'businessName': businessName,
       'introduction': introduction,
       'location': location,
@@ -70,6 +81,7 @@ class PhotographerProfile {
   /// copyWith 메서드 (불변성 유지)
   PhotographerProfile copyWith({
     String? id,
+    String? userId,
     String? businessName,
     String? introduction,
     String? location,
@@ -81,6 +93,7 @@ class PhotographerProfile {
   }) {
     return PhotographerProfile(
       id: id ?? this.id,
+      userId: userId ?? this.userId, // 추가
       businessName: businessName ?? this.businessName,
       introduction: introduction ?? this.introduction,
       location: location ?? this.location,
@@ -96,6 +109,7 @@ class PhotographerProfile {
   factory PhotographerProfile.empty() {
     return PhotographerProfile(
       id: '',
+      userId: '', // 추가
       businessName: '',
       location: '',
       status: 'active',
@@ -107,6 +121,7 @@ class PhotographerProfile {
   String toString() {
     return 'PhotographerProfile('
         'id: $id, '
+        'userId: $userId, ' // 추가
         'businessName: $businessName, '
         'introduction: $introduction, '
         'location: $location, '
@@ -123,6 +138,7 @@ class PhotographerProfile {
     if (identical(this, other)) return true;
     return other is PhotographerProfile &&
         other.id == id &&
+        other.userId == userId && // 추가
         other.businessName == businessName &&
         other.introduction == introduction &&
         other.location == location &&
@@ -137,6 +153,7 @@ class PhotographerProfile {
   int get hashCode {
     return Object.hash(
       id,
+      userId, // 추가
       businessName,
       introduction,
       location,

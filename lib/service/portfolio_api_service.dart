@@ -92,40 +92,88 @@ class PortfolioApiService {
   }
 
   /// 포트폴리오 생성
-  /// POST /api/portfolios
+  /// POST /api/portfolios/create
   Future<Map<String, dynamic>> createPortfolio(
       Map<String, dynamic> portfolioData) async {
     try {
+      // 디버깅: 요청 데이터 로그
+      print('=== 포트폴리오 생성 요청 ===');
+      print('URL: $_baseUrl/create');
+      print('데이터: $portfolioData');
+
       final response = await _dio.post(
-        _baseUrl,
+        '$_baseUrl/create', // /create 경로 추가
         data: portfolioData,
       );
-      return response.data as Map<String, dynamic>;
+
+      // 디버깅: 응답 로그
+      print('=== 포트폴리오 생성 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      // 서버 응답 구조에 맞게 처리
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('body')) {
+        return responseData['body'] as Map<String, dynamic>;
+      } else {
+        return responseData as Map<String, dynamic>;
+      }
     } on DioException catch (e) {
+      print('=== 포트폴리오 생성 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      print('에러 메시지: ${e.message}');
+      print('응답 데이터: ${e.response?.data}');
       throw _handleDioError(e, '포트폴리오 생성');
     }
   }
 
   /// 포트폴리오 수정
-  /// PUT /api/portfolios/{id}
+  /// PUT /api/portfolios/{id}/update
   Future<Map<String, dynamic>> updatePortfolio(
       String id, Map<String, dynamic> portfolioData) async {
     try {
+      // ✨ 추가: 요청 데이터 로그
+      print('=== 포트폴리오 수정 요청 ===');
+      print('URL: $_baseUrl/$id');
+      print('데이터: $portfolioData');
+
       final response = await _dio.put(
-        '$_baseUrl/$id',
+        '$_baseUrl/$id/update',
         data: portfolioData,
       );
-      return response.data as Map<String, dynamic>;
+
+      // ✨ 추가: 응답 데이터 로그
+      print('=== 포트폴리오 수정 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      // 서버 응답 구조에 맞게 처리
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('body')) {
+        return responseData['body'] as Map<String, dynamic>;
+      } else {
+        return responseData as Map<String, dynamic>;
+      }
     } on DioException catch (e) {
+      // ✨ 추가: 에러 데이터 로그
+      print('=== 포트폴리오 수정 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      print('에러 메시지: ${e.message}');
+      print('응답 데이터: ${e.response?.data}');
+
       throw _handleDioError(e, '포트폴리오 수정');
     }
   }
 
   /// 포트폴리오 삭제
-  /// DELETE /api/portfolios/{id}
+  /// DELETE /api/portfolios/{id}/delete
   Future<void> deletePortfolio(String id) async {
     try {
-      await _dio.delete('$_baseUrl/$id');
+      await _dio.delete('$_baseUrl/$id/delete'); // /delete 추가
     } on DioException catch (e) {
       throw _handleDioError(e, '포트폴리오 삭제');
     }

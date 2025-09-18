@@ -2,6 +2,7 @@ import '../models/photographer_profile.dart';
 
 class PhotographerProfileFormDto {
   final String id;
+  final String userId; // 추가된 필드
   final String businessName;
   final String? introduction;
   final String location;
@@ -13,6 +14,7 @@ class PhotographerProfileFormDto {
 
   PhotographerProfileFormDto({
     required this.id,
+    required this.userId, // 추가
     required this.businessName,
     this.introduction,
     required this.location,
@@ -25,8 +27,15 @@ class PhotographerProfileFormDto {
 
   /// 서버 응답 JSON에서 DTO 생성
   factory PhotographerProfileFormDto.fromJson(Map<String, dynamic> json) {
+    // User 객체에서 userId 추출
+    String userId = '';
+    if (json['user'] != null && json['user']['id'] != null) {
+      userId = json['user']['id'].toString();
+    }
+
     return PhotographerProfileFormDto(
-      id: json['id']?.toString() ?? '',
+      id: json['photographerProfileId']?.toString() ?? '', // 서버 필드명에 맞게 수정
+      userId: userId, // 추가
       businessName: json['businessName'] as String? ?? '',
       introduction: json['introduction'] as String?,
       location: json['location'] as String? ?? '',
@@ -38,22 +47,11 @@ class PhotographerProfileFormDto {
     );
   }
 
-  /// 서버 전송용 JSON 변환
-  Map<String, dynamic> toJson() {
-    return {
-      'businessName': businessName,
-      'introduction': introduction,
-      'location': location,
-      'experienceYears': experienceYears,
-      'status': status,
-      'profileImageUrl': profileImageUrl,
-    };
-  }
-
   /// Model에서 DTO 생성
   factory PhotographerProfileFormDto.fromModel(PhotographerProfile model) {
     return PhotographerProfileFormDto(
       id: model.id,
+      userId: model.userId, // 추가
       businessName: model.businessName,
       introduction: model.introduction,
       location: model.location,
@@ -69,6 +67,7 @@ class PhotographerProfileFormDto {
   PhotographerProfile toModel() {
     return PhotographerProfile(
       id: id,
+      userId: userId, // 추가
       businessName: businessName,
       introduction: introduction,
       location: location,
@@ -78,51 +77,6 @@ class PhotographerProfileFormDto {
       createdAt:
           createdAt != null ? DateTime.parse(createdAt!) : DateTime.now(),
       updatedAt: updatedAt != null ? DateTime.parse(updatedAt!) : null,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'PhotographerProfileFormDto('
-        'id: $id, '
-        'businessName: $businessName, '
-        'introduction: $introduction, '
-        'location: $location, '
-        'experienceYears: $experienceYears, '
-        'status: $status, '
-        'profileImageUrl: $profileImageUrl, '
-        'createdAt: $createdAt, '
-        'updatedAt: $updatedAt'
-        ')';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is PhotographerProfileFormDto &&
-        other.id == id &&
-        other.businessName == businessName &&
-        other.introduction == introduction &&
-        other.location == location &&
-        other.experienceYears == experienceYears &&
-        other.status == status &&
-        other.profileImageUrl == profileImageUrl &&
-        other.createdAt == createdAt &&
-        other.updatedAt == updatedAt;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      id,
-      businessName,
-      introduction,
-      location,
-      experienceYears,
-      status,
-      profileImageUrl,
-      createdAt,
-      updatedAt,
     );
   }
 }

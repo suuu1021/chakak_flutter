@@ -3,9 +3,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/portfolio.dart';
+import 'package:dio/dio.dart';
+
 import '../../../data/models/repositories/portfolio_repository.dart';
 import '../../../service/portfolio_api_service.dart';
-import 'package:dio/dio.dart';
+import '../../auth/session_provider.dart';
 
 // 창고 Data
 class PortfolioState {
@@ -44,7 +46,29 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
   PortfolioState build() {
     // Dio 및 ApiService 초기화
     final dio = Dio();
-    dio.options.baseUrl = 'http://10.0.2.2:8080'; // Android 에뮬레이터용
+    dio.options.baseUrl = 'http://10.0.2.2:8080';
+
+    // 세션에서 JWT 토큰 가져와서 헤더에 추가
+    final session = ref.watch(sessionProvider);
+
+    if (kDebugMode) {
+      print('[PortfolioProvider] 세션 상태 확인:');
+      print('  - jwtToken: ${session.jwtToken}');
+      print('  - userId: ${session.userId}');
+      print('  - userNickname: ${session.userNickname}');
+      print('  - isLogin: ${session.isLogin}');
+    }
+
+    if (session.jwtToken != null && session.isLogin) {
+      dio.options.headers['Authorization'] = 'Bearer ${session.jwtToken}';
+      if (kDebugMode) {
+        print('[PortfolioProvider] JWT 토큰 헤더 추가됨');
+      }
+    } else {
+      if (kDebugMode) {
+        print('[PortfolioProvider] 경고: JWT 토큰이 없거나 로그인되지 않음');
+      }
+    }
 
     final apiService = PortfolioApiService(dio);
     _portfolioRepository = PortfolioRepositoryImpl(apiService);
@@ -258,7 +282,16 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
         return p.id == id ? updatedPortfolio : p;
       }).toList();
 
-      state = state.copyWith(portfolios: updatedList);
+      // selectedPortfolio도 함께 업데이트
+      Portfolio? updatedSelectedPortfolio = state.selectedPortfolio;
+      if (state.selectedPortfolio?.id == id) {
+        updatedSelectedPortfolio = updatedPortfolio;
+      }
+
+      state = state.copyWith(
+        portfolios: updatedList,
+        selectedPortfolio: updatedSelectedPortfolio, // 추가
+      );
 
       return true;
     } catch (e) {

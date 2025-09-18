@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../data/models/portfolio.dart';
+import '../../../provider/auth_provider.dart';
 import '../../../provider/global/portfolio/portfolio_notifier.dart';
 import 'portfolio_detail_page.dart';
 import 'portfolio_form_page.dart';
@@ -14,6 +15,8 @@ class PortfolioPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final portfolioState = ref.watch(portfolioProvider);
+    final authState = ref.watch(authProvider);
+    final isPhotographer = authState.login?.userTypeCode == 'photographer';
 
     return Scaffold(
       body: SafeArea(
@@ -31,12 +34,14 @@ class PortfolioPage extends ConsumerWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onAddPortfolio(context, ref),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: isPhotographer
+          ? FloatingActionButton(
+              onPressed: () => _onAddPortfolio(context, ref),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
