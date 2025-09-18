@@ -95,6 +95,26 @@ class AuthNotifier extends Notifier<AuthState> {
     state = const AuthState();
     print("[AuthProvider] 로그아웃 완료. 세션 및 로컬 상태 초기화.");
   }
+
+  // 회원 탈퇴 메서드 추가
+  Future<void> withdraw() async {
+    final session = ref.read(sessionProvider);
+    if (session.userId == null) {
+      throw Exception('로그인 상태가 아니거나 사용자 ID를 찾을 수 없습니다.');
+    }
+
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      await repo.deleteUser(session.userId!);
+
+      // 탈퇴 성공 시, 세션 정보를 완전히 삭제 (로그아웃과 동일한 효과)
+      logout();
+      print("[AuthProvider] 회원 탈퇴 성공. 모든 세션 및 로컬 상태를 초기화합니다.");
+    } catch (e) {
+      print("[AuthProvider] !!!!! 회원 탈퇴 에러 발생 !!!!!: $e");
+      rethrow; // UI로 에러를 다시 던져서 피드백을 줍니다.
+    }
+  }
 }
 
 final authProvider =

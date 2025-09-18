@@ -6,9 +6,11 @@ import '../../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../booking/booking_management_screen.dart';
 import '../../../help_center/help_center_screen.dart';
 import '../../../review/review_manager_screen.dart';
+import '../profile_form_page.dart'; // 프로필 수정 페이지 import
 import 'profile_menu_item.dart';
 import 'login_required_dialog.dart';
 import 'logout_dialog.dart';
+import 'withdrawal_dialog.dart'; // 회원 탈퇴 다이얼로그 import
 
 class ProfileMenuList extends ConsumerWidget {
   final AppSession session;
@@ -22,15 +24,21 @@ class ProfileMenuList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final menuItems = _buildMenuItems(context, ref);
 
-    return Column(
-      children: menuItems
-          .map((item) => ProfileMenuItem(
-                icon: item['icon'] as IconData,
-                title: item['title'] as String,
-                subtitle: item['subtitle'] as String,
-                onTap: item['onTap'] as VoidCallback,
-              ))
-          .toList(),
+    // Column을 ListView.separated로 변경하여 구분선 추가
+    return ListView.separated(
+      shrinkWrap: true, // Column처럼 동작하도록 설정
+      physics: const NeverScrollableScrollPhysics(), // 스크롤 비활성화
+      itemCount: menuItems.length,
+      itemBuilder: (context, index) {
+        final item = menuItems[index];
+        return ProfileMenuItem(
+          icon: item['icon'] as IconData,
+          title: item['title'] as String,
+          subtitle: item['subtitle'] as String,
+          onTap: item['onTap'] as VoidCallback,
+        );
+      },
+      separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[200]),
     );
   }
 
@@ -55,15 +63,46 @@ class ProfileMenuList extends ConsumerWidget {
         'subtitle': '문의사항이 있으시면 연락주세요',
         'onTap': () => _handleHelpCenter(context),
       },
-      if (session.isLogin)
+      if (session.isLogin) ...[
+        {
+          'icon': Icons.edit_note,
+          'title': '프로필 수정',
+          'subtitle': '닉네임과 자기소개를 수정합니다',
+          'onTap': () => _handleProfileEdit(context, ref),
+        },
+        {
+          'icon': Icons.person_off_outlined,
+          'title': '회원 탈퇴',
+          'subtitle': '계정을 영구적으로 삭제합니다',
+          'onTap': () => WithdrawalDialog.show(context),
+        },
         {
           'icon': Icons.logout,
           'title': '로그아웃',
           'subtitle': '계정에서 로그아웃합니다',
           'onTap': () => LogoutDialog.show(context),
         },
+      ],
     ];
   }
+
+  void _handleProfileEdit(BuildContext context, WidgetRef ref) {
+    final userProfile = ref.read(userProfileProvider).profile;
+    if (userProfile != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfileFormPage(userProfile: userProfile),
+        ),
+      );
+    } else {
+      // 프로필 정보가 아직 로드되지 않았을 경우의 예외 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('프로필 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')),
+      );
+    }
+  }
+
 
   void _handleBookingHistory(BuildContext context) {
     if (!session.isLogin) {

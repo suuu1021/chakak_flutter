@@ -6,7 +6,6 @@ import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 import '../../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../../../provider/auth/session_provider.dart';
-import '../../../../../_core/constants/user_type.dart';
 import '../profile_form_page.dart';
 
 class ProfileHeader extends ConsumerStatefulWidget {
@@ -48,7 +47,6 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
       return _buildGuestHeader(context);
     }
 
-    // build에서는 provider 수정 제거하고 상태만 읽기
     final profileState = ref.watch(userProfileProvider);
 
     if (profileState.isLoading) {
@@ -63,14 +61,12 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
   }
 }
 
-// 비로그인 사용자 헤더
 Widget _buildGuestHeader(BuildContext context) {
   return Container(
     padding: const EdgeInsets.all(AppSizes.spacing16),
     decoration: _headerDecoration(),
     child: Row(
       children: [
-        // 기본 프로필 이미지
         Container(
           width: 80,
           height: 80,
@@ -85,7 +81,6 @@ Widget _buildGuestHeader(BuildContext context) {
           ),
         ),
         const SizedBox(width: AppSizes.spacing16),
-        // 로그인 필요 메시지
         Expanded(
           child: GestureDetector(
             onTap: () => Navigator.pushNamed(context, AppRoutes.loginChoice),
@@ -117,7 +112,6 @@ Widget _buildGuestHeader(BuildContext context) {
   );
 }
 
-// 로딩 상태 헤더
 Widget _buildLoadingHeader() {
   return Container(
     height: 120,
@@ -129,7 +123,6 @@ Widget _buildLoadingHeader() {
   );
 }
 
-// 에러 상태 헤더
 Widget _buildErrorHeader(
     BuildContext context, WidgetRef ref, String errorMessage) {
   return Container(
@@ -163,21 +156,17 @@ Widget _buildErrorHeader(
   );
 }
 
-// 로그인된 사용자 헤더
 Widget _buildUserHeader(BuildContext context, WidgetRef ref, profile) {
   return Container(
     padding: const EdgeInsets.all(AppSizes.spacing16),
     decoration: _headerDecoration(),
     child: Row(
       children: [
-        // 프로필 이미지
         _buildProfileImage(profile),
         const SizedBox(width: AppSizes.spacing16),
-        // 사용자 정보
         Expanded(
           child: _buildUserInfo(profile),
         ),
-        // 편집 버튼
         IconButton(
           onPressed: () => _showProfileEditDialog(context, ref, profile),
           icon: const Icon(Icons.edit),
@@ -188,7 +177,6 @@ Widget _buildUserHeader(BuildContext context, WidgetRef ref, profile) {
   );
 }
 
-// 프로필 이미지 위젯
 Widget _buildProfileImage(profile) {
   return Container(
     width: 80,
@@ -213,7 +201,6 @@ Widget _buildProfileImage(profile) {
   );
 }
 
-// 사용자 정보 위젯
 Widget _buildUserInfo(profile) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,7 +237,6 @@ Widget _buildUserInfo(profile) {
   );
 }
 
-// 사용자 타입 배지
 Widget _buildUserTypeBadge(String userType) {
   return Container(
     padding: const EdgeInsets.symmetric(
@@ -272,7 +258,6 @@ Widget _buildUserTypeBadge(String userType) {
   );
 }
 
-// 공통 헤더 데코레이션
 BoxDecoration _headerDecoration() {
   return BoxDecoration(
     color: AppColors.surface,
@@ -288,27 +273,22 @@ BoxDecoration _headerDecoration() {
 }
 
 void _showProfileEditDialog(BuildContext context, WidgetRef ref, profile) {
-  // 사용자 타입 판별 로직
-  UserType userType;
-
-  if (profile?.userTypeName?.toLowerCase() == 'photographer') {
-    userType = UserType.photographer;
-  } else {
-    userType = UserType.user;
-  }
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ProfileFormPage(
-        userType: userType,
-        currentProfile: profile,
+  if (profile != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileFormPage(
+          userProfile: profile,
+        ),
       ),
-    ),
-  ).then((success) {
-    if (success == true) {
-      // 프로필 다시 로드
-      ref.read(userProfileProvider.notifier).loadMyProfile();
-    }
-  });
+    ).then((success) {
+      if (success == true) {
+        ref.read(userProfileProvider.notifier).loadMyProfile();
+      }
+    });
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('프로필 정보를 불러오는 중입니다.')),
+    );
+  }
 }

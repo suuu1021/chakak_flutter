@@ -1,155 +1,65 @@
-import 'dart:io';
+import 'package:chakak_flutter/data/dtos/user_profile_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../_core/constants/app_colors.dart';
-import '../../../../_core/constants/app_sizes.dart';
-import '../../../../_core/constants/user_type.dart';
+
+import '../../../../../_core/constants/app_colors.dart';
+import '../../../../../_core/constants/app_sizes.dart';
+import '../../../../_core/constants/size.dart';
 import '../../../../data/models/user_profile.dart';
-import '../../../../data/models/photographer_profile.dart';
-import '../../../widgets/custom_button_widgets.dart';
-import 'widgets/profile_image_picker.dart';
-import 'widgets/user_profile_form.dart';
-import 'widgets/photographer_profile_form.dart';
+import '../../../../provider/global/user_profile/user_profile_provider.dart';
 
 class ProfileFormPage extends ConsumerStatefulWidget {
-  final UserType userType;
-  final dynamic currentProfile;
+  final UserProfile userProfile;
 
-  const ProfileFormPage({
-    super.key,
-    required this.userType,
-    required this.currentProfile,
-  });
+  const ProfileFormPage({Key? key, required this.userProfile}) : super(key: key);
 
   @override
   ConsumerState<ProfileFormPage> createState() => _ProfileFormPageState();
 }
 
 class _ProfileFormPageState extends ConsumerState<ProfileFormPage> {
-  File? _profileImage;
-  String? _profileImageUrl;
-  bool _isLoading = false;
-
-  // 폼 데이터 저장용
-  Map<String, dynamic> _formData = {};
-  Map<String, String> _errors = {};
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nicknameController;
+  late final TextEditingController _introduceController;
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentProfile();
+    _nicknameController = TextEditingController(text: widget.userProfile.displayName);
+    _introduceController = TextEditingController(text: widget.userProfile.introduce ?? '');
   }
 
-  void _loadCurrentProfile() {
-    if (widget.currentProfile == null) return;
-
-    if (widget.userType == UserType.user) {
-      final profile = widget.currentProfile as UserProfile;
-      _formData = {
-        'nickName': profile.nickName ?? '',
-        'introduce': profile.introduce ?? '',
-      };
-      _profileImageUrl = profile.imageData;
-    } else if (widget.userType == UserType.photographer) {
-      final profile = widget.currentProfile as PhotographerProfile;
-      _formData = {
-        'businessName': profile.businessName ?? '',
-        'introduction': profile.introduction ?? '',
-        'location': profile.location ?? '',
-        'experienceYears': profile.experienceYears?.toString() ?? '',
-        'status': profile.status ?? 'ACTIVE',
-      };
-      _profileImageUrl = profile.profileImageUrl;
-    }
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    _introduceController.dispose();
+    super.dispose();
   }
 
-  void _onFormDataChanged(String key, String value) {
-    setState(() {
-      _formData[key] = value;
-      _errors.remove(key); // 입력 시 에러 메시지 제거
-    });
-  }
+  void _submit() {
+    FocusScope.of(context).unfocus();
 
-  void _onImageChanged(File? image) {
-    setState(() {
-      _profileImage = image;
-    });
-  }
-
-  bool _validateForm() {
-    _errors.clear();
-
-    if (widget.userType == UserType.user) {
-      if (_formData['nickName']?.trim().isEmpty ?? true) {
-        _errors['nickName'] = '닉네임을 입력해주세요';
-      }
-      if ((_formData['nickName']?.length ?? 0) > 20) {
-        _errors['nickName'] = '닉네임은 20자 이하로 입력해주세요';
-      }
-    } else {
-      if (_formData['businessName']?.trim().isEmpty ?? true) {
-        _errors['businessName'] = '상호명을 입력해주세요';
-      }
-      final years = int.tryParse(_formData['experienceYears'] ?? '');
-      if (years != null && (years < 0 || years > 50)) {
-        _errors['experienceYears'] = '올바른 경력 연수를 입력해주세요 (0-50년)';
-      }
-    }
-
-    setState(() {}); // 에러 메시지 표시
-    return _errors.isEmpty;
-  }
-
-  bool _hasChanges() {
-    if (_profileImage != null) return true;
-
-    if (widget.userType == UserType.user) {
-      final current = widget.currentProfile as UserProfile?;
-      return _formData['nickName'] != (current?.nickName ?? '') ||
-          _formData['introduce'] != (current?.introduce ?? '');
-    } else {
-      final current = widget.currentProfile as PhotographerProfile?;
-      return _formData['businessName'] != (current?.businessName ?? '') ||
-          _formData['introduction'] != (current?.introduction ?? '') ||
-          _formData['location'] != (current?.location ?? '') ||
-          _formData['experienceYears'] !=
-              (current?.experienceYears?.toString() ?? '') ||
-          _formData['status'] != (current?.status ?? 'ACTIVE');
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    if (!_validateForm()) return;
-
-    if (!_hasChanges()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('변경된 내용이 없습니다')),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      // TODO: 실제 API 호출
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('프로필이 수정되었습니다')),
+    if (_formKey.currentState!.validate()) {
+      final requestDto = UserProfileUpdateRequestDto(
+        nickName: _nicknameController.text,
+        introduce: _introduceController.text,
+        // imageData는 이번 버전에서 수정하지 않으므로 null 또는 기존 값 전달
       );
 
-      Navigator.of(context).pop(true);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('저장 실패: $e')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      ref.read(userProfileProvider.notifier).updateProfile(requestDto).then((success) {
+        if (mounted) {
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('프로필이 성공적으로 수정되었습니다.')),
+            );
+            Navigator.pop(context, true); // 성공 시 true 반환
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(ref.read(userProfileProvider).errorMessage ?? '프로필 수정에 실패했습니다.')),
+            );
+          }
+        }
+      });
     }
   }
 
@@ -157,22 +67,17 @@ class _ProfileFormPageState extends ConsumerState<ProfileFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getScreenTitle()),
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
+        title: const Text('프로필 수정'),
+        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSizes.spacing16),
-        child: Column(
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(AppSizes.spacing16),
           children: [
-            ProfileImagePicker(
-              currentImageUrl: _profileImageUrl,
-              selectedImage: _profileImage,
-              onImageChanged: _onImageChanged,
-            ),
+            _buildNicknameField(),
             const SizedBox(height: AppSizes.spacing24),
-            _buildForm(),
+            _buildIntroduceField(),
             const SizedBox(height: AppSizes.spacing32),
             _buildSaveButton(),
           ],
@@ -181,33 +86,68 @@ class _ProfileFormPageState extends ConsumerState<ProfileFormPage> {
     );
   }
 
-  String _getScreenTitle() {
-    return widget.userType == UserType.photographer ? '포토그래퍼 프로필 편집' : '프로필 편집';
+  Widget _buildNicknameField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('닉네임', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: smallGap),
+        TextFormField(
+          controller: _nicknameController,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return '닉네임을 입력해주세요.';
+            }
+            if (value.length < 2 || value.length > 20) {
+              return '닉네임은 2자 이상 20자 이하로 입력해주세요.';
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            hintText: "2자 이상 20자 이하",
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _buildForm() {
-    if (widget.userType == UserType.user) {
-      return UserProfileForm(
-        formData: _formData,
-        errors: _errors,
-        onDataChanged: _onFormDataChanged,
-      );
-    } else {
-      return PhotographerProfileForm(
-        formData: _formData,
-        errors: _errors,
-        onDataChanged: _onFormDataChanged,
-      );
-    }
+  Widget _buildIntroduceField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('자기소개', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: smallGap),
+        TextFormField(
+          controller: _introduceController,
+          maxLines: 5,
+          maxLength: 100,
+          decoration: InputDecoration(
+            hintText: '자신을 소개해주세요',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            counterText: '',
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildSaveButton() {
-    return _isLoading
-        ? const CircularProgressIndicator()
-        : CustomButtonWidgets.button(
-            context,
-            '저장하기',
-            onPressed: _saveProfile,
-          );
+    final isUpdating = ref.watch(userProfileProvider).isUpdating;
+
+    return ElevatedButton(
+      onPressed: isUpdating ? null : _submit,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        minimumSize: const Size(double.infinity, 50),
+      ),
+      child: isUpdating
+          ? const CircularProgressIndicator(color: Colors.white)
+          : const Text('저장', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+    );
   }
 }

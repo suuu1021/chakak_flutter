@@ -50,19 +50,11 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   Future<void> loadMyProfile() async {
     try {
       state = state.copyWith(isLoading: true, clearErrorMessage: true);
-
       final profileDto = await _userProfileService.getMyProfile();
       final profile = profileDto.toModel();
-
-      state = state.copyWith(
-        profile: profile,
-        isLoading: false,
-      );
+      state = state.copyWith(profile: profile, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: '프로필을 불러오는데 실패했습니다.',
-      );
+      state = state.copyWith(isLoading: false, errorMessage: '프로필을 불러오는데 실패했습니다.');
     }
   }
 
@@ -70,20 +62,12 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   Future<bool> createProfile(UserProfileCreateRequestDto request) async {
     try {
       state = state.copyWith(isCreating: true, clearErrorMessage: true);
-
       final profileDto = await _userProfileService.createProfile(request);
       final profile = profileDto.toModel();
-
-      state = state.copyWith(
-        profile: profile,
-        isCreating: false,
-      );
+      state = state.copyWith(profile: profile, isCreating: false);
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isCreating: false,
-        errorMessage: '프로필 생성에 실패했습니다.',
-      );
+      state = state.copyWith(isCreating: false, errorMessage: '프로필 생성에 실패했습니다.');
       return false;
     }
   }
@@ -92,20 +76,14 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   Future<bool> updateProfile(UserProfileUpdateRequestDto request) async {
     try {
       state = state.copyWith(isUpdating: true, clearErrorMessage: true);
-
-      final profileDto = await _userProfileService.updateProfile(request);
-      final profile = profileDto.toModel();
-
-      state = state.copyWith(
-        profile: profile,
-        isUpdating: false,
-      );
+      // 1. 서비스 호출 (이제 반환값 없음)
+      await _userProfileService.updateProfile(request);
+      // 2. 성공 시, 최신 프로필 정보를 다시 불러옴
+      await loadMyProfile(); 
+      state = state.copyWith(isUpdating: false);
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isUpdating: false,
-        errorMessage: '프로필 수정에 실패했습니다.',
-      );
+      state = state.copyWith(isUpdating: false, errorMessage: '프로필 수정에 실패했습니다: ${e.toString()}');
       return false;
     }
   }
