@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../data/models/photo_service_category.dart';
-import '../../../../provider/global/category/photo_service_category_notifier.dart';
+import '../../../../provider/global/category/photo_service_category_provider.dart';
 
 class PhotoServiceCategoryWidget extends ConsumerStatefulWidget {
   final Function(PhotoServiceCategory category) onCategorySelected;
@@ -33,13 +33,13 @@ class _PhotoServiceCategoryWidgetState
     super.initState();
     // 카테고리 데이터 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(photoServiceCategoryNotifierProvider.notifier).loadCategories();
+      ref.read(photoServiceCategoryProvider.notifier).loadCategories();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final categoryState = ref.watch(photoServiceCategoryNotifierProvider);
+    final categoryState = ref.watch(photoServiceCategoryProvider);
 
     if (categoryState.isLoading && categoryState.categories.isEmpty) {
       return _buildLoading();
@@ -243,7 +243,7 @@ class _PhotoServiceCategoryWidgetState
             TextButton(
                 onPressed: () {
                   ref
-                      .read(photoServiceCategoryNotifierProvider.notifier)
+                      .read(photoServiceCategoryProvider.notifier)
                       .loadCategories();
                 },
                 child: const Text('재시도'))

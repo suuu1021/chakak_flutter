@@ -1,9 +1,8 @@
 import 'package:chakak_flutter/data/models/photographer.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../provider/global/photographer/photographer_notifier.dart';
+import '../../../../provider/global/photographer/photographer_provider.dart';
 
 class PhotographerListWidget extends ConsumerWidget {
   final List<Photographer> photographers;
@@ -20,11 +19,11 @@ class PhotographerListWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (photographers.isEmpty) {
-      return const Center(child: Text('서비스가 없습니다.'));
+      return const Center(child: Text('포토그래퍼가 없습니다.'));
     }
 
     // 실시간으로 포토그래퍼 상태를 가져옴
-    final photographerState = ref.watch(photographerNotifierProvider);
+    final photographerState = ref.watch(photographerProvider);
 
     return Consumer(
       builder: (context, ref, child) {
@@ -34,13 +33,13 @@ class PhotographerListWidget extends ConsumerWidget {
           itemBuilder: (context, index) {
             final photographerId = photographers[index].id;
             // 현재 상태에서 해당 포토그래퍼를 찾음
-            final photographer = photographerState.photographers
-                .firstWhere((p) => p.id == photographerId);
+            final photographer = photographerState.photographers.firstWhere(
+                (p) => p.id == photographerId,
+                orElse: () => photographers[index]);
 
-            // ==================== 클릭 이벤트 추가 ====================
             return GestureDetector(
               onTap: () {
-                print('포토그래퍼 클릭됨: ${photographer.businessName}'); // 디버깅용
+                print('포토그래퍼 클릭됨: ${photographer.businessName}');
                 if (onServiceTap != null) {
                   onServiceTap!(photographer);
                 }
@@ -72,7 +71,6 @@ class PhotographerListWidget extends ConsumerWidget {
                       ),
                       child: ClipOval(
                         child: Image.network(
-                          // asset → network으로 변경
                           photographer.imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
@@ -136,7 +134,7 @@ class PhotographerListWidget extends ConsumerWidget {
                       ),
                       onPressed: () {
                         ref
-                            .read(photographerNotifierProvider.notifier)
+                            .read(photographerProvider.notifier)
                             .toggleLike(photographer.id);
                       },
                     ),
@@ -144,7 +142,6 @@ class PhotographerListWidget extends ConsumerWidget {
                 ),
               ),
             );
-            // ==================== 클릭 이벤트 추가 끝 ====================
           },
         );
       },

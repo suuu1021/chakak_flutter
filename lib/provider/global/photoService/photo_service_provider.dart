@@ -1,23 +1,10 @@
-import 'package:chakak_flutter/provider/global/photoService/photo_service_api_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/repositories/photo_service_repository.dart';
 
-final photoServiceRepositoryProvider = Provider<PhotoServiceRepository>((ref) {
-  return PhotoServiceRepositoryImpl();
-});
-
-// API Service Provider
-final photoServiceApiServiceProvider = Provider<PhotoServiceApiService>((ref) {
-  final repository = ref.read(photoServiceRepositoryProvider);
-  return PhotoServiceApiService(repository);
-});
-
-// State 클래스
 class ServiceState {
   final List<PhotoService> services;
-  final Map<int, List<PhotoService>> photographerServices; // 포토그래퍼별 서비스 캐시
+  final Map<int, List<PhotoService>> photographerServices;
   final bool isLoading;
   final String? error;
 
@@ -41,18 +28,26 @@ class ServiceState {
       error: error,
     );
   }
-}
+} // end of ServiceState
 
-// Notifier 클래스
-class ServiceNotifier extends StateNotifier<ServiceState> {
-  final PhotoServiceApiService _apiService;
+// 창고 메뉴얼 (확장된 VM 개념)
+class ServiceNotifier extends Notifier<ServiceState> {
+  late PhotoServiceRepository _repository;
 
-  ServiceNotifier(this._apiService) : super(ServiceState());
+  PhotoServiceRepository get repository => _repository;
+
+  @override
+  ServiceState build() {
+    _repository = PhotoServiceRepositoryImpl();
+
+    return ServiceState();
+  }
 
   Future<void> loadServices() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final services = await _apiService.getServices();
+
+      final services = await _repository.getServices();
       state = state.copyWith(services: services, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -62,10 +57,10 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
   // 포토그래퍼별 서비스 로드 메서드 추가
   Future<void> loadServicesByPhotographer(int photographerId) async {
     try {
-      // 시연용: 해당 포토그래퍼의 서비스만 필터링
-      final services = state.services
-          .where((service) => service.photographerId == photographerId)
-          .toList();
+      state = state.copyWith(isLoading: true, error: null);
+
+      final services =
+          await _repository.getServicesByPhotographer(photographerId);
 
       // 캐시에 저장
       final updatedCache =
@@ -76,9 +71,6 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
         photographerServices: updatedCache,
         isLoading: false,
       );
-
-      // 원래 API 호출 코드 (시연 후 되돌릴 때 사용)
-      // final services = await _apiService.getServicesByPhotographer(photographerId);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -91,11 +83,17 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
 
   Future<void> toggleLike(int serviceId) async {
     try {
+      // 현재 좋아요 상태 찾기
+      final currentService =
+          state.services.firstWhere((service) => service.id == serviceId);
+      final newLikeStatus = !currentService.isLiked;
+
+      // API 호출
+      await _repository.updateLikeStatus(serviceId, newLikeStatus);
+
       // 전체 서비스 목록에서 업데이트
       final services = state.services.map((service) {
         if (service.id == serviceId) {
-          final newLikeStatus = !service.isLiked;
-          _apiService.updateLikeStatus(serviceId, newLikeStatus);
           return service.copyWith(isLiked: newLikeStatus);
         }
         return service;
@@ -108,7 +106,7 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
         updatedCache[photographerId] =
             updatedCache[photographerId]!.map((service) {
           if (service.id == serviceId) {
-            return service.copyWith(isLiked: !service.isLiked);
+            return service.copyWith(isLiked: newLikeStatus);
           }
           return service;
         }).toList();
@@ -120,13 +118,17 @@ class ServiceNotifier extends StateNotifier<ServiceState> {
       );
     } catch (e) {
       print('서비스 좋아요 상태 변경 실패: $e');
+      // 에러 발생 시 상태 복원 로직 추가 가능
     }
+  }
+
+  // 에러 초기화
+  void clearError() {
+    state = state.copyWith(error: null);
   }
 }
 
-// Provider
-final photoServiceNotifierProvider =
-    StateNotifierProvider<ServiceNotifier, ServiceState>((ref) {
-  final apiService = ref.read(photoServiceApiServiceProvider);
-  return ServiceNotifier(apiService);
-});
+// 실제 창고 개설
+final photoServiceProvider = NotifierProvider<ServiceNotifier, ServiceState>(
+  () => ServiceNotifier(),
+);

@@ -1,21 +1,8 @@
-import 'package:chakak_flutter/provider/global/search/search_api_service.dart';
+// 창고 데이터
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/repositories/search_history_repository.dart';
 import '../../../data/models/search_history.dart';
 
-// Repository Provider
-final searchHistoryRepositoryProvider =
-    Provider<SearchHistoryRepository>((ref) {
-  return SearchHistoryRepositoryImpl();
-});
-
-// API Service Provider
-final searchApiServiceProvider = Provider<SearchApiService>((ref) {
-  final repository = ref.read(searchHistoryRepositoryProvider);
-  return SearchApiService(repository);
-});
-
-// State 클래스
 class SearchState {
   final List<SearchHistory> recentSearches;
   final List<SearchHistory> popularSearches;
@@ -46,20 +33,27 @@ class SearchState {
       error: error,
     );
   }
-}
+} // end of SearchState
 
-// Notifier 클래스
-class SearchNotifier extends StateNotifier<SearchState> {
-  final SearchApiService _apiService;
+// 창고 메뉴얼 (확장된 VM 개념)
+class SearchNotifier extends Notifier<SearchState> {
+  late SearchHistoryRepository _repository;
 
-  SearchNotifier(this._apiService) : super(SearchState());
+  SearchHistoryRepository get repository => _repository;
+
+  @override
+  SearchState build() {
+    _repository = SearchHistoryRepositoryImpl();
+
+    return SearchState();
+  }
 
   Future<void> loadSearchData() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      final recentFuture = _apiService.getRecentSearches();
-      final popularFuture = _apiService.getPopularSearches();
+      final recentFuture = _repository.getRecentSearches();
+      final popularFuture = _repository.getPopularSearches();
 
       final results = await Future.wait([recentFuture, popularFuture]);
 
@@ -80,11 +74,11 @@ class SearchNotifier extends StateNotifier<SearchState> {
   Future<void> addSearch(String keyword) async {
     try {
       print('Repository addSearch 호출 전');
-      await _apiService.addSearchHistory(keyword);
+      await _repository.addSearchHistory(keyword);
       print('Repository addSearch 호출 후');
 
       // 최근 검색어를 다시 로드하지 말고 직접 업데이트
-      final recentSearches = await _apiService.getRecentSearches();
+      final recentSearches = await _repository.getRecentSearches();
       state = state.copyWith(recentSearches: recentSearches);
       print('State 업데이트 완료');
     } catch (e) {
@@ -94,7 +88,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   Future<void> removeRecentSearch(String id) async {
     try {
-      await _apiService.removeSearchHistory(id);
+      await _repository.removeSearchHistory(id);
 
       // 로컬 상태에서도 제거
       final updatedRecentSearches =
@@ -108,17 +102,22 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
   Future<void> clearAllHistory() async {
     try {
-      await _apiService.clearAllHistory();
+      await _repository.clearAllHistory();
       state = state.copyWith(recentSearches: []);
     } catch (e) {
       print('전체 검색 기록 삭제 실패: $e');
     }
   }
+
+  // 에러 초기화
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
+// TODO - 추가 비즈니스 로직 설계 (검색 필터, 정렬 등)
 }
 
-// Provider
-final searchNotifierProvider =
-    StateNotifierProvider<SearchNotifier, SearchState>((ref) {
-  final apiService = ref.read(searchApiServiceProvider);
-  return SearchNotifier(apiService);
-});
+// 실제 창고 개설
+final searchProvider = NotifierProvider<SearchNotifier, SearchState>(
+  () => SearchNotifier(),
+);
