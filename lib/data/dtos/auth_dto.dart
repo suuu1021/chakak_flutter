@@ -1,3 +1,47 @@
+// <<<     회원가입  요청       >>>
+class RegisterRequest {
+  final String email;
+  final String password;
+  final String userTypeCode;
+
+  RegisterRequest({
+    required this.email,
+    required this.password,
+    required this.userTypeCode,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'password': password,
+      'userTypeCode': userTypeCode,
+    };
+  }
+}
+
+// <<<    회원가입 응답 DTO     >>>
+// 일반 회원가입 성공 응답 DTO
+class RegisterResponse {
+  final int userId;
+  final String email;
+  final String userTypeCode;
+
+  RegisterResponse({
+    required this.userId,
+    required this.email,
+    required this.userTypeCode,
+  });
+
+  factory RegisterResponse.fromJson(Map<String, dynamic> json) {
+    return RegisterResponse(
+      userId: json['userId'] as int? ?? 0,
+      email: json['email'] as String? ?? '',
+      userTypeCode: json['userTypeCode'] as String? ?? '',
+    );
+  }
+}
+
+//  일반 로그인 요청 DTO
 class LoginRequest {
   final String email;
   final String password;

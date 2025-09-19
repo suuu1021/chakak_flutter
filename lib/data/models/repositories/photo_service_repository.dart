@@ -37,11 +37,39 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
         if (responseData.containsKey('body') && responseData['body'] is List) {
           final List<dynamic> serviceListFromResponse =
               responseData['body'] as List<dynamic>;
+
+          print('=== PhotoService API 응답 디버깅 ===');
+          print('총 서비스 개수: ${serviceListFromResponse.length}');
+
+          if (serviceListFromResponse.isNotEmpty) {
+            print('첫 번째 서비스 데이터:');
+            print(serviceListFromResponse[0]);
+          }
+          print('===================================');
+
           final List<PhotoService> services = serviceListFromResponse
               .map((item) {
                 if (item is Map<String, dynamic>) {
+                  print('=== PhotoService Item 디버깅 ===');
+                  print('Item JSON: $item');
+
+                  // photographerId 관련 필드들 체크
+                  print('photographerId: ${item['photographerId']}');
+                  print('userId: ${item['userId']}');
+                  print('ownerId: ${item['ownerId']}');
+                  print('user: ${item['user']}');
+                  print('photographer: ${item['photographer']}');
+                  print('createdBy: ${item['createdBy']}');
+                  print('============================');
+
                   final dto = PhotoServiceDto.fromJson(item);
-                  return dto.toModel();
+                  final service = dto.toModel();
+
+                  print('=== 최종 PhotoService ===');
+                  print('service.photographerId: ${service.photographerId}');
+                  print('========================');
+
+                  return service;
                 } else {
                   print('Invalid item format in service list: $item');
                   return null;

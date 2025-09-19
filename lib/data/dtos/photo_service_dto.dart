@@ -39,6 +39,16 @@ class PhotoServiceDto {
   });
 
   factory PhotoServiceDto.fromJson(Map<String, dynamic> json) {
+    // 디버깅: JSON 구조 확인
+    print('=== PhotoService JSON 디버깅 ===');
+    print('전체 JSON: $json');
+    print('photographerId 필드: ${json['photographerId']}');
+    print('userId 필드: ${json['userId']}');
+    print('user 필드: ${json['user']}');
+    print('ownerId 필드: ${json['ownerId']}');
+    print('photographer 필드: ${json['photographer']}');
+    print('===============================');
+
     List<String> categoryNames = [];
     if (json['categoryList'] != null && json['categoryList'] is List) {
       for (var categoryItem in (json['categoryList'] as List<dynamic>)) {
@@ -56,29 +66,52 @@ class PhotoServiceDto {
           .toList();
     }
 
+    // photographerId 추출 - 여러 가능한 필드명 시도
+    int photographerId = 0;
+
+    // 시도 1: 직접 photographerId
+    if (json['photographerId'] != null) {
+      photographerId = json['photographerId'] as int;
+    }
+    // 시도 2: userId
+    else if (json['userId'] != null) {
+      photographerId = json['userId'] as int;
+    }
+    // 시도 3: ownerId
+    else if (json['ownerId'] != null) {
+      photographerId = json['ownerId'] as int;
+    }
+    // 시도 4: user.id (중첩 객체)
+    else if (json['user'] != null && json['user']['id'] != null) {
+      photographerId = json['user']['id'] as int;
+    }
+    // 시도 5: photographer.id (중첩 객체)
+    else if (json['photographer'] != null &&
+        json['photographer']['id'] != null) {
+      photographerId = json['photographer']['id'] as int;
+    }
+
+    print('=== 최종 추출된 photographerId: $photographerId ===');
+
     return PhotoServiceDto(
       id: json['serviceId'] ?? 0,
-      photographerId:
-          json['photographerId'] ?? 0, // Defaulting as not in service item JSON
+      photographerId: photographerId, // 수정된 부분
       title: json['title'] ?? '',
       description: json['description'] ?? '',
-      imageUrl: json['imageData'] ?? '', // Mapped from imageData
+      imageUrl: json['imageData'] ?? '',
       categories: categoryNames,
-      price: json['price'] ?? 0, // Directly from service item JSON
-      rating:
-          (json['rating'] ?? 0.0).toDouble(), // Not in JSON, defaults to 0.0
-      reviewCount: json['reviewCount'] ?? 0, // Not in JSON, defaults to 0
-      isLiked: json['isLiked'] ?? false, // Not in JSON, defaults to false
+      price: json['price'] ?? 0,
+      rating: (json['rating'] ?? 0.0).toDouble(),
+      reviewCount: json['reviewCount'] ?? 0,
+      isLiked: json['isLiked'] ?? false,
       priceOptions: priceOptionDtos,
-      portfolioImages: List<String>.from(
-          json['portfolioImages'] ?? []), // Not in JSON, defaults to empty
+      portfolioImages: List<String>.from(json['portfolioImages'] ?? []),
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
-          : DateTime
-              .now(), // Fallback to DateTime.now() if null, consider if this is appropriate
+          : DateTime.now(),
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'])
-          : DateTime.now(), // Fallback to DateTime.now() if null
+          : DateTime.now(),
     );
   }
 
