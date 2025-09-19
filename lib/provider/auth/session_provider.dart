@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../global/user_profile/user_profile_provider.dart';
+import '../global/photographer_profile/photographer_profile_notifier.dart';
+
 class AppSession {
   final String? jwtToken;
   final int? userId;
@@ -41,7 +44,9 @@ class SessionNotifier extends StateNotifier<AppSession> {
   final String _userNicknameKey = 'auth_user_nickname';
   final String _userTypeCodeKey = 'auth_user_type_code';
 
-  SessionNotifier() : super(AppSession()) {
+  final Ref _ref; // Provider ref를 보관하여 다른 프로바이더 접근
+
+  SessionNotifier(this._ref) : super(AppSession()) {
     // 앱이 시작될 때 저장소에서 세션 정보를 로드합니다.
     loadSessionFromStorage();
   }
@@ -61,6 +66,18 @@ class SessionNotifier extends StateNotifier<AppSession> {
           userTypeCode: userTypeCode,
           isLogin: true,
         );
+
+        // 세션이 로드되면 해당 유저 타입에 맞는 프로필을 로드
+        try {
+          final userType = userTypeCode.toUpperCase();
+          if (userType == 'PHOTOGRAPHER') {
+            _ref.invalidate(photographerProfileProvider);
+            _ref.read(photographerProfileProvider.notifier).loadMyProfile();
+          } else {
+            _ref.invalidate(userProfileProvider);
+            _ref.read(userProfileProvider.notifier).loadMyProfile();
+          }
+        } catch (_) {}
       } else {
         // 저장된 정보가 없으면 로그아웃 상태
         state = AppSession(isLogin: false);
@@ -85,6 +102,24 @@ class SessionNotifier extends StateNotifier<AppSession> {
           userNickname: nickname,
           userTypeCode: userTypeCode,
           isLogin: true);
+
+      // 로그인 후, 다른 프로바이더의 상태를 초기화/갱신
+      try {
+        _ref.invalidate(userProfileProvider);
+      } catch (_) {}
+      try {
+        _ref.invalidate(photographerProfileProvider);
+      } catch (_) {}
+
+      // 로그인 직후에 해당 타입의 프로필을 즉시 로드
+      try {
+        final userType = userTypeCode.toUpperCase();
+        if (userType == 'PHOTOGRAPHER') {
+          _ref.read(photographerProfileProvider.notifier).loadMyProfile();
+        } else {
+          _ref.read(userProfileProvider.notifier).loadMyProfile();
+        }
+      } catch (_) {}
     } catch (e) {
       print("세션 정보 저장 실패 (로그인): $e");
     }
@@ -95,6 +130,14 @@ class SessionNotifier extends StateNotifier<AppSession> {
     try {
       await _secureStorage.deleteAll(); // 모든 관련 정보 삭제
       state = AppSession(isLogin: false);
+
+      // 로그아웃 시 관련 상태 초기화
+      try {
+        _ref.invalidate(userProfileProvider);
+      } catch (_) {}
+      try {
+        _ref.invalidate(photographerProfileProvider);
+      } catch (_) {}
     } catch (e) {
       print("세션 정보 삭제 실패 (로그아웃): $e");
     }
@@ -102,7 +145,6 @@ class SessionNotifier extends StateNotifier<AppSession> {
 }
 
 // 앱 전역에서 SessionNotifier를 사용할 수 있도록 하는 프로바이더
-final sessionProvider =
-    StateNotifierProvider<SessionNotifier, AppSession>((ref) {
-  return SessionNotifier();
+final sessionProvider = StateNotifierProvider<SessionNotifier, AppSession>((ref) {
+  return SessionNotifier(ref);
 });

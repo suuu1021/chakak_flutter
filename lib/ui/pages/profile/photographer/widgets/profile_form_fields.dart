@@ -9,10 +9,10 @@ class ProfileFormFields extends StatelessWidget {
   final TextEditingController introductionController;
   final TextEditingController locationController;
   final TextEditingController experienceYearsController;
-  final String selectedStatus;
-  final ValueChanged<String?> onStatusChanged;
+  // final String selectedStatus; // 제거
+  // final ValueChanged<String?> onStatusChanged; // 제거
 
-  static const List<String> statusOptions = ['활성', '비활성'];
+  // static const List<String> statusOptions = ['활성', '비활성']; // 제거
 
   const ProfileFormFields({
     super.key,
@@ -20,8 +20,8 @@ class ProfileFormFields extends StatelessWidget {
     required this.introductionController,
     required this.locationController,
     required this.experienceYearsController,
-    required this.selectedStatus,
-    required this.onStatusChanged,
+    // required this.selectedStatus, // 제거
+    // required this.onStatusChanged, // 제거
   });
 
   @override
@@ -36,8 +36,8 @@ class ProfileFormFields extends StatelessWidget {
         _buildLocationField(),
         const SizedBox(height: AppSizes.spacing8),
         _buildExperienceYearsField(),
-        const SizedBox(height: AppSizes.spacing8),
-        _buildStatusField(),
+        // const SizedBox(height: AppSizes.spacing8), // 제거
+        // _buildStatusField(), // 제거
       ],
     );
   }
@@ -126,26 +126,7 @@ class ProfileFormFields extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildFieldLabel('상태', isRequired: true),
-        const SizedBox(height: AppSizes.spacing8),
-        DropdownButtonFormField<String>(
-          value: selectedStatus,
-          decoration: _buildInputDecoration('상태를 선택하세요'),
-          items: statusOptions.map((status) {
-            return DropdownMenuItem(
-              value: status,
-              child: Text(status),
-            );
-          }).toList(),
-          onChanged: onStatusChanged,
-        ),
-      ],
-    );
-  }
+  // _buildStatusField() 메소드 전체 제거
 
   Widget _buildFieldLabel(String label, {bool isRequired = false}) {
     return Row(

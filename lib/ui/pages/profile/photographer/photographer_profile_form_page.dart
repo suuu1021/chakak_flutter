@@ -5,6 +5,7 @@ import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../../data/models/photographer_profile.dart';
 import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
+import '../../../../provider/auth/session_provider.dart';
 import 'widgets/profile_image_widget.dart';
 import 'widgets/profile_form_fields.dart';
 import 'widgets/profile_save_button.dart';
@@ -27,16 +28,14 @@ class _PhotographerProfileFormPageState
   final _locationController = TextEditingController();
   final _experienceYearsController = TextEditingController();
 
-  String _selectedStatus = '활성';
+  // String _selectedStatus = '활성'; // 상태 관련 변수 제거
   String? _profileImageUrl;
+
+  bool _requestedLoad = false; // 프로필 로드 요청 플래그
 
   @override
   void initState() {
     super.initState();
-    // 내 프로필 조회
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(photographerProfileProvider.notifier).loadMyProfile();
-    });
   }
 
   @override
@@ -50,9 +49,7 @@ class _PhotographerProfileFormPageState
 
   @override
   Widget build(BuildContext context) {
-    // Provider 상태 감지
     ref.listen(photographerProfileProvider, (previous, next) {
-      // 에러 처리
       if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -60,15 +57,22 @@ class _PhotographerProfileFormPageState
             backgroundColor: AppColors.error,
           ),
         );
-        // 에러 메시지 초기화
         ref.read(photographerProfileProvider.notifier).clearError();
       }
-
-      // 프로필 로드 완료 시 폼 초기화
       if (previous?.profile != next.profile && next.profile != null) {
         _initializeFormWithProfile(next.profile!);
       }
     });
+
+    final session = ref.watch(sessionProvider);
+    if (session.isLogin && !_requestedLoad) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_requestedLoad) {
+          _requestedLoad = true;
+          ref.read(photographerProfileProvider.notifier).loadMyProfile();
+        }
+      });
+    }
 
     final isLoading = ref.watch(isProfileLoadingProvider);
 
@@ -80,14 +84,10 @@ class _PhotographerProfileFormPageState
 
   PreferredSizeWidget _buildAppBar() {
     final hasProfile = ref.watch(hasProfileProvider);
-
     return AppBar(
       title: Text(
         hasProfile ? '프로필 수정' : '프로필 등록',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
       centerTitle: true,
       backgroundColor: AppColors.primaryLight,
@@ -110,9 +110,7 @@ class _PhotographerProfileFormPageState
   }
 
   Widget _buildLoadingBody() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
   Widget _buildBody() {
@@ -137,14 +135,7 @@ class _PhotographerProfileFormPageState
               introductionController: _introductionController,
               locationController: _locationController,
               experienceYearsController: _experienceYearsController,
-              selectedStatus: _selectedStatus,
-              onStatusChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedStatus = value;
-                  });
-                }
-              },
+              // selectedStatus 및 onStatusChanged 파라미터 제거
             ),
             const SizedBox(height: AppSizes.spacing32),
             ProfileSaveButton(
@@ -163,33 +154,54 @@ class _PhotographerProfileFormPageState
       return;
     }
 
-    final success =
-        await ref.read(photographerProfileProvider.notifier).saveProfile(
-              businessName: _businessNameController.text,
-              introduction: _introductionController.text,
-              location: _locationController.text,
-              experienceYears: _experienceYearsController.text.isNotEmpty
-                  ? int.tryParse(_experienceYearsController.text)
-                  : null,
-              displayStatus: _selectedStatus,
-              profileImageUrl: _profileImageUrl,
-            );
+    print('[DEBUG] PhotographerProfileFormPage._handleSave 호출');
+    final bool wasEditMode = ref.read(photographerProfileProvider.select((s) => s.isEditMode));
 
-    if (success && mounted) {
-      final hasProfile = ref.read(hasProfileProvider);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            hasProfile ? '프로필이 수정되었습니다.' : '프로필이 등록되었습니다.',
-          ),
-          backgroundColor: AppColors.success,
-        ),
+    try {
+      final success = await ref.read(photographerProfileProvider.notifier).saveProfile(
+        businessName: _businessNameController.text,
+        introduction: _introductionController.text,
+        location: _locationController.text,
+        experienceYears: _experienceYearsController.text.isNotEmpty
+            ? int.tryParse(_experienceYearsController.text)
+            : null,
+        // displayStatus 파라미터 제거
+        profileImageUrl: _profileImageUrl,
       );
-      Navigator.pop(context, true); // 성공 결과와 함께 이전 화면으로
+
+      print('[DEBUG] PhotographerProfileFormPage._handleSave 결과: $success');
+
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(wasEditMode ? '프로필이 수정되었습니다.' : '프로필이 등록되었습니다.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else if (mounted) {
+        final err = ref.read(profileErrorMessageProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(err ?? '프로필 저장에 실패했습니다.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e, st) {
+      print('[DEBUG] PhotographerProfileFormPage._handleSave 예외: $e\n$st');
+      if (mounted) {
+        final err = ref.read(profileErrorMessageProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(err ?? '프로필 저장 중 예외가 발생했습니다.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     }
   }
 
-  /// 프로필 데이터로 폼 초기화
   void _initializeFormWithProfile(PhotographerProfile profile) {
     _businessNameController.text = profile.businessName;
     _introductionController.text = profile.introduction ?? '';
@@ -197,20 +209,10 @@ class _PhotographerProfileFormPageState
     _experienceYearsController.text = profile.experienceYears?.toString() ?? '';
 
     setState(() {
-      _selectedStatus = _getDisplayStatus(profile.status);
+      // _selectedStatus 설정 로직 제거
       _profileImageUrl = profile.profileImageUrl;
     });
   }
 
-  /// API 상태 → 화면 상태 변환
-  String _getDisplayStatus(String apiStatus) {
-    switch (apiStatus) {
-      case 'active':
-        return '활성';
-      case 'inactive':
-        return '비활성';
-      default:
-        return '활성';
-    }
-  }
+  // _getDisplayStatus 메소드 제거
 }

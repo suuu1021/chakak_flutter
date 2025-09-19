@@ -12,6 +12,7 @@ import '../../ui/pages/help_center/help_center_screen.dart';
 import '../../ui/pages/home/home_screen.dart';
 import '../../ui/pages/notification/notification_screen.dart';
 import '../../ui/pages/profile/photographer/photographer_profile_form_page.dart';
+import '../../ui/pages/profile/profile_edit_page.dart';
 import '../../ui/pages/review/my_review_screen.dart';
 import '../../ui/pages/review/photographer_review_screen.dart';
 import '../../ui/pages/review/review_manager_screen.dart';
@@ -38,6 +39,7 @@ class AppRoutes {
   static const String myReviews = '/my-reviews';
   static const String photographerReviews = '/photographer-reviews';
   static const String photographerProfileForm = '/photographer-profile-form';
+  static const String profileEdit = '/profile/edit';
   static const String reviewManager = '/review-manager';
   static const String portfolioDetail = '/portfolio-detail';
   static const String userBookingList = '/user-booking-list';
@@ -62,6 +64,7 @@ class AppRoutes {
         myReviews: (context) => const MyReviewScreen(),
         photographerProfileForm: (context) =>
             const PhotographerProfileFormPage(),
+        profileEdit: (context) => const ProfileEditPage(),
         photographerReviews: (context) => const PhotographerReviewScreen(),
         reviewManager: (context) =>
             const ReviewManagerScreen(userType: UserType.user),

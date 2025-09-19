@@ -1,84 +1,140 @@
+import 'photographer_category.dart'; // For PhotographerCategory type
+
 class PhotographerProfile {
   final String id;
-  final String userId; // 추가: 실제 User ID
+  final String userId;
   final String businessName;
   final String? introduction;
   final String location;
   final int? experienceYears;
   final String status;
   final String? profileImageUrl;
+  final List<PhotographerCategory>? categories; // Added categories field
   final DateTime createdAt;
   final DateTime? updatedAt;
 
   PhotographerProfile({
     required this.id,
-    required this.userId, // 추가
+    required this.userId,
     required this.businessName,
     this.introduction,
     required this.location,
     this.experienceYears,
     required this.status,
     this.profileImageUrl,
+    this.categories, // Added to constructor
     required this.createdAt,
     this.updatedAt,
   });
 
-  /// JSON에서 Model 생성 (서버 통신용)
   factory PhotographerProfile.fromJson(Map<String, dynamic> json) {
-    // 필수 필드가 없을 경우 예외 발생
-    if (json['photographerProfileId'] == null ||
-        json['businessName'] == null ||
-        json['location'] == null) {
-      throw FormatException('필수 프로필 정보가 누락되었습니다.');
+    final dynamic rawId = json['photographerProfileId'] ?? json['photographerId'] ?? json['id'];
+    if (rawId == null) {
+      throw FormatException('프로필 ID가 없습니다.');
+    }
+    final String id = rawId.toString();
+
+    final String? businessNameRaw = json['businessName'] ?? json['business_name'];
+    final String? locationRaw = json['location'] ?? json['addr'] ?? json['region'];
+
+    if (businessNameRaw == null || locationRaw == null) {
+      throw FormatException('필수 프로필 정보(businessName 또는 location)가 누락되었습니다.');
     }
 
-    // 데이터 타입 안전성 확보
-    final String id = json['photographerProfileId'].toString();
-    final String businessName = json['businessName'] as String;
-    final String location = json['location'] as String;
+    final String businessName = businessNameRaw.toString();
+    final String location = locationRaw.toString();
 
-    // User 객체에서 userId 추출
-    String userId;
-    if (json['user'] != null && json['user']['id'] != null) {
-      userId = json['user']['id'].toString();
+    String userId = '';
+    if (json['userId'] != null) {
+      userId = json['userId'].toString();
+    } else if (json['user'] != null) {
+      final userObj = json['user'];
+      if (userObj is Map && (userObj['id'] != null || userObj['userId'] != null)) {
+        userId = (userObj['id'] ?? userObj['userId']).toString();
+      }
+    }
+
+    int? experienceYears;
+    try {
+      if (json['experienceYears'] != null) {
+        experienceYears = (json['experienceYears'] is int)
+            ? json['experienceYears'] as int
+            : int.tryParse(json['experienceYears'].toString());
+      }
+    } catch (_) {
+      experienceYears = null;
+    }
+
+    final String status = (json['status'] as String?)?.toLowerCase() ?? 'active';
+    final String? profileImageUrl = json['profileImageUrl'] as String? ?? json['imageUrl'] as String?;
+
+    List<PhotographerCategory>? categoriesList;
+    if (json['categories'] != null && json['categories'] is List) {
+      categoriesList = (json['categories'] as List)
+          .map((categoryJson) => PhotographerCategory.fromJson(categoryJson as Map<String, dynamic>))
+          .toList();
+    } else if (json['categoryList'] != null && json['categoryList'] is List) {
+        categoriesList = (json['categoryList'] as List)
+            .map((categoryJson) => PhotographerCategory.fromJson(categoryJson as Map<String, dynamic>))
+            .toList();
+    } else if (json['photographerCategories'] != null && json['photographerCategories'] is List) { // Another common key
+        categoriesList = (json['photographerCategories'] as List)
+            .map((categoryJson) => PhotographerCategory.fromJson(categoryJson as Map<String, dynamic>))
+            .toList();
+    }
+
+
+    DateTime createdAt;
+    if (json['createdAt'] != null) {
+      try { createdAt = DateTime.parse(json['createdAt'] as String); } 
+      catch (_) { createdAt = DateTime.now(); }
+    } else if (json['created_at'] != null) {
+      try { createdAt = DateTime.parse(json['created_at'] as String); } 
+      catch (_) { createdAt = DateTime.now(); }
     } else {
-      throw FormatException('User 정보가 누락되었습니다.');
+      createdAt = DateTime.now();
+    }
+
+    DateTime? updatedAt;
+    if (json['updatedAt'] != null) {
+      try { updatedAt = DateTime.parse(json['updatedAt'] as String); } 
+      catch (_) { updatedAt = null; }
+    } else if (json['updated_at'] != null) {
+      try { updatedAt = DateTime.parse(json['updated_at'] as String); } 
+      catch (_) { updatedAt = null; }
     }
 
     return PhotographerProfile(
       id: id,
-      userId: userId, // 추가
+      userId: userId,
       businessName: businessName,
       introduction: json['introduction'] as String?,
       location: location,
-      experienceYears: json['experienceYears'] as int?,
-      status: json['status'] as String? ?? 'active',
-      profileImageUrl: json['profileImageUrl'] as String?,
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
-          : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.parse(json['updatedAt'] as String)
-          : null,
+      experienceYears: experienceYears,
+      status: status,
+      profileImageUrl: profileImageUrl,
+      categories: categoriesList, // Assign parsed categories
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 
-  /// Model을 JSON으로 변환 (서버 통신용)
   Map<String, dynamic> toJson() {
     return {
       'photographerProfileId': id,
+      'userId': userId,
       'businessName': businessName,
       'introduction': introduction,
       'location': location,
       'experienceYears': experienceYears,
       'status': status,
       'profileImageUrl': profileImageUrl,
+      'categories': categories?.map((c) => c.toJson()).toList(), // Added for serialization
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
-  /// copyWith 메서드 (불변성 유지)
   PhotographerProfile copyWith({
     String? id,
     String? userId,
@@ -88,31 +144,33 @@ class PhotographerProfile {
     int? experienceYears,
     String? status,
     String? profileImageUrl,
+    List<PhotographerCategory>? categories, // Added to copyWith
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return PhotographerProfile(
       id: id ?? this.id,
-      userId: userId ?? this.userId, // 추가
+      userId: userId ?? this.userId,
       businessName: businessName ?? this.businessName,
       introduction: introduction ?? this.introduction,
       location: location ?? this.location,
       experienceYears: experienceYears ?? this.experienceYears,
       status: status ?? this.status,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      categories: categories ?? this.categories, // Added to copyWith assignment
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  /// 빈 프로필 생성 (초기값용)
   factory PhotographerProfile.empty() {
     return PhotographerProfile(
       id: '',
-      userId: '', // 추가
+      userId: '',
       businessName: '',
       location: '',
       status: 'active',
+      categories: [], // Initialize with empty list or null as appropriate
       createdAt: DateTime.now(),
     );
   }
@@ -121,13 +179,14 @@ class PhotographerProfile {
   String toString() {
     return 'PhotographerProfile('
         'id: $id, '
-        'userId: $userId, ' // 추가
+        'userId: $userId, '
         'businessName: $businessName, '
         'introduction: $introduction, '
         'location: $location, '
         'experienceYears: $experienceYears, '
         'status: $status, '
         'profileImageUrl: $profileImageUrl, '
+        'categories: $categories, '
         'createdAt: $createdAt, '
         'updatedAt: $updatedAt'
         ')';
@@ -138,13 +197,14 @@ class PhotographerProfile {
     if (identical(this, other)) return true;
     return other is PhotographerProfile &&
         other.id == id &&
-        other.userId == userId && // 추가
+        other.userId == userId &&
         other.businessName == businessName &&
         other.introduction == introduction &&
         other.location == location &&
         other.experienceYears == experienceYears &&
         other.status == status &&
         other.profileImageUrl == profileImageUrl &&
+        other.categories == categories && // Consider deep equality for lists if needed
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -153,13 +213,14 @@ class PhotographerProfile {
   int get hashCode {
     return Object.hash(
       id,
-      userId, // 추가
+      userId,
       businessName,
       introduction,
       location,
       experienceYears,
       status,
       profileImageUrl,
+      categories, // Add to hash
       createdAt,
       updatedAt,
     );

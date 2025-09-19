@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/dtos/user_profile_dto.dart';
 import '../../../data/models/user_profile.dart';
 import '../../../service/user_profile_service.dart';
+import '../../auth/session_provider.dart';
 import '../../core/dio_provider.dart';
 
 // State 클래스
@@ -42,12 +43,18 @@ class UserProfileState {
 // Notifier 클래스
 class UserProfileNotifier extends StateNotifier<UserProfileState> {
   final UserProfileService _userProfileService;
+  final Ref _ref;
 
-  UserProfileNotifier(this._userProfileService)
+  UserProfileNotifier(this._userProfileService, this._ref)
       : super(const UserProfileState());
 
   // 내 프로필 조회
   Future<void> loadMyProfile() async {
+    try {
+      final session = _ref.read(sessionProvider);
+      print('[DEBUG] UserProfileNotifier.loadMyProfile 호출 - isLogin: ${session.isLogin}, userTypeCode: ${session.userTypeCode}');
+      print('[DEBUG] StackTrace: ${StackTrace.current}');
+    } catch (_) {}
     try {
       state = state.copyWith(isLoading: true, clearErrorMessage: true);
       final profileDto = await _userProfileService.getMyProfile();
@@ -107,6 +114,11 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   void clearError() {
     state = state.copyWith(clearErrorMessage: true);
   }
+
+  // 프로필 상태 초기화
+  void clearProfile() {
+    state = const UserProfileState();
+  }
 }
 
 // Provider
@@ -114,5 +126,5 @@ final userProfileProvider =
     StateNotifierProvider<UserProfileNotifier, UserProfileState>((ref) {
   final dio = ref.watch(dioProvider);
   final userProfileService = UserProfileService(dio);
-  return UserProfileNotifier(userProfileService);
+  return UserProfileNotifier(userProfileService, ref);
 });

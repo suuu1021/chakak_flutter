@@ -6,6 +6,7 @@ import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 import '../../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../../../provider/auth/session_provider.dart';
+import '../../photographer/photographer_profile_form_page.dart';
 import '../profile_form_page.dart';
 
 class ProfileHeader extends ConsumerStatefulWidget {
@@ -29,10 +30,16 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
   }
 
   void _loadProfileByUserType() {
-    final userType = widget.session.userTypeCode;
-    print('현재 사용자 타입: $userType'); // 디버그 로그 추가
+    final rawType = widget.session.userTypeCode;
+    if (rawType == null) {
+      print('[DEBUG] userTypeCode 아직 없음 -> 프로필 로드 건너뜀');
+      return;
+    }
 
-    if (userType == 'photographer') {
+    final userType = rawType.toUpperCase();
+    print('현재 사용자 타입: $rawType -> $userType'); // 디버그 로그 추가
+
+    if (userType == 'PHOTOGRAPHER') {
       print('포토그래퍼 프로필 API 호출');
       ref.read(photographerProfileProvider.notifier).loadMyProfile();
     } else {
@@ -47,6 +54,79 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
       return _buildGuestHeader(context);
     }
 
+    final userType = widget.session.userTypeCode?.toUpperCase();
+
+    if (userType == 'PHOTOGRAPHER') {
+      final pState = ref.watch(photographerProfileProvider);
+
+      if (pState.isLoading) return _buildLoadingHeader();
+      if (pState.errorMessage != null) return _buildErrorHeader(context, ref, pState.errorMessage!);
+
+      final profile = pState.profile;
+
+      // 포토그래퍼용 헤더 렌더링
+      return Container(
+        padding: const EdgeInsets.all(AppSizes.spacing16),
+        decoration: _headerDecoration(),
+        child: Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.gray200,
+                borderRadius: BorderRadius.circular(40),
+                image: profile?.profileImageUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(profile!.profileImageUrl!), fit: BoxFit.cover)
+                    : null,
+              ),
+              child: profile?.profileImageUrl == null
+                  ? Icon(Icons.person, size: 40, color: AppColors.gray500)
+                  : null,
+            ),
+            const SizedBox(width: AppSizes.spacing16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    profile?.businessName ?? '사진작가',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(height: AppSizes.spacing4),
+                  Text(
+                    profile?.location ?? '-',
+                    style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: AppSizes.spacing4),
+                  Text(
+                    profile?.introduction ?? '소개글이 없습니다.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PhotographerProfileFormPage()),
+              ).then((success) {
+                if (success == true) {
+                  ref.read(photographerProfileProvider.notifier).loadMyProfile();
+                }
+              }),
+              icon: const Icon(Icons.edit),
+              color: AppColors.gray600,
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 기본: 일반 유저 헤더
     final profileState = ref.watch(userProfileProvider);
 
     if (profileState.isLoading) {
@@ -140,8 +220,15 @@ Widget _buildErrorHeader(
         ),
         const SizedBox(height: AppSizes.spacing8),
         ElevatedButton(
-          onPressed: () =>
-              ref.read(userProfileProvider.notifier).loadMyProfile(),
+          onPressed: () {
+            final session = ref.read(sessionProvider);
+            final userType = session.userTypeCode?.toUpperCase();
+            if (userType == 'PHOTOGRAPHER') {
+              ref.read(photographerProfileProvider.notifier).loadMyProfile();
+            } else {
+              ref.read(userProfileProvider.notifier).loadMyProfile();
+            }
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.textOnPrimary,
@@ -244,7 +331,7 @@ Widget _buildUserTypeBadge(String userType) {
       vertical: 3,
     ),
     decoration: BoxDecoration(
-      color: AppColors.primary.withOpacity(0.1),
+      color: AppColors.primary.withAlpha(25),
       borderRadius: BorderRadius.circular(4),
     ),
     child: Text(

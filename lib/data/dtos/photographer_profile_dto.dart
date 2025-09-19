@@ -1,82 +1,38 @@
-import '../models/photographer_profile.dart';
-
+/// 사진작가 프로필 생성/수정 시 사용되는 DTO
 class PhotographerProfileFormDto {
-  final String id;
-  final String userId; // 추가된 필드
   final String businessName;
   final String? introduction;
   final String location;
   final int? experienceYears;
-  final String status;
+  // final String status; // 제거: 사용자가 직접 상태를 설정하지 않음
   final String? profileImageUrl;
-  final String? createdAt;
-  final String? updatedAt;
+  final List<int>? categoryIds; // 추가: 활동 카테고리 ID 목록
 
   PhotographerProfileFormDto({
-    required this.id,
-    required this.userId, // 추가
     required this.businessName,
     this.introduction,
     required this.location,
     this.experienceYears,
-    required this.status,
+    // required this.status, // 제거
     this.profileImageUrl,
-    this.createdAt,
-    this.updatedAt,
+    this.categoryIds,
   });
 
-  /// 서버 응답 JSON에서 DTO 생성
-  factory PhotographerProfileFormDto.fromJson(Map<String, dynamic> json) {
-    // User 객체에서 userId 추출
-    String userId = '';
-    if (json['user'] != null && json['user']['id'] != null) {
-      userId = json['user']['id'].toString();
-    }
-
-    return PhotographerProfileFormDto(
-      id: json['photographerProfileId']?.toString() ?? '', // 서버 필드명에 맞게 수정
-      userId: userId, // 추가
-      businessName: json['businessName'] as String? ?? '',
-      introduction: json['introduction'] as String?,
-      location: json['location'] as String? ?? '',
-      experienceYears: json['experienceYears'] as int?,
-      status: json['status'] as String? ?? 'active',
-      profileImageUrl: json['profileImageUrl'] as String?,
-      createdAt: json['createdAt'] as String?,
-      updatedAt: json['updatedAt'] as String?,
-    );
+  /// DTO를 JSON으로 변환 (서버 요청용)
+  /// API 명세에 따라 실제 필드명을 사용해야 합니다.
+  Map<String, dynamic> toJson() {
+    return {
+      'businessName': businessName,
+      'introduction': introduction,
+      'location': location,
+      'experienceYears': experienceYears,
+      'profileImageUrl': profileImageUrl,
+      'categoryIds': categoryIds,
+    };
   }
 
-  /// Model에서 DTO 생성
-  factory PhotographerProfileFormDto.fromModel(PhotographerProfile model) {
-    return PhotographerProfileFormDto(
-      id: model.id,
-      userId: model.userId, // 추가
-      businessName: model.businessName,
-      introduction: model.introduction,
-      location: model.location,
-      experienceYears: model.experienceYears,
-      status: model.status,
-      profileImageUrl: model.profileImageUrl,
-      createdAt: model.createdAt.toIso8601String(),
-      updatedAt: model.updatedAt?.toIso8601String(),
-    );
-  }
-
-  /// DTO를 Model로 변환
-  PhotographerProfile toModel() {
-    return PhotographerProfile(
-      id: id,
-      userId: userId, // 추가
-      businessName: businessName,
-      introduction: introduction,
-      location: location,
-      experienceYears: experienceYears,
-      status: status,
-      profileImageUrl: profileImageUrl,
-      createdAt:
-          createdAt != null ? DateTime.parse(createdAt!) : DateTime.now(),
-      updatedAt: updatedAt != null ? DateTime.parse(updatedAt!) : null,
-    );
-  }
+  // fromJson, fromModel, toModel 메소드는 FormDTO의 주 목적(요청 데이터 구성)과
+  // 거리가 있으므로 여기서는 제거하거나, 필요 시 응답 DTO 또는 모델 변환 로직은
+  // PhotographerProfile 모델 자체 또는 별도의 매퍼 클래스에서 관리하는 것이 좋습니다.
+  // 특히 서버 응답을 파싱하는 fromJson은 PhotographerProfile 모델에 이미 구현되어 있습니다.
 }

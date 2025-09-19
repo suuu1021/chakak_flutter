@@ -26,7 +26,10 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
       print('[DEBUG] userTypeCode: ${session.userTypeCode}');
 
       if (session.isLogin) {
-        if (session.userTypeCode == 'photographer') {
+        final userType = session.userTypeCode?.toUpperCase();
+        if (userType == null) {
+          print('[DEBUG] userTypeCode 아직 없음 - 프로필 로드 건너뜀');
+        } else if (userType == 'PHOTOGRAPHER') {
           print('[DEBUG] 포토그래퍼로 인식됨');
           ref.read(photographerProfileProvider.notifier).loadMyProfile();
         } else {
@@ -45,7 +48,10 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
       body: RefreshIndicator(
         onRefresh: () {
           if (session.isLogin) {
-            if (session.userTypeCode == 'photographer') {
+            final userType = session.userTypeCode?.toUpperCase();
+            if (userType == null) {
+              return Future.value();
+            } else if (userType == 'PHOTOGRAPHER') {
               return ref
                   .read(photographerProfileProvider.notifier)
                   .loadMyProfile();
