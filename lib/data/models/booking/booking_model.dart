@@ -1,127 +1,105 @@
-import '../photo_service/photo_service.dart';
+// lib/data/models/booking/booking_model.dart
 
-/// 예약 상태 열거형
+import 'package:chakak_flutter/data/models/booking/booking_list_item.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 enum BookingStatus {
-  pending('예약대기'),
-  confirmed('예약승낙'),
-  rejected('예약거절'),
-  canceled('예약취소'),
-  completed('촬영완료'),
-  reviewed('리뷰완료');
+  // 백엔드와 일치하도록 상태 설명 수정
+  PENDING(
+    description: '예약대기',
+    nextStatus: [BookingStatus.CONFIRMED, BookingStatus.CANCELED],
+  ),
+  CONFIRMED(
+    description: '예약확정', // '결제완료'에서 '예약확정'으로 수정
+    nextStatus: [BookingStatus.COMPLETED],
+  ),
+  COMPLETED(
+    description: '촬영완료',
+    nextStatus: [BookingStatus.REVIEWED],
+  ),
+  REVIEWED(
+    description: '리뷰작성완료', // 백엔드와 일치하도록 수정
+    nextStatus: [],
+  ),
+  CANCELED(
+    description: '예약취소',
+    nextStatus: [],
+  );
 
-  const BookingStatus(this.description);
   final String description;
-}
+  final List<BookingStatus> nextStatus;
 
-/// 예약 목록 아이템 모델
-class BookingListItem {
-  final int photographerProfileId;
-  final DateTime bookingDateTime;
-  final BookingStatus status;
-  final String photographerName;
-  final int? bookingInfoId;
-  final PhotoService? photoService;
-
-  const BookingListItem({
-    required this.photographerProfileId,
-    required this.bookingDateTime,
-    required this.status,
-    required this.photographerName,
-    this.bookingInfoId,
-    this.photoService,
+  const BookingStatus({
+    required this.description,
+    required this.nextStatus,
   });
 
-  /// 날짜 포맷팅 (2024년 3월 15일)
-  String get formattedDate {
-    return '${bookingDateTime.year}년 ${bookingDateTime.month}월 ${bookingDateTime.day}일';
+  /// 서버에서 받은 문자열(e.g., "PENDING")을 Enum으로 변환
+  static BookingStatus fromString(String? value) {
+    if (value == null) return BookingStatus.PENDING;
+
+    return BookingStatus.values.firstWhere(
+      (e) => e.name.toUpperCase() == value.toUpperCase(),
+      orElse: () => BookingStatus.PENDING,
+    );
   }
 
-  /// 시간 포맷팅 (오후 2:30)
-  String get formattedTime {
-    final hour = bookingDateTime.hour;
-    final minute = bookingDateTime.minute.toString().padLeft(2, '0');
-
-    if (hour == 0) return '오전 12:$minute';
-    if (hour < 12) return '오전 $hour:$minute';
-    if (hour == 12) return '오후 12:$minute';
-    return '오후 ${hour - 12}:$minute';
+  /// 현재 상태에서 특정 상태로 변경이 가능한지 확인
+  bool canChangeTo(BookingStatus nextStatusToChange) {
+    return nextStatus.contains(nextStatusToChange);
   }
 
-  /// 상태별 색상 (Hex 코드)
-  String get statusColorHex {
-    switch (status) {
-      case BookingStatus.pending:
-        return '#FF9800'; // 주황색
-      case BookingStatus.confirmed:
-        return '#4CAF50'; // 초록색
-      case BookingStatus.rejected:
-      case BookingStatus.canceled:
-        return '#F44336'; // 빨간색
-      case BookingStatus.completed:
-        return '#2196F3'; // 파란색
-      case BookingStatus.reviewed:
-        return '#9C27B0'; // 보라색
+  /// 사용자 카드에 표시될 버튼/액션 텍스트
+  String get userActionText {
+    switch (this) {
+      case BookingStatus.PENDING:
+        return '예약 대기중';
+      case BookingStatus.CONFIRMED:
+        return '촬영 예정';
+      case BookingStatus.COMPLETED:
+        return '리뷰 작성';
+      case BookingStatus.REVIEWED:
+        return '내 리뷰 보기';
+      case BookingStatus.CANCELED:
+        return '취소된 예약';
     }
   }
 
-  /// copyWith 메서드
-  BookingListItem copyWith({
-    int? photographerProfileId,
-    DateTime? bookingDateTime,
-    BookingStatus? status,
-    String? photographerName,
-    int? bookingInfoId,
-    PhotoService? photoService,
-  }) {
-    return BookingListItem(
-      photographerProfileId:
-          photographerProfileId ?? this.photographerProfileId,
-      bookingDateTime: bookingDateTime ?? this.bookingDateTime,
-      status: status ?? this.status,
-      photographerName: photographerName ?? this.photographerName,
-      bookingInfoId: bookingInfoId ?? this.bookingInfoId,
-      photoService: photoService ?? this.photoService,
-    );
+  /// 포토그래퍼 카드에 표시될 버튼/액션 텍스트
+  String get photographerActionText {
+    switch (this) {
+      case BookingStatus.PENDING:
+        return '예약 승인';
+      case BookingStatus.CONFIRMED:
+        return '촬영 예정';
+      case BookingStatus.COMPLETED:
+        return '촬영 완료됨';
+      case BookingStatus.REVIEWED:
+        return '리뷰 확인';
+      case BookingStatus.CANCELED:
+        return '취소된 예약';
+    }
   }
 
-  @override
-  String toString() {
-    return 'BookingListItem('
-        'photographerProfileId: $photographerProfileId, '
-        'bookingDateTime: $bookingDateTime, '
-        'status: $status, '
-        'photographerName: $photographerName, '
-        'bookingInfoId: $bookingInfoId, '
-        'photoService: $photoService'
-        ')';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is BookingListItem &&
-        other.photographerProfileId == photographerProfileId &&
-        other.bookingDateTime == bookingDateTime &&
-        other.status == status &&
-        other.photographerName == photographerName &&
-        other.bookingInfoId == bookingInfoId &&
-        other.photoService == photoService;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      photographerProfileId,
-      bookingDateTime,
-      status,
-      photographerName,
-      bookingInfoId,
-      photoService,
-    );
+  /// 상태별 색상
+  Color get statusColor {
+    switch (this) {
+      case BookingStatus.PENDING:
+        return const Color(0xFFFF9800); // 주황색
+      case BookingStatus.CONFIRMED:
+        return const Color(0xFF4CAF50); // 초록색
+      case BookingStatus.COMPLETED:
+        return const Color(0xFF2196F3); // 파란색
+      case BookingStatus.REVIEWED:
+        return const Color(0xFF9C27B0); // 보라색
+      case BookingStatus.CANCELED:
+        return const Color(0xFFF44336); // 빨간색
+    }
   }
 }
 
-/// 예약 목록 상태 모델
+/// 예약 목록 화면의 상태를 관리하는 모델
 class BookingListState {
   final List<BookingListItem> bookings;
   final bool isLoading;
@@ -129,97 +107,33 @@ class BookingListState {
   final BookingStatus? selectedFilter;
 
   const BookingListState({
-    required this.bookings,
-    required this.isLoading,
+    this.bookings = const [],
+    this.isLoading = false,
     this.errorMessage,
     this.selectedFilter,
   });
 
-  /// 초기 상태
-  factory BookingListState.initial() {
-    return const BookingListState(
-      bookings: [],
-      isLoading: false,
-    );
-  }
+  factory BookingListState.initial() => const BookingListState();
 
-  /// 로딩 상태
-  BookingListState loading() {
-    return copyWith(isLoading: true, errorMessage: null);
-  }
+  int get totalCount => bookings.length;
 
-  /// 성공 상태
-  BookingListState success(List<BookingListItem> bookings) {
-    return copyWith(
-      bookings: bookings,
-      isLoading: false,
-      errorMessage: null,
-    );
-  }
-
-  /// 에러 상태
-  BookingListState error(String message) {
-    return copyWith(
-      isLoading: false,
-      errorMessage: message,
-    );
-  }
-
-  /// 필터링된 예약 목록
-  List<BookingListItem> get filteredBookings {
-    if (selectedFilter == null) return bookings;
-    return bookings
-        .where((booking) => booking.status == selectedFilter)
-        .toList();
-  }
-
-  /// 상태별 개수 계산
   int getCountByStatus(BookingStatus status) {
     return bookings.where((booking) => booking.status == status).length;
   }
 
-  /// copyWith 메서드
   BookingListState copyWith({
     List<BookingListItem>? bookings,
     bool? isLoading,
     String? errorMessage,
     BookingStatus? selectedFilter,
+    bool forceErrorMessageNull = false,
   }) {
     return BookingListState(
       bookings: bookings ?? this.bookings,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
-      selectedFilter: selectedFilter ?? this.selectedFilter,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'BookingListState('
-        'bookings: ${bookings.length} items, '
-        'isLoading: $isLoading, '
-        'errorMessage: $errorMessage, '
-        'selectedFilter: $selectedFilter'
-        ')';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is BookingListState &&
-        other.bookings == bookings &&
-        other.isLoading == isLoading &&
-        other.errorMessage == errorMessage &&
-        other.selectedFilter == selectedFilter;
-  }
-
-  @override
-  int get hashCode {
-    return Object.hash(
-      bookings,
-      isLoading,
-      errorMessage,
-      selectedFilter,
+      errorMessage:
+          forceErrorMessageNull ? null : errorMessage ?? this.errorMessage,
+      selectedFilter: selectedFilter, // selectedFilter는 null이 될 수 있으므로 그대로 전달
     );
   }
 }

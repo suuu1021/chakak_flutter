@@ -1,5 +1,3 @@
-// features/booking/presentation/ui/widgets/booking_empty_widget.dart
-
 import 'package:flutter/material.dart';
 import '../../../../data/models/booking/booking_model.dart';
 
@@ -60,41 +58,36 @@ class BookingEmptyWidget extends StatelessWidget {
     }
 
     switch (selectedFilter!) {
-      case BookingStatus.pending:
+      case BookingStatus.PENDING: // PENDING으로 수정
         return const _EmptyData(
           icon: Icons.schedule,
           title: '대기중인 예약이 없습니다',
           subtitle: '새로운 예약을 진행해보세요',
         );
-      case BookingStatus.confirmed:
+      case BookingStatus.CONFIRMED: // CONFIRMED으로 수정
         return const _EmptyData(
           icon: Icons.check_circle_outline,
           title: '확정된 예약이 없습니다',
-          subtitle: '포토그래퍼가 승낙한 예약이 여기에 표시됩니다',
+          subtitle: '결제 완료된 예약이 여기에 표시됩니다',
         );
-      case BookingStatus.rejected:
-        return const _EmptyData(
-          icon: Icons.cancel_outlined,
-          title: '거절된 예약이 없습니다',
-          subtitle: '다행히 거절된 예약이 없네요!',
-        );
-      case BookingStatus.canceled:
-        return const _EmptyData(
-          icon: Icons.block_outlined,
-          title: '취소한 예약이 없습니다',
-          subtitle: '취소한 예약 내역이 여기에 표시됩니다',
-        );
-      case BookingStatus.completed:
+      case BookingStatus.COMPLETED: // COMPLETED로 수정
         return const _EmptyData(
           icon: Icons.camera_alt_outlined,
           title: '완료된 촬영이 없습니다',
           subtitle: '촬영이 완료되면 여기에서 확인할 수 있습니다',
         );
-      case BookingStatus.reviewed:
+      case BookingStatus.REVIEWED: // REVIEWED로 수정
         return const _EmptyData(
           icon: Icons.star_outline,
           title: '리뷰 완료한 촬영이 없습니다',
           subtitle: '촬영 후 리뷰를 작성하면 여기에 표시됩니다',
+        );
+      default:
+        // rejected, canceled 등
+        return const _EmptyData(
+          icon: Icons.info_outline,
+          title: '해당 상태의 예약이 없습니다',
+          subtitle: '다른 상태의 예약을 확인해보세요',
         );
     }
   }

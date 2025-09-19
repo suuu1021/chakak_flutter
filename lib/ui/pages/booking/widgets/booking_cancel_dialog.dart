@@ -1,21 +1,19 @@
-// features/booking/presentation/ui/widgets/booking_cancel_dialog.dart
-
+import 'package:chakak_flutter/data/models/booking/booking_list_item.dart';
 import 'package:flutter/material.dart';
-import '../../../../data/models/booking/booking_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../provider/global/booking/booking_list_notifier.dart';
 
 /// 예약 취소 확인 다이얼로그 위젯
-class BookingCancelDialog extends StatelessWidget {
+class BookingCancelDialog extends ConsumerWidget {
   final BookingListItem booking;
-  final VoidCallback onConfirm;
 
   const BookingCancelDialog({
     super.key,
     required this.booking,
-    required this.onConfirm,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -88,7 +86,7 @@ class BookingCancelDialog extends StatelessWidget {
         ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop();
-            onConfirm();
+            _cancelBooking(ref);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
@@ -108,6 +106,8 @@ class BookingCancelDialog extends StatelessWidget {
 
   /// 예약 정보 표시
   Widget _buildBookingInfo() {
+    final photoService = booking.photoService;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -121,13 +121,13 @@ class BookingCancelDialog extends StatelessWidget {
           Row(
             children: [
               const Icon(
-                Icons.person,
+                Icons.person_outline,
                 size: 16,
                 color: Colors.grey,
               ),
               const SizedBox(width: 8),
               Text(
-                booking.photographerName,
+                booking.otherPartyName,
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -136,43 +136,38 @@ class BookingCancelDialog extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today,
-                size: 16,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                booking.formattedDate,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
+          if (photoService != null)
+            Row(
+              children: [
+                const Icon(
+                  Icons.photo_camera_outlined,
+                  size: 16,
+                  color: Colors.grey,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(
-                Icons.access_time,
-                size: 16,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                booking.formattedTime,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    photoService.title,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
+  }
+
+  /// 예약 취소 실행
+  void _cancelBooking(WidgetRef ref) {
+    if (booking.bookingInfoId != null) {
+      ref
+          .read(bookingListProvider.notifier)
+          .cancelBooking(booking.bookingInfoId!);
+    }
   }
 }
