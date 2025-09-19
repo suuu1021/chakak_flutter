@@ -1,6 +1,6 @@
 import 'package:chakak_flutter/ui/pages/review/widgets/review_card_widget.dart';
 import 'package:flutter/material.dart';
-import '../../../data/dtos/review_dto.dart';
+import '../../../data/models/review/review_dto.dart';
 import '../../../ui/pages/photo_service/photo_service_detail_page.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import 'review_dummy.dart';

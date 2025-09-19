@@ -1,4 +1,4 @@
-import '../../../data/dtos/review_dto.dart';
+import '../../../data/models/review/review_dto.dart';
 
 // 스크롤 테스트를 위해 20개 생성
 final List<ReviewDto> dummyReviews = List.generate(20, (index) {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../data/dtos/review_dto.dart';
+import '../../../../data/models/review/review_dto.dart';
 
 class ReviewCardWidget extends StatelessWidget {
   final ReviewDto dto;
