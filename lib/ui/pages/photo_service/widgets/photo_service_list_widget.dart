@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/photo_service/photo_service.dart';
-import '../../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../../../provider/global/photoService/photo_service_provider.dart';
 import 'photo_service_card.dart';
 
 class PhotoServiceListWidget extends ConsumerWidget {
@@ -23,7 +23,7 @@ class PhotoServiceListWidget extends ConsumerWidget {
     }
 
     // 실시간으로 포토서비스 상태를 가져옴
-    final photoServiceState = ref.watch(photoServiceNotifierProvider);
+    final photoServiceState = ref.watch(photoServiceProvider);
 
     return ListView.builder(
       padding: padding ?? const EdgeInsets.all(16),
@@ -31,16 +31,15 @@ class PhotoServiceListWidget extends ConsumerWidget {
       itemBuilder: (context, index) {
         final serviceId = services[index].id;
         // 현재 상태에서 해당 서비스를 찾음
-        final service =
-            photoServiceState.services.firstWhere((s) => s.id == serviceId);
+        final service = photoServiceState.services.firstWhere(
+            (s) => s.id == serviceId,
+            orElse: () => services[index]);
 
         return PhotoServiceCard(
           service: service,
           onTap: onServiceTap,
           onBookmarkTap: () {
-            ref
-                .read(photoServiceNotifierProvider.notifier)
-                .toggleLike(service.id);
+            ref.read(photoServiceProvider.notifier).toggleLike(service.id);
           },
         );
       },

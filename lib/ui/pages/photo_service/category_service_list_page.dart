@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service_category.dart';
-import '../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../../provider/global/photoService/photo_service_provider.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
 
@@ -27,16 +27,16 @@ class _CategoryServiceListPageState
     super.initState();
     // 서비스 데이터가 없으면 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final serviceState = ref.read(photoServiceNotifierProvider);
+      final serviceState = ref.read(photoServiceProvider);
       if (serviceState.services.isEmpty && !serviceState.isLoading) {
-        ref.read(photoServiceNotifierProvider.notifier).loadServices();
+        ref.read(photoServiceProvider.notifier).loadServices();
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final serviceState = ref.watch(photoServiceNotifierProvider);
+    final serviceState = ref.watch(photoServiceProvider);
 
     // 카테고리에 해당하는 서비스들 필터링
     final filteredServices = serviceState.services
@@ -89,7 +89,7 @@ class _CategoryServiceListPageState
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                ref.read(photoServiceNotifierProvider.notifier).loadServices();
+                ref.read(photoServiceProvider.notifier).loadServices();
               },
               child: const Text('다시 시도'),
             ),

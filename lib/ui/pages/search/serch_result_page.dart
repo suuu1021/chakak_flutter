@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photographer.dart';
-import '../../../provider/global/photoService/photo_service_notifier.dart';
-import '../../../provider/global/photographer/photographer_notifier.dart';
+import '../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../provider/global/photographer/photographer_provider.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
 import '../profile/photographer/photographer_profile_page.dart';
@@ -51,7 +51,7 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
     final query = widget.searchQuery.toLowerCase();
 
     // 포토그래퍼 검색 (이름, 카테고리)
-    final photographerState = ref.read(photographerNotifierProvider);
+    final photographerState = ref.read(photographerProvider);
     filteredPhotographers =
         photographerState.photographers.where((photographer) {
       return photographer.businessName.toLowerCase().contains(query) ||
@@ -60,15 +60,14 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
     }).toList();
 
     // 포토서비스 검색 (서비스명, 카테고리)
-    final photoServiceState = ref.read(photoServiceNotifierProvider);
+    final photoServiceState = ref.read(photoServiceProvider);
     filteredPhotoServices = photoServiceState.services.where((service) {
       return service.title.toLowerCase().contains(query) ||
           service.categories
               .any((category) => category.toLowerCase().contains(query));
     }).toList();
 
-    // ==================== 시연용 실제 데이터 연동 (영상 촬영 후 삭제) ====================
-    // 실제 포트폴리오 데이터 생성
+    // 실제 포트폴리오 데이터 생성 (서비스의 portfolioImages 활용)
     final allPortfolios = <Map<String, dynamic>>[];
 
     for (final service in photoServiceState.services) {
@@ -87,39 +86,6 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
         });
       }
     }
-    // ==================== 시연용 실제 데이터 연동 끝 ====================
-
-    // ==================== 기존 더미데이터 (주석 보관) ====================
-    /*
-    final allPortfolios = [
-      {
-        'title': '웨딩 포트폴리오 1',
-        'artist': '김포토',
-        'categories': ['웨딩', '스튜디오']
-      },
-      {
-        'title': '커플 포트폴리오',
-        'artist': '이작가',
-        'categories': ['커플', '야외']
-      },
-      {
-        'title': '가족 사진',
-        'artist': '박사진',
-        'categories': ['가족', '스튜디오']
-      },
-      {
-        'title': '웨딩드레스 촬영',
-        'artist': '최웨딩',
-        'categories': ['웨딩', '드레스']
-      },
-      {
-        'title': '프로필 사진',
-        'artist': '정프로',
-        'categories': ['프로필', '비즈니스']
-      },
-    ];
-    */
-    // ==================== 기존 더미데이터 끝 ====================
 
     filteredPortfolios = allPortfolios.where((portfolio) {
       return portfolio['title'].toString().toLowerCase().contains(query) ||
@@ -242,94 +208,105 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
       itemCount: filteredPortfolios.length,
       itemBuilder: (context, index) {
         final portfolio = filteredPortfolios[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
+        return GestureDetector(
+          onTap: () {
+            // 포트폴리오를 탭했을 때 해당 서비스 상세 페이지로 이동
+            final service = portfolio['service'] as PhotoService;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PhotoServiceDetailPage(service: service),
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 포트폴리오 이미지
-              Expanded(
-                flex: 3,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 포트폴리오 이미지
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                      color: Colors.grey[300],
                     ),
-                    color: Colors.grey[300],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12),
-                      topRight: Radius.circular(12),
-                    ),
-                    child: Image.network(
-                      portfolio['imageUrl'] ??
-                          'https://picsum.photos/400/300?random=1',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.photo,
-                              size: 40, color: Colors.grey),
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Container(
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      },
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                      child: Image.network(
+                        portfolio['imageUrl'] ?? '',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.photo,
+                                size: 40, color: Colors.grey),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              // 포트폴리오 정보
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        portfolio['title'],
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                // 포트폴리오 정보
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          portfolio['title'],
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        portfolio['artist'],
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[600],
+                        const SizedBox(height: 4),
+                        Text(
+                          portfolio['artist'],
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
