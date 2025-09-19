@@ -61,6 +61,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
       return const Center(child: Text('등록된 작가가 없습니다.'));
     } else {
       return ListView.builder(
+        padding: EdgeInsets.only(bottom: 10),
         scrollDirection: Axis.horizontal,
         itemCount: state.photographers.length,
         itemBuilder: (context, index) {

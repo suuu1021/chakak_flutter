@@ -44,7 +44,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
           ),
         ),
         SizedBox(
-          height: 300,
+          height: 280,
           child: _buildContent(serviceState),
         ),
       ],
@@ -60,6 +60,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
       return const Center(child: Text('서비스가 없습니다.'));
     } else {
       return ListView.builder(
+        padding: EdgeInsets.only(bottom: 12),
         scrollDirection: Axis.horizontal,
         itemCount: state.services.length,
         itemBuilder: (context, index) {
@@ -175,6 +176,7 @@ class ServiceCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
               children: [
