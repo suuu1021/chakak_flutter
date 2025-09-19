@@ -1,21 +1,8 @@
-
+// 창고 데이터
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../data/models/banner.dart';
 import '../../../data/models/repositories/banner_repository.dart';
-import 'banner_api_service.dart';
 
-final bannerRepositoryProvider = Provider<BannerRepository>((ref) {
-  return BannerRepositoryImpl();
-});
-
-// API Service Provider
-final bannerApiServiceProvider = Provider<BannerApiService>((ref) {
-  final repository = ref.read(bannerRepositoryProvider);
-  return BannerApiService(repository);
-});
-
-// State 클래스
 class BannerState {
   final List<BannerItem> banners;
   final bool isLoading;
@@ -38,18 +25,26 @@ class BannerState {
       error: error,
     );
   }
-}
+} // end of BannerState
 
-// Notifier 클래스
-class BannerNotifier extends StateNotifier<BannerState> {
-  final BannerApiService _apiService;
+// 창고 메뉴얼 (확장된 VM 개념)
+class BannerNotifier extends Notifier<BannerState> {
+  late BannerRepository _repository;
 
-  BannerNotifier(this._apiService) : super(BannerState());
+  BannerRepository get repository => _repository;
+
+  @override
+  BannerState build() {
+    _repository = BannerRepositoryImpl();
+
+    return BannerState();
+  }
 
   Future<void> loadBanners() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-      final banners = await _apiService.getActiveBanners();
+
+      final banners = await _repository.getActiveBanners();
       state = state.copyWith(banners: banners, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -58,16 +53,24 @@ class BannerNotifier extends StateNotifier<BannerState> {
 
   Future<void> trackBannerClick(int bannerId) async {
     try {
-      await _apiService.trackBannerClick(bannerId);
+      await _repository.trackBannerClick(bannerId);
     } catch (e) {
       print('배너 클릭 추적 실패: $e');
     }
   }
+
+  // 배너 새로고침
+  Future<void> refreshBanners() async {
+    await loadBanners();
+  }
+
+  // 에러 초기화
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
 }
 
-// Provider
-final bannerNotifierProvider =
-    StateNotifierProvider<BannerNotifier, BannerState>((ref) {
-  final apiService = ref.read(bannerApiServiceProvider);
-  return BannerNotifier(apiService);
-});
+// 실제 창고 개설
+final bannerProvider = NotifierProvider<BannerNotifier, BannerState>(
+  () => BannerNotifier(),
+);

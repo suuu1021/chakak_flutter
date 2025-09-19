@@ -1,11 +1,11 @@
+import 'package:chakak_flutter/data/models/portfolio.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_list_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photographer.dart';
-import '../../../provider/global/photoService/photo_service_provider.dart';
-import '../../../provider/global/photographer/photographer_provider.dart';
+import '../../../provider/global/search/search_provider.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
 import '../profile/photographer/photographer_profile_page.dart';
@@ -41,45 +41,40 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
     });
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void _performSearch() {
+  void _performSearch() async {
     final query = widget.searchQuery.toLowerCase();
 
-    // 포토그래퍼 검색 (이름, 카테고리)
-    final photographerState = ref.read(photographerProvider);
-    filteredPhotographers =
-        photographerState.photographers.where((photographer) {
-      return photographer.businessName.toLowerCase().contains(query) ||
-          photographer.categories
-              .any((category) => category.toLowerCase().contains(query));
-    }).toList();
+    try {
+      final searchNotifier = ref.read(searchProvider.notifier);
 
-    // 포토서비스 검색 (서비스명, 카테고리)
-    final photoServiceState = ref.read(photoServiceProvider);
-    filteredPhotoServices = photoServiceState.services.where((service) {
-      return service.title.toLowerCase().contains(query) ||
-          service.categories
-              .any((category) => category.toLowerCase().contains(query));
-    }).toList();
+      // 1. 포토 서비스 검색
+      final searchedServices = await searchNotifier.searchPhotoServices(query);
+      // 2. 포토그래퍼 검색
+      final searchedPhotographers =
+          await searchNotifier.searchPhotographers(query);
 
-    // 실제 포트폴리오 데이터 생성 (서비스의 portfolioImages 활용)
+      filteredPhotoServices = searchedServices;
+      filteredPhotographers = searchedPhotographers;
+      _buildPortfolioResults();
+
+      print(
+          '검색 결과 - 포토서비스: ${filteredPhotoServices.length}, 포토그래퍼: ${filteredPhotographers.length}, 포트폴리오: ${filteredPortfolios.length}');
+    } catch (e) {
+      print('검색 오류: $e');
+    }
+
+    setState(() {});
+  }
+
+  void _buildPortfolioResults() {
     final allPortfolios = <Map<String, dynamic>>[];
 
-    for (final service in photoServiceState.services) {
-      final photographer = photographerState.photographers
-          .where((p) => p.id == service.photographerId)
-          .firstOrNull;
-
+    for (final service in filteredPhotoServices) {
       for (int i = 0; i < service.portfolioImages.length; i++) {
         allPortfolios.add({
           'id': '${service.id}_$i',
           'title': '${service.title} 포트폴리오 ${i + 1}',
-          'artist': photographer?.businessName ?? '작가명 미상',
+          'artist': '작가명', // photographer 정보가 필요하면 추가 로직 필요
           'categories': service.categories,
           'imageUrl': service.portfolioImages[i],
           'service': service,
@@ -87,14 +82,7 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
       }
     }
 
-    filteredPortfolios = allPortfolios.where((portfolio) {
-      return portfolio['title'].toString().toLowerCase().contains(query) ||
-          portfolio['artist'].toString().toLowerCase().contains(query) ||
-          (portfolio['categories'] as List).any(
-              (category) => category.toString().toLowerCase().contains(query));
-    }).toList();
-
-    setState(() {});
+    filteredPortfolios = allPortfolios;
   }
 
   @override
