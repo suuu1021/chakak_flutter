@@ -19,23 +19,33 @@ class PriceOption {
 
   factory PriceOption.fromJson(Map<String, dynamic> json) {
     return PriceOption(
-      name: json['name'] as String,
+      name: json['title'] as String, // title → name
       price: json['price'] as int,
-      duration: json['duration'] as String,
-      photoCount: json['photoCount'] as String,
-      editingLevel: json['editingLevel'] as String,
-      features: List<String>.from(json['features'] as List),
+      duration: '${json['shootingDuration']}분', // int → String 변환
+      photoCount: '${json['participantCount']}명', // int → String 변환
+      editingLevel: json['isMakeupService'] == true
+          ? '메이크업 포함'
+          : '기본 보정', // boolean → String 변환
+      features: [
+        json['specialEquipment'] as String, // String을 List로 변환
+        if (json['outfitChanges'] != null) '의상 변경 ${json['outfitChanges']}회',
+      ],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
+      'title': name,
       'price': price,
-      'duration': duration,
-      'photoCount': photoCount,
-      'editingLevel': editingLevel,
-      'features': features,
+      'shootingDuration': int.parse(duration.replaceAll('분', '')),
+      'participantCount': int.parse(photoCount.replaceAll('명', '')),
+      'isMakeupService': editingLevel.contains('메이크업'),
+      'specialEquipment': features.isNotEmpty ? features.first : '',
+      'outfitChanges': features.any((f) => f.contains('의상 변경'))
+          ? int.parse(features
+              .firstWhere((f) => f.contains('의상 변경'))
+              .replaceAll(RegExp(r'[^0-9]'), ''))
+          : 1,
     };
   }
 
