@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
+import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 
-class PhotographerInfoSection extends StatelessWidget {
+class PhotographerInfoSection extends ConsumerStatefulWidget {
   final PhotoService service;
   final VoidCallback? onProfileTap;
 
@@ -13,7 +16,33 @@ class PhotographerInfoSection extends StatelessWidget {
   });
 
   @override
+  ConsumerState<PhotographerInfoSection> createState() =>
+      _PhotographerInfoSectionState();
+}
+
+class _PhotographerInfoSectionState
+    extends ConsumerState<PhotographerInfoSection> {
+  @override
+  void initState() {
+    super.initState();
+    // 포토그래퍼 프로필 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPhotographerProfile();
+    });
+  }
+
+  Future<void> _loadPhotographerProfile() async {
+    // 특정 포토그래퍼의 프로필을 로드하는 메서드가 필요
+    final photographerId = widget.service.photographerId.toString();
+    await ref
+        .read(photographerProfileProvider.notifier)
+        .loadProfileById(photographerId);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(photographerProfileProvider);
+
     return Container(
       margin: const EdgeInsets.all(AppSizes.spacing16),
       padding: const EdgeInsets.all(AppSizes.spacing16),
@@ -30,16 +59,18 @@ class PhotographerInfoSection extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _buildProfileImage(),
+          _buildProfileImage(profileState.profile?.profileImageUrl),
           const SizedBox(width: AppSizes.spacing12),
-          Expanded(child: _buildPhotographerInfo()),
+          Expanded(
+            child: _buildPhotographerInfo(profileState),
+          ),
           _buildProfileButton(),
         ],
       ),
     );
   }
 
-  Widget _buildProfileImage() {
+  Widget _buildProfileImage(String? imageUrl) {
     return Container(
       width: 60,
       height: 60,
@@ -47,32 +78,99 @@ class PhotographerInfoSection extends StatelessWidget {
         color: Colors.grey[200],
         borderRadius: BorderRadius.circular(30),
       ),
-      child: const Icon(
-        Icons.person,
-        size: 30,
-        color: Colors.grey,
-      ),
+      child: imageUrl != null && imageUrl.isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(30),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(
+                    Icons.person,
+                    size: 30,
+                    color: Colors.grey,
+                  );
+                },
+              ),
+            )
+          : const Icon(
+              Icons.person,
+              size: 30,
+              color: Colors.grey,
+            ),
     );
   }
 
-  Widget _buildPhotographerInfo() {
+  Widget _buildPhotographerInfo(PhotographerProfileState profileState) {
+    if (profileState.isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 100,
+            height: 16,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacing4),
+          Container(
+            width: 150,
+            height: 14,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (profileState.errorMessage != null || profileState.profile == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '포토그래퍼',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacing4),
+          Text(
+            '정보를 불러올 수 없습니다',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final profile = profileState.profile!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '포토그래퍼',
-          style: TextStyle(
+        Text(
+          profile.businessName,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: AppSizes.spacing4),
         Text(
-          '전문 사진작가',
+          '${profile.location} • ${profile.experienceYears ?? 0}년 경력',
           style: TextStyle(
             fontSize: 14,
             color: Colors.grey[600],
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -80,12 +178,12 @@ class PhotographerInfoSection extends StatelessWidget {
 
   Widget _buildProfileButton() {
     return TextButton(
-      onPressed: onProfileTap ?? _defaultProfileTap,
+      onPressed: widget.onProfileTap ?? _defaultProfileTap,
       child: const Text('프로필 보기'),
     );
   }
 
   void _defaultProfileTap() {
-    print('프로필 보기 - photographerId: ${service.photographerId}');
+    print('프로필 보기 - photographerId: ${widget.service.photographerId}');
   }
 }

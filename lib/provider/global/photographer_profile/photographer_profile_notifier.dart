@@ -52,6 +52,24 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
     return const PhotographerProfileState();
   }
 
+  /// 특정 포토그래퍼 프로필 조회 (ID로)
+  Future<void> loadProfileById(String photographerId) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      final profile = await _repository.getProfile(photographerId);
+      state = state.copyWith(
+        profile: profile,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
   /// 내 프로필 조회
   Future<void> loadMyProfile() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
@@ -229,7 +247,7 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
       location: location.trim(),
       experienceYears: experienceYears,
       status: _convertToApiStatus(displayStatus),
-      profileImageUrl: profileImageUrl,
+      profileImageUrl: profileImageUrl, categories: [],
     );
   }
 

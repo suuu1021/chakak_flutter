@@ -89,29 +89,55 @@ class PhotographerProfileRepositoryImpl
   @override
   Future<PhotographerProfile?> getProfile(String id) async {
     try {
-      // TODO: 실제 API 호출로 교체
-      await Future.delayed(const Duration(milliseconds: 400));
+      print('[DEBUG] 포토그래퍼 프로필 조회 API 호출 시작');
+      print('[DEBUG] 요청 URL: /api/photographers/$id');
+      print('[DEBUG] DIO 기본 헤더: ${_dio.options.headers}');
 
-      // Mock 데이터 시뮬레이션
-      if (id == 'profile_not_found') {
-        return null; // 프로필이 없는 경우
+      // 서버 API 호출: GET /api/photographers/{id}
+      final response = await _dio.get('/api/photographers/$id');
+
+      print('[DEBUG] 응답 상태 코드: ${response.statusCode}');
+      print('[DEBUG] 응답 데이터: ${response.data}');
+
+      if (response.statusCode == 200) {
+        // 서버 응답 구조에 따라 조정 필요
+        final data =
+            response.data['response'] ?? response.data['body'] ?? response.data;
+
+        if (data != null) {
+          print('[DEBUG] 파싱할 프로필 데이터: $data');
+          return PhotographerProfile.fromJson(data);
+        } else {
+          print('[DEBUG] 응답 데이터가 null입니다');
+          return null;
+        }
       }
 
-      final mockResponse = {
-        'id': id,
-        'businessName': '테스트 스튜디오',
-        'introduction': '안녕하세요! 전문 사진작가입니다. 고객의 소중한 순간을 아름답게 담아드립니다.',
-        'location': '서울 강남구',
-        'experienceYears': 5,
-        'status': 'active',
-        'profileImageUrl': 'https://example.com/profile.jpg',
-        'createdAt': '2024-01-01T00:00:00.000Z',
-        'updatedAt': '2024-01-15T12:00:00.000Z',
-      };
+      print('[DEBUG] 예상치 못한 응답 코드: ${response.statusCode}');
+      return null;
+    } on DioException catch (e) {
+      print('[DEBUG] DioException 발생');
+      print('[DEBUG] 상태 코드: ${e.response?.statusCode}');
+      print('[DEBUG] 응답 데이터: ${e.response?.data}');
+      print('[DEBUG] 에러 메시지: ${e.message}');
 
-      return PhotographerProfile.fromJson(mockResponse);
+      if (e.response?.statusCode == 404) {
+        // 포토그래퍼 프로필이 없는 경우
+        print('[DEBUG] 포토그래퍼 프로필을 찾을 수 없음 (404)');
+        return null;
+      } else if (e.response?.statusCode == 403) {
+        print('[DEBUG] 접근 권한 없음 (403)');
+        throw Exception('해당 포토그래퍼 프로필에 접근할 권한이 없습니다');
+      } else if (e.response?.statusCode == 401) {
+        print('[DEBUG] 인증 만료 (401)');
+        throw Exception('인증이 만료되었습니다. 다시 로그인해주세요');
+      } else {
+        print('[DEBUG] 기타 HTTP 에러: ${e.response?.statusCode}');
+        throw Exception('프로필 조회 중 오류가 발생했습니다: ${e.message}');
+      }
     } catch (e) {
-      throw Exception('프로필 조회에 실패했습니다: ${e.toString()}');
+      print('[DEBUG] 일반 예외 발생: $e');
+      throw Exception('포토그래퍼 프로필 조회에 실패했습니다: ${e.toString()}');
     }
   }
 

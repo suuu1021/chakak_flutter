@@ -11,6 +11,7 @@ class PhotographerProfileFormDto {
   final String? profileImageUrl;
   final String? createdAt;
   final String? updatedAt;
+  final List<String> categories;
 
   PhotographerProfileFormDto({
     required this.id,
@@ -23,18 +24,21 @@ class PhotographerProfileFormDto {
     this.profileImageUrl,
     this.createdAt,
     this.updatedAt,
+    required this.categories,
   });
 
   /// 서버 응답 JSON에서 DTO 생성
   factory PhotographerProfileFormDto.fromJson(Map<String, dynamic> json) {
     // User 객체에서 userId 추출
-    String userId = '';
-    if (json['user'] != null && json['user']['id'] != null) {
-      userId = json['user']['id'].toString();
-    }
+    String userId = json['userId']?.toString() ?? '';
+
+    final List<String> categories = (json['categories'] as List<dynamic>?)
+            ?.map((category) => category as String)
+            .toList() ??
+        [];
 
     return PhotographerProfileFormDto(
-      id: json['photographerProfileId']?.toString() ?? '', // 서버 필드명에 맞게 수정
+      id: json['photographerId']?.toString() ?? '',
       userId: userId, // 추가
       businessName: json['businessName'] as String? ?? '',
       introduction: json['introduction'] as String?,
@@ -44,6 +48,7 @@ class PhotographerProfileFormDto {
       profileImageUrl: json['profileImageUrl'] as String?,
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
+      categories: categories,
     );
   }
 
@@ -60,6 +65,7 @@ class PhotographerProfileFormDto {
       profileImageUrl: model.profileImageUrl,
       createdAt: model.createdAt.toIso8601String(),
       updatedAt: model.updatedAt?.toIso8601String(),
+      categories: model.categories,
     );
   }
 
@@ -77,6 +83,7 @@ class PhotographerProfileFormDto {
       createdAt:
           createdAt != null ? DateTime.parse(createdAt!) : DateTime.now(),
       updatedAt: updatedAt != null ? DateTime.parse(updatedAt!) : null,
+      categories: categories,
     );
   }
 }

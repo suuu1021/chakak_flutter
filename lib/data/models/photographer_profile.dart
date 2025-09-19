@@ -1,6 +1,6 @@
 class PhotographerProfile {
   final String id;
-  final String userId; // 추가: 실제 User ID
+  final String userId;
   final String businessName;
   final String? introduction;
   final String location;
@@ -9,10 +9,11 @@ class PhotographerProfile {
   final String? profileImageUrl;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final List<String> categories;
 
   PhotographerProfile({
     required this.id,
-    required this.userId, // 추가
+    required this.userId,
     required this.businessName,
     this.introduction,
     required this.location,
@@ -21,29 +22,35 @@ class PhotographerProfile {
     this.profileImageUrl,
     required this.createdAt,
     this.updatedAt,
+    required this.categories,
   });
 
   /// JSON에서 Model 생성 (서버 통신용)
   factory PhotographerProfile.fromJson(Map<String, dynamic> json) {
     // 필수 필드가 없을 경우 예외 발생
-    if (json['photographerProfileId'] == null ||
+    if (json['photographerId'] == null ||
         json['businessName'] == null ||
         json['location'] == null) {
       throw FormatException('필수 프로필 정보가 누락되었습니다.');
     }
 
     // 데이터 타입 안전성 확보
-    final String id = json['photographerProfileId'].toString();
+    final String id = json['photographerId'].toString();
     final String businessName = json['businessName'] as String;
-    final String location = json['location'] as String;
+    final String location = json['location'] as String? ?? 'N/A';
 
     // User 객체에서 userId 추출
     String userId;
-    if (json['user'] != null && json['user']['id'] != null) {
-      userId = json['user']['id'].toString();
+    if (json['userId'] != null) {
+      userId = json['userId'].toString();
     } else {
       throw FormatException('User 정보가 누락되었습니다.');
     }
+
+    final List<String> categories = (json['categories'] as List<dynamic>?)
+            ?.map((category) => category as String)
+            .toList() ??
+        [];
 
     return PhotographerProfile(
       id: id,
@@ -60,13 +67,14 @@ class PhotographerProfile {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
+      categories: categories,
     );
   }
 
   /// Model을 JSON으로 변환 (서버 통신용)
   Map<String, dynamic> toJson() {
     return {
-      'photographerProfileId': id,
+      'photographerId': id,
       'businessName': businessName,
       'introduction': introduction,
       'location': location,
@@ -102,6 +110,7 @@ class PhotographerProfile {
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      categories: categories,
     );
   }
 
@@ -114,6 +123,7 @@ class PhotographerProfile {
       location: '',
       status: 'active',
       createdAt: DateTime.now(),
+      categories: [],
     );
   }
 
@@ -153,7 +163,7 @@ class PhotographerProfile {
   int get hashCode {
     return Object.hash(
       id,
-      userId, // 추가
+      userId,
       businessName,
       introduction,
       location,
