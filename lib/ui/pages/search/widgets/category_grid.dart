@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../data/models/photo_service_category.dart';
-import '../../../../provider/global/category/photo_service_category_notifier.dart';
+import '../../../../provider/global/category/photo_service_category_provider.dart';
 
 class CategoryGrid extends ConsumerWidget {
   final Function(PhotoServiceCategory) onCategoryTap;
@@ -15,7 +15,7 @@ class CategoryGrid extends ConsumerWidget {
   });
 
   Widget build(BuildContext context, WidgetRef ref) {
-    final categoryState = ref.watch(photoServiceCategoryNotifierProvider);
+    final categoryState = ref.watch(photoServiceCategoryProvider);
 
     if (categoryState.categories.isEmpty) {
       return const SizedBox.shrink();
@@ -107,19 +107,13 @@ class CategoryGrid extends ConsumerWidget {
                           );
                         },
                       )
-                    : Image.asset(
-                        category.categoryImageData,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.category,
-                              color: Colors.grey,
-                              size: 24,
-                            ),
-                          );
-                        },
+                    : Container(
+                        color: Colors.grey[200],
+                        child: Icon(
+                          Icons.category,
+                          color: Colors.grey,
+                          size: 24,
+                        ),
                       ),
               ),
             ),

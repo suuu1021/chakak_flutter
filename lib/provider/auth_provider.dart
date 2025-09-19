@@ -4,11 +4,10 @@ import '../data/dtos/auth_dto.dart';
 import '../data/models/repositories/auth_repository.dart';
 import 'auth/session_provider.dart';
 
-// UI 상태를 나타내는 클래스 (일반 + 소셜 로그인 상태 통합)
 class AuthState {
   final LoginResponse? login;
   final SocialLoginResponse? social;
-  final bool isProgress; // 로그인 진행 상태 표시
+  final bool isProgress;
 
   const AuthState({
     this.login,
@@ -29,53 +28,17 @@ class AuthState {
   }
 }
 
-// 비즈니스 로직을 처리하는 Notifier
 class AuthNotifier extends Notifier<AuthState> {
   @override
   AuthState build() {
     return const AuthState();
   }
 
-  /// [일반 로그인]
   Future<void> login(LoginRequest request) async {
     print("[AuthProvider] login() 시작. isProgress=true");
     state = state.copyWith(isProgress: true);
 
     try {
-      // ==================== 시연용 더미 로그인 (영상 촬영 후 삭제) ====================
-      // 더미 계정 체크
-      if (request.email == "test@test.com" && request.password == "123456") {
-        print("[AuthProvider] 더미 계정으로 로그인 시도");
-        await Future.delayed(const Duration(milliseconds: 800)); // 로딩 시뮬레이션
-
-        // 더미 응답 생성
-        final dummyLoginResponse = LoginResponse(
-          tokenType: "Bearer",
-          accessToken: "dummy_access_token_12345",
-          userId: 1,
-          email: "test@test.com",
-          nickname: "테스트 유저",
-          userTypeCode: "USER", // 일반 사용자
-        );
-
-        print("[AuthProvider] 더미 세션 저장 시도...");
-        final session = ref.read(sessionProvider.notifier);
-        await session.login(
-          dummyLoginResponse.accessToken,
-          dummyLoginResponse.userId,
-          dummyLoginResponse.nickname,
-          dummyLoginResponse.userTypeCode,
-        );
-        print("[AuthProvider] 더미 세션 저장 성공!");
-
-        state = state.copyWith(login: dummyLoginResponse, isProgress: false);
-        print("[AuthProvider] 더미 로그인 성공 완료!");
-        return;
-      }
-      // ==================== 시연용 더미 로그인 끝 ====================
-
-      // ==================== 기존 실제 로그인 로직 (주석 보관) ====================
-      /*
       final repo = ref.read(authRepositoryProvider);
       final session = ref.read(sessionProvider.notifier);
 
@@ -83,38 +46,37 @@ class AuthNotifier extends Notifier<AuthState> {
       final loginResponse = await repo.login(request);
       print("[AuthProvider] Repository로부터 응답 성공!");
 
+      print("--- [!!!] 서버 로그인 응답 확인 [!!!] ---");
+      print("userId: ${loginResponse.userId}");
+      print("nickname: ${loginResponse.nickname}");
+      print("userTypeCode: ${loginResponse.userTypeCode}");
+      print("-------------------------------------");
+
       print("[AuthProvider] 세션 저장 시도...");
       await session.login(
         loginResponse.accessToken,
         loginResponse.userId,
         loginResponse.nickname,
-        loginResponse.userTypeCode, // 'userType' -> 'userTypeCode' 로 수정
+        loginResponse.userTypeCode,
       );
       print("[AuthProvider] 세션 저장 성공. 로그인 상태 업데이트 시도.");
 
       state = state.copyWith(login: loginResponse, isProgress: false);
       print("[AuthProvider] 로그인 성공 상태로 업데이트 완료. isProgress=false");
-      */
-      // ==================== 기존 실제 로그인 로직 끝 ====================
 
-      // 더미 계정이 아닌 경우 에러 발생
-      await Future.delayed(const Duration(milliseconds: 500)); // 로딩 시뮬레이션
-      throw Exception("잘못된 이메일 또는 비밀번호입니다");
     } catch (e) {
       print("[AuthProvider] !!!!! 로그인 에러 발생 !!!!!: $e");
       state = state.copyWith(isProgress: false);
-      rethrow; // 에러를 UI로 다시 던져서 스낵바 등을 표시
+      rethrow;
     }
   }
 
-  /// [카카오 로그인]
   Future<void> kakaoLogin(SocialLoginRequest request) async {
     print("[AuthProvider] kakaoLogin() 시작. isProgress=true");
     state = state.copyWith(isProgress: true);
 
     try {
       final repo = ref.read(authRepositoryProvider);
-      // 소셜 로그인은 세션 처리가 다를 수 있으므로 일단 API 호출에 집중
       print("[AuthProvider] Repository의 kakaoLogin() 호출 시도...");
       final socialResponse = await repo.kakaoLogin(request);
       print("[AuthProvider] Repository로부터 응답 성공!");
@@ -128,14 +90,32 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
-  /// [로그아웃]
   void logout() {
     ref.read(sessionProvider.notifier).logout();
-    state = const AuthState(); // 로컬 상태도 초기화
+    state = const AuthState();
     print("[AuthProvider] 로그아웃 완료. 세션 및 로컬 상태 초기화.");
+  }
+
+  // 회원 탈퇴 메서드 추가
+  Future<void> withdraw() async {
+    final session = ref.read(sessionProvider);
+    if (session.userId == null) {
+      throw Exception('로그인 상태가 아니거나 사용자 ID를 찾을 수 없습니다.');
+    }
+
+    try {
+      final repo = ref.read(authRepositoryProvider);
+      await repo.deleteUser(session.userId!);
+
+      // 탈퇴 성공 시, 세션 정보를 완전히 삭제 (로그아웃과 동일한 효과)
+      logout();
+      print("[AuthProvider] 회원 탈퇴 성공. 모든 세션 및 로컬 상태를 초기화합니다.");
+    } catch (e) {
+      print("[AuthProvider] !!!!! 회원 탈퇴 에러 발생 !!!!!: $e");
+      rethrow; // UI로 에러를 다시 던져서 피드백을 줍니다.
+    }
   }
 }
 
-// Provider 정의
 final authProvider =
     NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);

@@ -1,10 +1,10 @@
-
+import 'package:chakak_flutter/_core/constants/sender_type.dart';
 import 'package:flutter/foundation.dart';
 
 class ChatMessageDto {
   final int? chatMessageId;
   final int chatRoomId;
-  final String senderType;
+  final SenderType senderType;
   final int senderId;
   final String messageType;
   final String message;
@@ -30,7 +30,7 @@ class ChatMessageDto {
     final dto = ChatMessageDto(
       chatMessageId: json['chatMessageId'] as int?,
       chatRoomId: json['chatRoomId'] as int? ?? 0,
-      senderType: json['senderType'] as String? ?? 'UNKNOWN',
+      senderType: SenderType.fromJson(json['senderType'] as String? ?? 'UNKNOWN'),
       senderId: json['senderId'] as int? ?? 0,
       messageType: json['messageType'] as String? ?? 'UNKNOWN',
       message: json['message'] as String? ?? '',
@@ -51,7 +51,7 @@ class ChatMessageDto {
     return {
       'chatMessageId': chatMessageId,
       'chatRoomId': chatRoomId,
-      'senderType': senderType,
+      'senderType': senderType.toJson,
       'senderId': senderId,
       'messageType': messageType,
       'message': message,

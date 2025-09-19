@@ -50,19 +50,11 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   Future<void> loadMyProfile() async {
     try {
       state = state.copyWith(isLoading: true, clearErrorMessage: true);
-
       final profileDto = await _userProfileService.getMyProfile();
       final profile = profileDto.toModel();
-
-      state = state.copyWith(
-        profile: profile,
-        isLoading: false,
-      );
+      state = state.copyWith(profile: profile, isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: '프로필을 불러오는데 실패했습니다.',
-      );
+      state = state.copyWith(isLoading: false, errorMessage: '프로필을 불러오는데 실패했습니다.');
     }
   }
 
@@ -70,42 +62,29 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
   Future<bool> createProfile(UserProfileCreateRequestDto request) async {
     try {
       state = state.copyWith(isCreating: true, clearErrorMessage: true);
-
       final profileDto = await _userProfileService.createProfile(request);
       final profile = profileDto.toModel();
-
-      state = state.copyWith(
-        profile: profile,
-        isCreating: false,
-      );
+      state = state.copyWith(profile: profile, isCreating: false);
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isCreating: false,
-        errorMessage: '프로필 생성에 실패했습니다.',
-      );
+      state = state.copyWith(isCreating: false, errorMessage: '프로필 생성에 실패했습니다.');
       return false;
     }
   }
 
-  // 프로필 수정
+  // 프로필 수정 (최신 API 명세 반영)
   Future<bool> updateProfile(UserProfileUpdateRequestDto request) async {
     try {
       state = state.copyWith(isUpdating: true, clearErrorMessage: true);
-
-      final profileDto = await _userProfileService.updateProfile(request);
-      final profile = profileDto.toModel();
-
-      state = state.copyWith(
-        profile: profile,
-        isUpdating: false,
-      );
+      // 1. 서비스에서 수정된 프로필 DTO를 직접 받음
+      final updatedProfileDto = await _userProfileService.updateProfile(request);
+      // 2. DTO를 UI 모델로 변환
+      final updatedProfile = updatedProfileDto.toModel();
+      // 3. 변환된 모델로 상태를 즉시 업데이트 (불필요한 API 재호출 제거)
+      state = state.copyWith(profile: updatedProfile, isUpdating: false);
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isUpdating: false,
-        errorMessage: '프로필 수정에 실패했습니다.',
-      );
+      state = state.copyWith(isUpdating: false, errorMessage: '프로필 수정에 실패했습니다: ${e.toString()}');
       return false;
     }
   }

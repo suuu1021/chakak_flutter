@@ -1,12 +1,12 @@
-import 'dart:convert'; // Base64 디코딩을 위해 추가
-import 'dart:typed_data'; // Uint8List를 위해 추가
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 
 import '../../../../data/models/photo_service/photo_service.dart';
-import '../../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../../../provider/global/photoService/photo_service_provider.dart';
 
 class ServiceCardList extends ConsumerStatefulWidget {
   final Function(PhotoService) onServiceTap;
@@ -22,13 +22,13 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(photoServiceNotifierProvider.notifier).loadServices();
+      ref.read(photoServiceProvider.notifier).loadServices();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final serviceState = ref.watch(photoServiceNotifierProvider);
+    final serviceState = ref.watch(photoServiceProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +44,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
           ),
         ),
         SizedBox(
-          height: 300, // 카드의 크기에 따라 조정될 수 있음
+          height: 280,
           child: _buildContent(serviceState),
         ),
       ],
@@ -60,6 +60,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
       return const Center(child: Text('서비스가 없습니다.'));
     } else {
       return ListView.builder(
+        padding: EdgeInsets.only(bottom: 12),
         scrollDirection: Axis.horizontal,
         itemCount: state.services.length,
         itemBuilder: (context, index) {
@@ -73,7 +74,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
               service: service,
               onTap: () => widget.onServiceTap(service),
               onLikeTap: () => ref
-                  .read(photoServiceNotifierProvider.notifier)
+                  .read(photoServiceProvider.notifier)
                   .toggleLike(service.id),
             ),
           );
@@ -114,10 +115,9 @@ class ServiceCard extends StatelessWidget {
           );
         },
       );
-    } else if (service.imageUrl.isNotEmpty) { // http로 시작하지 않고, 비어있지 않다면 Base64로 간주
+    } else if (service.imageUrl.isNotEmpty) {
       try {
         String base64String = service.imageUrl;
-        // 데이터 프리픽스 제거 (예: "data:image/png;base64,")
         if (base64String.startsWith('data:image')) {
           base64String = base64String.split(',').last;
         }
@@ -149,7 +149,6 @@ class ServiceCard extends StatelessWidget {
         );
       }
     } else {
-      // imageUrl이 비어있는 경우
       imageWidget = Container(
         height: 140,
         color: Colors.grey[200],
@@ -162,13 +161,13 @@ class ServiceCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 180, // 카드의 너비
+        width: 180,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.2), // withValues 대신 withOpacity 사용
+              color: Colors.grey.withOpacity(0.2),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 3),
@@ -177,13 +176,14 @@ class ServiceCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
               children: [
                 ClipRRect(
                   borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: imageWidget, // 수정된 이미지 위젯 사용
+                      const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: imageWidget,
                 ),
                 Positioned(
                   top: 8,
@@ -193,14 +193,15 @@ class ServiceCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8), // withValues 대신 withOpacity 사용
+                        color: Colors.white.withOpacity(0.8),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         service.isLiked
-                            ? Icons.bookmark_outlined // 북마크 아이콘 일관성 유지 (선택)
+                            ? Icons.bookmark_outlined
                             : Icons.bookmark_border_outlined,
-                        color: service.isLiked ? AppColors.primary : Colors.black, // AppColors.primary 사용
+                        color:
+                            service.isLiked ? AppColors.primary : Colors.black,
                       ),
                     ),
                   ),
@@ -226,25 +227,25 @@ class ServiceCard extends StatelessWidget {
                     spacing: 6.0,
                     runSpacing: 4.0,
                     children: service.categories
-                        .take(3) // 최대 3개 카테고리 표시
+                        .take(3)
                         .map((categoryName) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0, vertical: 4.0),
-                      decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1), // 카테고리 배경색 약간 투명하게
-                          borderRadius: BorderRadius.circular(16.0),
-                          border: Border.all(color: AppColors.primary, width: 0.5) // 테두리 추가
-                      ),
-                      child: Text(
-                        categoryName,
-                        style: AppTextStyles.categoryName.copyWith(color: AppColors.primary), // AppTextStyles 사용
-                      ),
-                    ))
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0, vertical: 4.0),
+                              decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  border: Border.all(
+                                      color: AppColors.primary, width: 0.5)),
+                              child: Text(
+                                categoryName,
+                                style: AppTextStyles.categoryName
+                                    .copyWith(color: AppColors.primary),
+                              ),
+                            ))
                         .toList(),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    // 가격 포맷팅 (예: 10,000원~)
                     '${service.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원~',
                     style: const TextStyle(
                       fontSize: 16,

@@ -222,6 +222,7 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
   }) {
     return PhotographerProfileFormDto(
       id: state.profile?.id ?? '',
+      userId: state.profile?.userId ?? '', // 추가
       businessName: businessName.trim(),
       introduction:
           introduction?.trim().isNotEmpty == true ? introduction!.trim() : null,

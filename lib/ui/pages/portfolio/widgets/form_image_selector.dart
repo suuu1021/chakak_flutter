@@ -5,13 +5,17 @@ import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 
 class FormImageSelector extends StatelessWidget {
-  final List<File> selectedImages;
-  final Function(List<File>) onChanged;
+  final List<Object> selectedImages;
+  final Function(List<Object>) onChanged;
+  final int? thumbnailIndex; // 썸네일로 지정된 이미지의 인덱스
+  final Function(int?)? onThumbnailChanged; // 썸네일 변경 콜백
 
   const FormImageSelector({
     super.key,
     required this.selectedImages,
     required this.onChanged,
+    this.thumbnailIndex,
+    this.onThumbnailChanged,
   });
 
   @override
@@ -19,17 +23,42 @@ class FormImageSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '이미지',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+        Row(
+          children: [
+            const Text(
+              '이미지',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            if (selectedImages.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Text(
+                '(${selectedImages.length}개)',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: AppSizes.spacing8),
         _buildImageSelector(),
-        if (selectedImages.isNotEmpty) _buildSelectedImages(),
+        if (selectedImages.isNotEmpty) ...[
+          const SizedBox(height: AppSizes.spacing12),
+          const Text(
+            '선택된 이미지 (대표 이미지를 선택하세요)',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: AppSizes.spacing8),
+          _buildSelectedImages(),
+        ],
       ],
     );
   }
@@ -45,16 +74,21 @@ class FormImageSelector extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           color: AppColors.gray50,
         ),
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined,
+            const Icon(Icons.add_photo_alternate_outlined,
                 size: 40, color: AppColors.gray400),
-            SizedBox(height: AppSizes.spacing8),
+            const SizedBox(height: AppSizes.spacing8),
             Text(
-              '이미지 선택',
-              style: TextStyle(fontSize: 14, color: AppColors.gray400),
+              selectedImages.isEmpty ? '이미지 선택' : '이미지 추가',
+              style: const TextStyle(fontSize: 14, color: AppColors.gray400),
             ),
+            if (selectedImages.isEmpty)
+              const Text(
+                '여러 장 선택 가능',
+                style: TextStyle(fontSize: 12, color: AppColors.gray400),
+              ),
           ],
         ),
       ),
@@ -62,29 +96,68 @@ class FormImageSelector extends StatelessWidget {
   }
 
   Widget _buildSelectedImages() {
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSizes.spacing12),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: AppSizes.spacing8,
-          mainAxisSpacing: AppSizes.spacing8,
-        ),
-        itemCount: selectedImages.length,
-        itemBuilder: (context, index) {
-          return Stack(
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: AppSizes.spacing8,
+        mainAxisSpacing: AppSizes.spacing8,
+        childAspectRatio: 1.0,
+      ),
+      itemCount: selectedImages.length,
+      itemBuilder: (context, index) {
+        final isMainImage = thumbnailIndex == index;
+        final image = selectedImages[index];
+
+        Widget imageWidget;
+        if (image is File) {
+          imageWidget = Image.file(image, fit: BoxFit.cover);
+        } else if (image is String) {
+          imageWidget = Image.network(image, fit: BoxFit.cover);
+        } else {
+          imageWidget = const Icon(Icons.error_outline);
+        }
+
+        return GestureDetector(
+          onTap: () => _setMainImage(index),
+          child: Stack(
             children: [
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: FileImage(selectedImages[index]),
-                    fit: BoxFit.cover,
-                  ),
+                  border: isMainImage
+                      ? Border.all(color: AppColors.primary, width: 3)
+                      : Border.all(color: AppColors.gray300, width: 1),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: imageWidget,
                 ),
               ),
+              // 대표 이미지 표시
+              if (isMainImage)
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      '대표',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              // 삭제 버튼
               Positioned(
                 top: 4,
                 right: 4,
@@ -95,19 +168,47 @@ class FormImageSelector extends StatelessWidget {
                       color: AppColors.error,
                       shape: BoxShape.circle,
                     ),
-                    padding: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.all(4),
                     child: const Icon(
                       Icons.close,
-                      size: 16,
+                      size: 14,
                       color: AppColors.white,
                     ),
                   ),
                 ),
               ),
+              // 선택 안내
+              if (!isMainImage)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.black.withOpacity(0.1),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '터치하여\n대표 이미지 지정',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(0, 1),
+                              blurRadius: 2,
+                              color: Colors.black54,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -115,13 +216,38 @@ class FormImageSelector extends StatelessWidget {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
 
-    final newImages = images.map((image) => File(image.path)).toList();
-    onChanged(newImages);
+    if (images.isNotEmpty) {
+      final newImages = images.map((image) => File(image.path)).toList();
+      final allImages = [...selectedImages, ...newImages];
+      onChanged(allImages);
+
+      // 첫 번째 이미지가 추가되면 자동으로 대표 이미지로 설정
+      if (selectedImages.isEmpty && onThumbnailChanged != null) {
+        onThumbnailChanged!(0);
+      }
+    }
   }
 
   void _removeImage(int index) {
-    final newImages = List<File>.from(selectedImages);
+    final newImages = List<Object>.from(selectedImages);
     newImages.removeAt(index);
     onChanged(newImages);
+
+    // 삭제된 이미지가 대표 이미지였다면 첫 번째 이미지를 대표로 설정
+    if (onThumbnailChanged != null) {
+      if (thumbnailIndex == index) {
+        // 삭제된 이미지가 대표였다면
+        onThumbnailChanged!(newImages.isNotEmpty ? 0 : null);
+      } else if (thumbnailIndex != null && thumbnailIndex! > index) {
+        // 대표 이미지 인덱스 조정
+        onThumbnailChanged!(thumbnailIndex! - 1);
+      }
+    }
+  }
+
+  void _setMainImage(int index) {
+    if (onThumbnailChanged != null) {
+      onThumbnailChanged!(index);
+    }
   }
 }

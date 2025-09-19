@@ -4,14 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import '../../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../../../provider/global/photoService/photo_service_provider.dart';
 import '../../photo_service/widgets/photo_service_list_widget.dart';
 import '../../photo_service/photo_service_detail_page.dart';
 import 'widgets/photographer_reviews.dart';
 import 'widgets/photographer_upper_profile.dart';
 
 class PhotographerProfilePage extends ConsumerStatefulWidget {
-  final int photographerId; // 포토그래퍼 ID 추가
+  final int photographerId;
 
   const PhotographerProfilePage({
     super.key,
@@ -36,7 +36,7 @@ class _PhotographerProfilePageState
     // 포토그래퍼의 서비스 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
-          .read(photoServiceNotifierProvider.notifier)
+          .read(photoServiceProvider.notifier)
           .loadServicesByPhotographer(widget.photographerId);
     });
   }
@@ -102,8 +102,8 @@ class _PhotographerProfilePageState
       child: TabBarView(
         controller: _tabController,
         children: [
-          _buildServiceTab(), // 서비스 탭
-          const PortfolioPage(),
+          _buildServiceTab(),
+          PortfolioPage(photographerId: widget.photographerId.toString()),
           _buildScrollableContent(const PhotographerReviews()),
         ],
       ),
@@ -113,12 +113,12 @@ class _PhotographerProfilePageState
   Widget _buildServiceTab() {
     // 포토그래퍼의 서비스 가져오기
     final services = ref
-        .read(photoServiceNotifierProvider.notifier)
+        .read(photoServiceProvider.notifier)
         .getPhotographerServices(widget.photographerId);
 
     if (services.isEmpty) {
       // 로딩 상태 확인
-      final isLoading = ref.watch(photoServiceNotifierProvider).isLoading;
+      final isLoading = ref.watch(photoServiceProvider).isLoading;
 
       if (isLoading) {
         return const Center(child: CircularProgressIndicator());

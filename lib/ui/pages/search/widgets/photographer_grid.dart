@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../data/models/photographer.dart';
-import '../../../../provider/global/photographer/photographer_notifier.dart';
+import '../../../../provider/global/photographer/photographer_provider.dart';
 
 class PhotographerGrid extends ConsumerWidget {
   final Function(Photographer) onPhotographerTap;
@@ -14,7 +14,7 @@ class PhotographerGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final photographerState = ref.watch(photographerNotifierProvider);
+    final photographerState = ref.watch(photographerProvider);
 
     if (photographerState.photographers.isEmpty) {
       return const SizedBox.shrink();
@@ -96,22 +96,13 @@ class PhotographerGrid extends ConsumerWidget {
                                 );
                               },
                             )
-                          : Image.asset(
-                              photographer.imageUrl,
+                          : Container(
                               height: double.infinity,
                               width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: double.infinity,
-                                  width: double.infinity,
-                                  color: Colors.grey[200],
-                                  child: const Center(
-                                    child:
-                                        Icon(Icons.person, color: Colors.grey),
-                                  ),
-                                );
-                              },
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(Icons.person, color: Colors.grey),
+                              ),
                             ),
                     ),
                     Positioned(
@@ -121,7 +112,7 @@ class PhotographerGrid extends ConsumerWidget {
                         onTap: () {
                           // 좋아요 토글 기능
                           ref
-                              .read(photographerNotifierProvider.notifier)
+                              .read(photographerProvider.notifier)
                               .toggleLike(photographer.id);
                         },
                         child: Container(

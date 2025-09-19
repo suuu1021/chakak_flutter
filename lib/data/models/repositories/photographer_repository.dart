@@ -1,10 +1,9 @@
-import 'dart:io' show Platform;
+import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:chakak_flutter/data/dtos/photographer_dto.dart'; // PhotographerDto 경로 (실제 경로로 수정 필요)
+import 'package:chakak_flutter/data/dtos/photographer_dto.dart';
 import 'package:chakak_flutter/data/models/photographer.dart';
 
 import '../../../_core/constants/api_config.dart';
-// AppStrings, AppImages 등 목 데이터 관련 import는 제거됩니다.
 
 abstract class PhotographerRepository {
   Future<List<Photographer>> getPhotographers();
@@ -26,22 +25,19 @@ class PhotographerRepositoryImpl implements PhotographerRepository {
 
   @override
   Future<List<Photographer>> getPhotographers() async {
-    // TODO: 실제 API 엔드포인트로 교체 (예: /api/photographers 또는 /api/photographers/list)
     final String apiUrl = '$serverUrl/api/photographers';
     try {
       final response = await _dio.get(apiUrl);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = response.data;
-        // 서버 응답 구조에 'body' 키가 있고, 그 값이 리스트인지 확인
+
         if (responseData.containsKey('body') && responseData['body'] is List) {
           final List<dynamic> photographerListFromResponse =
               responseData['body'] as List<dynamic>;
           final List<Photographer> photographers = photographerListFromResponse
               .map((item) {
-                // 각 아이템이 Map 형태인지 확인 후 DTO로 변환
                 if (item is Map<String, dynamic>) {
-                  // PhotographerDto가 정의되어 있고 fromJson, toModel 메서드가 있다고 가정
                   final dto = PhotographerDto.fromJson(item);
                   return dto.toModel();
                 } else {
@@ -49,8 +45,8 @@ class PhotographerRepositoryImpl implements PhotographerRepository {
                   return null;
                 }
               })
-              .where((photographer) => photographer != null) // null이 아닌 객체만 필터링
-              .cast<Photographer>() // 타입 캐스팅
+              .where((photographer) => photographer != null)
+              .cast<Photographer>()
               .toList();
           return photographers;
         } else {
@@ -74,32 +70,26 @@ class PhotographerRepositoryImpl implements PhotographerRepository {
 
   @override
   Future<void> updateLikeStatus(int photographerId, bool isLiked) async {
-    // TODO: 실제 API 엔드포인트 및 HTTP 메서드 (POST, PUT 등)로 교체
     final String apiUrl = '$serverUrl/api/photographers/$photographerId/like';
     try {
-      final response = await _dio.post(
-        // 또는 _dio.put 등 API 명세에 따름
+      final response = await _dio.patch(
         apiUrl,
-        data: {'isLiked': isLiked}, // 서버가 기대하는 요청 본문 형식으로 수정
+        data: {'isLiked': isLiked},
       );
 
-      // 성공 응답 코드 확인 (200, 204 등 API 명세에 따름)
-      if (response.statusCode == 200 || response.statusCode == 204) {
-        print(
-            'Photographer like status updated successfully: $photographerId, $isLiked. URL: $apiUrl');
-      } else {
-        print(
-            'Error updating photographer like status: ${response.statusCode}, Message: ${response.data}, URL: $apiUrl');
-        // 필요시 예외 발생 또는 사용자에게 오류 알림
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to update photographer like status: ${response.statusCode}');
       }
     } on DioException catch (e) {
       print(
           'DioError updating photographer like status: ${e.message}, URL: $apiUrl');
-      // 필요시 예외 발생 또는 사용자에게 오류 알림
+      throw Exception(
+          'Failed to update photographer like status: ${e.message}');
     } catch (e) {
       print(
           'Unexpected error updating photographer like status: $e, URL: $apiUrl');
-      // 필요시 예외 발생 또는 사용자에게 오류 알림
+      throw Exception('Failed to update photographer like status: $e');
     }
   }
 }

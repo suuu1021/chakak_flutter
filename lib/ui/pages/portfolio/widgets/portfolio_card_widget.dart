@@ -60,15 +60,20 @@ class PortfolioCardWidget extends StatelessWidget {
   }
 
   Widget _buildImageContainer() {
+    // 이미지 URL 유효성 검사
+    final imageUrl = portfolio.firstImageUrl;
+    final bool hasValidImage = imageUrl.isNotEmpty &&
+        (imageUrl.startsWith('http') || imageUrl.startsWith('https'));
+
     return Container(
       width: double.infinity,
       height: 200,
-      child: portfolio.firstImageUrl.isNotEmpty
+      child: hasValidImage
           ? Image.network(
-              portfolio.firstImageUrl,
+              imageUrl,
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
-                debugPrint('이미지 로드 에러 ${portfolio.firstImageUrl} : $error');
+                debugPrint('이미지 로드 에러 $imageUrl : $error');
                 return _buildPlaceholderImage();
               },
               loadingBuilder: (context, child, loadingProgress) {

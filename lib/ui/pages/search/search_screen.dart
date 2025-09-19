@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
-import '../../../provider/global/search/search_notifier.dart';
+import '../../../provider/global/search/search_provider.dart';
+import '../photo_service/category_service_list_page.dart';
+import '../profile/photographer/photographer_profile_page.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -24,7 +26,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(searchNotifierProvider.notifier).loadSearchData();
+      ref.read(searchProvider.notifier).loadSearchData();
     });
   }
 
@@ -46,8 +48,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
 
       // 검색어 저장
-      await ref.read(searchNotifierProvider.notifier).addSearch(query.trim());
-      await ref.read(searchNotifierProvider.notifier).loadSearchData();
+      await ref.read(searchProvider.notifier).addSearch(query.trim());
+      await ref.read(searchProvider.notifier).loadSearchData();
     }
   }
 
@@ -62,16 +64,28 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _onCategoryTap(PhotoServiceCategory category) {
-    print('카테고리 선택: ${category.name}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryServiceListPage(category: category),
+      ),
+    );
   }
 
   void _onPhotographerTap(Photographer photographer) {
-    print('작가 선택: ${photographer.businessName}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotographerProfilePage(
+          photographerId: photographer.id,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final searchState = ref.watch(searchNotifierProvider);
+    final searchState = ref.watch(searchProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -90,7 +104,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       controller: _searchController,
       focusNode: _focusNode,
       onChanged: (value) {
-        ref.read(searchNotifierProvider.notifier).updateQuery(value);
+        ref.read(searchProvider.notifier).updateQuery(value);
       },
       onSubmitted: _onSearchSubmitted,
     );
@@ -149,12 +163,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
             TextButton(
               onPressed: () async {
-                await ref
-                    .read(searchNotifierProvider.notifier)
-                    .clearAllHistory();
-                await ref
-                    .read(searchNotifierProvider.notifier)
-                    .loadSearchData();
+                await ref.read(searchProvider.notifier).clearAllHistory();
+                await ref.read(searchProvider.notifier).loadSearchData();
               },
               child: Text(
                 '전체 삭제',
@@ -176,11 +186,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               onTap: () => _onRecentSearchTap(search.keyword),
               onRemove: () async {
                 await ref
-                    .read(searchNotifierProvider.notifier)
+                    .read(searchProvider.notifier)
                     .removeRecentSearch(search.id);
-                await ref
-                    .read(searchNotifierProvider.notifier)
-                    .loadSearchData();
+                await ref.read(searchProvider.notifier).loadSearchData();
               },
               showRemove: true,
             );

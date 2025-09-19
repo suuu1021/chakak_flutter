@@ -5,9 +5,9 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/utils/error_handler.dart';
 import '../../../data/models/photo_service/photo_service.dart';
-import '../../../provider/global/photoService/photo_service_notifier.dart';
+import '../../../provider/global/photoService/photo_service_provider.dart';
 import '../profile/photographer/photographer_profile_page.dart';
-import '../review/review_list_screen.dart'; // ✅ 리뷰 화면 import
+import '../review/review_list_screen.dart';
 import 'widgets/service_image_section.dart';
 import 'widgets/service_info_section.dart';
 import 'widgets/service_price_section.dart';
@@ -30,7 +30,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 에러 상태 감지
-    ref.listen(photoServiceNotifierProvider, (previous, next) {
+    ref.listen(photoServiceProvider, (previous, next) {
       if (next.error != null && previous?.error != next.error) {
         ErrorHandler.handleError(context, next.error);
       }
@@ -57,7 +57,6 @@ class PhotoServiceDetailPage extends ConsumerWidget {
               onServiceTap: (otherService) =>
                   _onOtherServiceTap(context, otherService),
             ),
-            // ✅ 리뷰 섹션 연결
             ServiceReviewSection(
               service: service,
               onViewAllTap: () => _onViewAllReviewsTap(context),
@@ -91,7 +90,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
   }
 
   Widget _buildBottomBar(BuildContext context, WidgetRef ref) {
-    final serviceState = ref.watch(photoServiceNotifierProvider);
+    final serviceState = ref.watch(photoServiceProvider);
     final currentService = serviceState.services
         .firstWhere((s) => s.id == service.id, orElse: () => service);
 
@@ -147,7 +146,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
     try {
       final shareText = '${service.title}\n'
           '평점: ${service.rating.toStringAsFixed(1)}점 (${service.reviewCount}개 리뷰)\n'
-          '가격: ${service.priceRange}\n'
+          '가격: ${service.price}원~\n'
           '카테고리: ${service.categories.join(', ')}\n'
           '\n이 서비스를 확인해보세요!';
 
@@ -166,13 +165,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
 
   void _onLikeTap(BuildContext context, WidgetRef ref) async {
     try {
-      // 임시로 로컬 상태만 변경
-      await ref
-          .read(photoServiceNotifierProvider.notifier)
-          .toggleLike(service.id);
-
-      // 성공 메시지는 일단 주석 처리
-      // ErrorHandler.showSuccess(context, message);
+      await ref.read(photoServiceProvider.notifier).toggleLike(service.id);
     } catch (error) {
       ErrorHandler.handleError(
         context,
@@ -187,7 +180,6 @@ class PhotoServiceDetailPage extends ConsumerWidget {
       // TODO: 예약하기 기능 구현
       print('예약하기 - serviceId: ${service.id}');
 
-      // 임시로 성공 메시지 표시
       ErrorHandler.showWarning(context, '예약 기능을 준비 중입니다');
     } catch (error) {
       ErrorHandler.handleError(

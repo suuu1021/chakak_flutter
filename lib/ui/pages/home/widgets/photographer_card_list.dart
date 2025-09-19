@@ -1,13 +1,12 @@
-// lib/ui/pages/home/widgets/photographer_card_list.dart
-import 'dart:convert'; // Base64 디코딩을 위해 추가
-import 'dart:typed_data'; // Uint8List를 위해 추가
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 
 import '../../../../data/models/photographer.dart';
-import '../../../../provider/global/photographer/photographer_notifier.dart';
+import '../../../../provider/global/photographer/photographer_provider.dart';
 
 class PhotographerCardList extends ConsumerStatefulWidget {
   final Function(Photographer) onPhotographerTap;
@@ -24,13 +23,13 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(photographerNotifierProvider.notifier).loadPhotographers();
+      ref.read(photographerProvider.notifier).loadPhotographers();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final photographerState = ref.watch(photographerNotifierProvider);
+    final photographerState = ref.watch(photographerProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -46,7 +45,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
           ),
         ),
         SizedBox(
-          height: 220, // 카드의 높이에 따라 조정
+          height: 220,
           child: _buildContent(photographerState),
         ),
       ],
@@ -62,6 +61,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
       return const Center(child: Text('등록된 작가가 없습니다.'));
     } else {
       return ListView.builder(
+        padding: EdgeInsets.only(bottom: 10),
         scrollDirection: Axis.horizontal,
         itemCount: state.photographers.length,
         itemBuilder: (context, index) {
@@ -75,7 +75,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
               photographer: photographer,
               onTap: () => widget.onPhotographerTap(photographer),
               onLikeTap: () => ref
-                  .read(photographerNotifierProvider.notifier)
+                  .read(photographerProvider.notifier)
                   .toggleLike(photographer.id),
             ),
           );
@@ -100,8 +100,7 @@ class PhotographerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget imageWidget;
-    final String imageUrl = photographer
-        .imageUrl; // Assume this is the Base64 string or a network URL
+    final String imageUrl = photographer.imageUrl;
 
     if (imageUrl.startsWith('http')) {
       // Handle network image
@@ -191,7 +190,7 @@ class PhotographerCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: imageWidget, // Display the determined image widget
+                  child: imageWidget,
                 ),
                 Positioned(
                   top: 8,
@@ -206,7 +205,7 @@ class PhotographerCard extends StatelessWidget {
                       ),
                       child: Icon(
                         photographer.isLiked
-                            ? Icons.favorite // 좋아요 아이콘
+                            ? Icons.favorite
                             : Icons.favorite_border,
                         color: photographer.isLiked ? Colors.red : Colors.black,
                       ),
@@ -235,21 +234,19 @@ class PhotographerCard extends StatelessWidget {
                       spacing: 6.0,
                       runSpacing: 4.0,
                       children: photographer.categories
-                          .take(3) // 최대 3개 카테고리 표시
+                          .take(3)
                           .map((categoryName) => Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8.0, vertical: 4.0),
                                 decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(
-                                        0.1), // AppColors 사용 및 투명도 조절
+                                    color: AppColors.primary.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(16.0),
                                     border: Border.all(
                                         color: AppColors.primary, width: 0.5)),
                                 child: Text(
                                   categoryName,
-                                  style: AppTextStyles.categoryName.copyWith(
-                                      color: AppColors
-                                          .primary), // AppTextStyles 사용
+                                  style: AppTextStyles.categoryName
+                                      .copyWith(color: AppColors.primary),
                                 ),
                               ))
                           .toList(),
