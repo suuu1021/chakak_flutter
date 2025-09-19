@@ -10,30 +10,50 @@ import '../../../service/portfolio_api_service.dart';
 import '../../auth/session_provider.dart';
 
 // 창고 Data
+// portfolio_provider.dart - PortfolioState 수정
+
 class PortfolioState {
   final List<Portfolio> portfolios;
   final bool isLoading;
+  final bool isLoadingMore; // 추가 로딩 상태
   final String? errorMessage;
   final Portfolio? selectedPortfolio;
+
+  // 페이징 정보 추가
+  final int currentPage;
+  final bool hasNextPage;
+  final int totalElements;
 
   const PortfolioState({
     required this.portfolios,
     required this.isLoading,
+    this.isLoadingMore = false,
     this.errorMessage,
     this.selectedPortfolio,
+    this.currentPage = 0,
+    this.hasNextPage = true,
+    this.totalElements = 0,
   });
 
   PortfolioState copyWith({
     List<Portfolio>? portfolios,
     bool? isLoading,
+    bool? isLoadingMore,
     String? errorMessage,
     Portfolio? selectedPortfolio,
+    int? currentPage,
+    bool? hasNextPage,
+    int? totalElements,
   }) {
     return PortfolioState(
       portfolios: portfolios ?? this.portfolios,
       isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       errorMessage: errorMessage,
       selectedPortfolio: selectedPortfolio ?? this.selectedPortfolio,
+      currentPage: currentPage ?? this.currentPage,
+      hasNextPage: hasNextPage ?? this.hasNextPage,
+      totalElements: totalElements ?? this.totalElements,
     );
   }
 }
@@ -41,6 +61,7 @@ class PortfolioState {
 // 창고 Manual
 class PortfolioNotifier extends Notifier<PortfolioState> {
   late PortfolioRepository _portfolioRepository;
+  static const int _pageSize = 10; // 한 페이지당 아이템 수
 
   @override
   PortfolioState build() {
@@ -73,37 +94,47 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     final apiService = PortfolioApiService(dio);
     _portfolioRepository = PortfolioRepositoryImpl(apiService);
 
-    // 초기 데이터 로드를 비동기로 처리
-    Future.microtask(() => loadPortfolios());
-
     return const PortfolioState(
       portfolios: [],
       isLoading: true,
     );
   }
 
-  /// 모든 포트폴리오 목록 로드
+  /// 첫 페이지 포트폴리오 로드 (새로고침)
   Future<void> loadPortfolios() async {
     if (kDebugMode) {
-      print('포트폴리오 목록 로딩 시작');
+      print('포트폴리오 첫 페이지 로딩 시작');
     }
 
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      currentPage: 0,
+      hasNextPage: true,
+    );
 
     try {
-      final portfolios = await _portfolioRepository.getPortfolios();
+      final paginatedResult = await _portfolioRepository.getPortfoliosPaginated(
+        page: 0,
+        size: _pageSize,
+      );
 
       if (kDebugMode) {
-        print('포트폴리오 ${portfolios.length}개 로드 완료');
+        print('포트폴리오 첫 페이지 ${paginatedResult.portfolios.length}개 로드 완료');
+        print(
+            '전체: ${paginatedResult.totalElements}개, 다음 페이지: ${paginatedResult.hasNext}');
       }
 
       state = state.copyWith(
-        portfolios: portfolios,
+        portfolios: paginatedResult.portfolios,
         isLoading: false,
+        currentPage: paginatedResult.currentPage,
+        hasNextPage: paginatedResult.hasNext,
+        totalElements: paginatedResult.totalElements,
       );
     } catch (e) {
       if (kDebugMode) {
-        print('포트폴리오 로딩 실패: $e');
+        print('포트폴리오 첫 페이지 로딩 실패: $e');
       }
 
       state = state.copyWith(
@@ -113,25 +144,104 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     }
   }
 
-  /// 특정 사진작가의 포트폴리오 로드
+  /// 다음 페이지 포트폴리오 로드 (무한 스크롤)
+  Future<void> loadMorePortfolios() async {
+    // 이미 로딩 중이거나 더 이상 페이지가 없으면 중단
+    if (state.isLoadingMore || !state.hasNextPage) {
+      if (kDebugMode) {
+        print(
+            '추가 로딩 중단: isLoadingMore=${state.isLoadingMore}, hasNextPage=${state.hasNextPage}');
+      }
+      return;
+    }
+
+    final nextPage = state.currentPage + 1;
+
+    if (kDebugMode) {
+      print('포트폴리오 다음 페이지($nextPage) 로딩 시작');
+    }
+
+    state = state.copyWith(isLoadingMore: true, errorMessage: null);
+
+    try {
+      final paginatedResult = await _portfolioRepository.getPortfoliosPaginated(
+        page: nextPage,
+        size: _pageSize,
+      );
+
+      if (kDebugMode) {
+        print('포트폴리오 다음 페이지 ${paginatedResult.portfolios.length}개 로드 완료');
+        print(
+            '페이지: ${paginatedResult.currentPage}, 다음 페이지: ${paginatedResult.hasNext}');
+      }
+
+      // 기존 목록에 새 데이터 추가
+      final updatedPortfolios = [
+        ...state.portfolios,
+        ...paginatedResult.portfolios,
+      ];
+
+      state = state.copyWith(
+        portfolios: updatedPortfolios,
+        isLoadingMore: false,
+        currentPage: paginatedResult.currentPage,
+        hasNextPage: paginatedResult.hasNext,
+        totalElements: paginatedResult.totalElements,
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('포트폴리오 다음 페이지 로딩 실패: $e');
+      }
+
+      state = state.copyWith(
+        isLoadingMore: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  /// 새로고침 (첫 페이지부터 다시 로드)
+  Future<void> refreshPortfolios() async {
+    if (kDebugMode) {
+      print('포트폴리오 새로고침');
+    }
+
+    await loadPortfolios();
+  }
+
+  /// 특정 사진작가의 포트폴리오 첫 페이지 로드
   Future<void> loadPortfoliosByPhotographer(String photographerId) async {
     if (kDebugMode) {
       print('사진작가 $photographerId 포트폴리오 로딩 시작');
     }
 
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      currentPage: 0,
+      hasNextPage: true,
+    );
 
     try {
-      final portfolios = await _portfolioRepository
-          .getPortfoliosByPhotographerId(photographerId);
+      final paginatedResult =
+          await _portfolioRepository.getPortfoliosByPhotographerPaginated(
+        photographerId: photographerId,
+        page: 0,
+        size: _pageSize,
+      );
 
       if (kDebugMode) {
-        print('사진작가 포트폴리오 ${portfolios.length}개 로드 완료');
+        print('사진작가 포트폴리오 ${paginatedResult.portfolios.length}개 로드 완료');
+        print(
+            '전체: ${paginatedResult.totalElements}개, 다음 페이지: ${paginatedResult.hasNext}');
       }
 
       state = state.copyWith(
-        portfolios: portfolios,
+        portfolios: paginatedResult.portfolios,
         isLoading: false,
+        currentPage: paginatedResult.currentPage,
+        hasNextPage: paginatedResult.hasNext,
+        totalElements: paginatedResult.totalElements,
       );
     } catch (e) {
       if (kDebugMode) {
@@ -140,6 +250,44 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
 
       state = state.copyWith(
         isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  /// 특정 사진작가의 다음 페이지 포트폴리오 로드 (무한 스크롤)
+  Future<void> loadMorePortfoliosByPhotographer(String photographerId) async {
+    if (state.isLoadingMore || !state.hasNextPage) {
+      return;
+    }
+
+    final nextPage = state.currentPage + 1;
+
+    state = state.copyWith(isLoadingMore: true, errorMessage: null);
+
+    try {
+      final paginatedResult =
+          await _portfolioRepository.getPortfoliosByPhotographerPaginated(
+        photographerId: photographerId,
+        page: nextPage,
+        size: _pageSize,
+      );
+
+      final updatedPortfolios = [
+        ...state.portfolios,
+        ...paginatedResult.portfolios,
+      ];
+
+      state = state.copyWith(
+        portfolios: updatedPortfolios,
+        isLoadingMore: false,
+        currentPage: paginatedResult.currentPage,
+        hasNextPage: paginatedResult.hasNext,
+        totalElements: paginatedResult.totalElements,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoadingMore: false,
         errorMessage: e.toString(),
       );
     }
@@ -168,38 +316,6 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     } catch (e) {
       if (kDebugMode) {
         print('카테고리 포트폴리오 로딩 실패: $e');
-      }
-
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
-    }
-  }
-
-  /// 인기 포트폴리오 로드
-  Future<void> loadPopularPortfolios({int limit = 10}) async {
-    if (kDebugMode) {
-      print('인기 포트폴리오 로딩 시작 (limit: $limit)');
-    }
-
-    state = state.copyWith(isLoading: true, errorMessage: null);
-
-    try {
-      final portfolios =
-          await _portfolioRepository.getPopularPortfolios(limit: limit);
-
-      if (kDebugMode) {
-        print('인기 포트폴리오 ${portfolios.length}개 로드 완료');
-      }
-
-      state = state.copyWith(
-        portfolios: portfolios,
-        isLoading: false,
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        print('인기 포트폴리오 로딩 실패: $e');
       }
 
       state = state.copyWith(

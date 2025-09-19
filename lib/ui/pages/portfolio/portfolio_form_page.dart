@@ -24,7 +24,13 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
   final _descriptionController = TextEditingController();
 
   List<String> _selectedCategories = [];
-  List<File> _selectedImages = [];
+  /*
+   * 수정된 부분: 타입 변경
+   * 기존: List<File> _selectedImages = [];
+   * 이유: FormImageSelector가 File과 String을 모두 처리하므로 Object 타입으로 변경
+   */
+  List<Object> _selectedImages = [];
+  int? _thumbnailIndex; // 대표 이미지 인덱스
   bool _isLoading = false;
 
   @override
@@ -39,6 +45,14 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
       _titleController.text = portfolio.title;
       _descriptionController.text = portfolio.description;
       _selectedCategories = List.from(portfolio.categories);
+      /*
+       * 수정된 부분: 기존 이미지 URL 로딩
+       * 이유: 수정 모드에서 기존 이미지를 보여주고 관리하기 위함
+       */
+      _selectedImages = List.from(portfolio.imageUrls);
+      final thumbnailIndex =
+          portfolio.imageUrls.indexOf(portfolio.thumbnailUrl);
+      _thumbnailIndex = thumbnailIndex != -1 ? thumbnailIndex : null;
     }
   }
 
@@ -74,8 +88,11 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                     const SizedBox(height: AppSizes.spacing16),
                     FormImageSelector(
                       selectedImages: _selectedImages,
+                      thumbnailIndex: _thumbnailIndex,
                       onChanged: (images) =>
                           setState(() => _selectedImages = images),
+                      onThumbnailChanged: (index) =>
+                          setState(() => _thumbnailIndex = index),
                     ),
                   ],
                 ),
@@ -114,23 +131,46 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
       return;
     }
 
+    if (_selectedImages.isEmpty) {
+      _showErrorDialog('최소 1개의 이미지를 선택해주세요.');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final List<String> imageUrls = _selectedImages.isNotEmpty
-          ? _selectedImages.asMap().entries.map((entry) {
-              return 'https://images.pexels.com/photos/1450353/pexels-photo-1450353.jpeg';
-            }).toList()
-          : [
-              'https://images.pexels.com/photos/10490905/pexels-photo-10490905.jpeg'
-            ]; // 기본 이미지
+      final List<String> imageUrls = _selectedImages.map((image) {
+        if (image is File) {
+          // File인 경우 경로(path)를 사용
+          return image.path;
+        } else if (image is String) {
+          // String인 경우 URL을 그대로 사용
+          return image;
+        }
+        return '';
+      }).toList();
+
+      final String thumbnailUrl = _thumbnailIndex != null
+          ? (_selectedImages[_thumbnailIndex!] is File
+              ? (_selectedImages[_thumbnailIndex!] as File).path
+              : _selectedImages[_thumbnailIndex!] as String)
+          : imageUrls.first;
+
       final portfolio = Portfolio.create(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         imageUrls: imageUrls,
         categories: _selectedCategories,
-        photographerId: '1', // 임시 ID (서버에서 실제 로그인 사용자로 대체됨)
+        photographerId: '1', // 임시 ID
+      ).copyWith(
+        thumbnailUrl: thumbnailUrl,
       );
+
+      debugPrint('=== 포트폴리오 저장 데이터 ===');
+      debugPrint('제목: ${portfolio.title}');
+      debugPrint('이미지 수: ${portfolio.imageUrls.length}');
+      debugPrint('썸네일: ${portfolio.thumbnailUrl}');
+      debugPrint('대표 이미지 인덱스: $_thumbnailIndex');
 
       final success = widget.portfolio != null
           ? await ref

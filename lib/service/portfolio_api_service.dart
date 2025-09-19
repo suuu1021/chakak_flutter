@@ -2,6 +2,39 @@
 
 import 'package:dio/dio.dart';
 
+// 페이징 응답 데이터 클래스 (클래스 외부에서 정의)
+class PaginatedResponse<T> {
+  final List<T> content;
+  final int page;
+  final int size;
+  final int totalElements;
+  final int totalPages;
+  final bool isLast;
+  final bool hasNext;
+
+  const PaginatedResponse({
+    required this.content,
+    required this.page,
+    required this.size,
+    required this.totalElements,
+    required this.totalPages,
+    required this.isLast,
+    required this.hasNext,
+  });
+
+  factory PaginatedResponse.fromJson(Map<String, dynamic> json) {
+    return PaginatedResponse<T>(
+      content: List<T>.from(json['content'] ?? []),
+      page: json['number'] ?? 0,
+      size: json['size'] ?? 10,
+      totalElements: json['totalElements'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
+      isLast: json['last'] ?? true,
+      hasNext: !(json['last'] ?? true),
+    );
+  }
+}
+
 /// Portfolio 관련 HTTP API 호출을 담당하는 서비스 클래스
 class PortfolioApiService {
   final Dio _dio;
@@ -9,7 +42,7 @@ class PortfolioApiService {
 
   PortfolioApiService(this._dio);
 
-  /// 모든 포트폴리오 목록 조회
+  /// 모든 포트폴리오 목록 조회 (기존 방식)
   /// GET /api/portfolios
   Future<List<Map<String, dynamic>>> fetchPortfolios() async {
     try {
@@ -41,6 +74,87 @@ class PortfolioApiService {
     }
   }
 
+  /// 포트폴리오 목록 조회 (페이징 정보 포함) - 클래스 내부로 이동
+  /// GET /api/portfolios?page=0&size=10
+  Future<PaginatedResponse<Map<String, dynamic>>> fetchPortfoliosPaginated({
+    int page = 0,
+    int size = 10,
+  }) async {
+    try {
+      print('=== 페이징 포트폴리오 요청 ===');
+      print('URL: $_baseUrl');
+      print('파라미터: page=$page, size=$size');
+
+      final response = await _dio.get(
+        _baseUrl,
+        queryParameters: {
+          'page': page,
+          'size': size,
+        },
+      );
+
+      print('=== 페이징 포트폴리오 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      final responseData = response.data;
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData.containsKey('body')) {
+          final body = responseData['body'];
+
+          if (body is Map<String, dynamic> && body.containsKey('content')) {
+            // 페이징 정보 상세 로그 추가
+            print('=== 페이징 정보 상세 ===');
+            print('content 길이: ${body['content'].length}');
+            print('number: ${body['number']}');
+            print('size: ${body['size']}');
+            print('totalElements: ${body['totalElements']}');
+            print('totalPages: ${body['totalPages']}');
+            print('last: ${body['last']}');
+            print('first: ${body['first']}');
+            print('모든 body 키: ${body.keys.toList()}');
+
+            // 페이징된 응답: Page<T> 구조
+            return PaginatedResponse<Map<String, dynamic>>(
+              content: List<Map<String, dynamic>>.from(body['content']),
+              page: body['number'] ?? page,
+              size: body['size'] ?? size,
+              totalElements: body['totalElements'] ?? 0,
+              totalPages: body['totalPages'] ?? 0,
+              isLast: body['last'] ?? true,
+              hasNext: !(body['last'] ?? true),
+            );
+          } else if (body is List) {
+            // 직접 배열 응답 (페이징 정보 없음)
+            final content = List<Map<String, dynamic>>.from(body);
+            return PaginatedResponse<Map<String, dynamic>>(
+              content: content,
+              page: page,
+              size: content.length,
+              totalElements: content.length,
+              totalPages: 1,
+              isLast: true,
+              hasNext: false,
+            );
+          } else {
+            throw Exception('예상하지 못한 body 구조: ${body.runtimeType}');
+          }
+        } else {
+          throw Exception('응답에 body 필드가 없습니다');
+        }
+      } else {
+        throw Exception('응답이 Map 타입이 아닙니다: ${responseData.runtimeType}');
+      }
+    } on DioException catch (e) {
+      print('=== 페이징 포트폴리오 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      print('에러 메시지: ${e.message}');
+      throw _handleDioError(e, '포트폴리오 목록 조회');
+    }
+  }
+
   /// 특정 포트폴리오 조회
   /// GET /api/portfolios/{id}
   Future<Map<String, dynamic>> fetchPortfolioById(String id) async {
@@ -53,14 +167,107 @@ class PortfolioApiService {
   }
 
   /// 특정 사진작가의 포트폴리오 목록 조회
-  /// GET /api/portfolios/photographer/{photographerId}
   Future<List<Map<String, dynamic>>> fetchPortfoliosByPhotographer(
       String photographerId) async {
     try {
       final response = await _dio.get('$_baseUrl/photographer/$photographerId');
-      return List<Map<String, dynamic>>.from(response.data);
+
+      // 디버깅 로그 추가
+      print('=== 작가별 포트폴리오 응답 ===');
+      print('응답 데이터: ${response.data}');
+
+      final responseData = response.data;
+
+      // 응답 구조 확인 필요
+      if (responseData is Map<String, dynamic>) {
+        if (responseData.containsKey('body')) {
+          final body = responseData['body'];
+
+          if (body is List) {
+            return List<Map<String, dynamic>>.from(body);
+          } else if (body is Map && body.containsKey('content')) {
+            // 페이징된 응답인 경우
+            return List<Map<String, dynamic>>.from(body['content']);
+          }
+        }
+      }
+
+      // 직접 배열인 경우
+      return List<Map<String, dynamic>>.from(responseData);
     } on DioException catch (e) {
       throw _handleDioError(e, '사진작가 포트폴리오 조회');
+    }
+  }
+
+  /// 특정 사진작가의 포트폴리오 목록 조회 (페이징 지원)
+  /// GET /api/portfolios/photographer/{photographerId}?page=0&size=10
+  Future<PaginatedResponse<Map<String, dynamic>>>
+      fetchPortfoliosByPhotographerPaginated({
+    required String photographerId,
+    int page = 0,
+    int size = 10,
+  }) async {
+    try {
+      print('=== 작가별 페이징 포트폴리오 요청 ===');
+      print('URL: $_baseUrl/photographer/$photographerId');
+      print('파라미터: page=$page, size=$size');
+
+      final response = await _dio.get(
+        '$_baseUrl/photographer/$photographerId',
+        queryParameters: {
+          'page': page,
+          'size': size,
+        },
+      );
+
+      print('=== 작가별 페이징 포트폴리오 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      final responseData = response.data;
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData.containsKey('body')) {
+          final body = responseData['body'];
+
+          if (body is Map<String, dynamic> && body.containsKey('content')) {
+            // 페이징된 응답: Page<T> 구조
+            print('=== 작가별 페이징 정보 상세 ===');
+            print('content 길이: ${body['content'].length}');
+            print('totalElements: ${body['totalElements']}');
+            print('last: ${body['last']}');
+
+            return PaginatedResponse<Map<String, dynamic>>(
+              content: List<Map<String, dynamic>>.from(body['content']),
+              page: body['number'] ?? page,
+              size: body['size'] ?? size,
+              totalElements: body['totalElements'] ?? 0,
+              totalPages: body['totalPages'] ?? 0,
+              isLast: body['last'] ?? true,
+              hasNext: !(body['last'] ?? true),
+            );
+          } else if (body is List) {
+            // 기존 방식: 배열 응답 (페이징 정보 없음)
+            final content = List<Map<String, dynamic>>.from(body);
+            return PaginatedResponse<Map<String, dynamic>>(
+              content: content,
+              page: page,
+              size: content.length,
+              totalElements: content.length,
+              totalPages: 1,
+              isLast: true,
+              hasNext: false,
+            );
+          }
+        }
+      }
+
+      throw Exception('예상하지 못한 응답 구조');
+    } on DioException catch (e) {
+      print('=== 작가별 페이징 포트폴리오 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      throw _handleDioError(e, '작가별 포트폴리오 조회');
     }
   }
 
@@ -134,7 +341,7 @@ class PortfolioApiService {
   Future<Map<String, dynamic>> updatePortfolio(
       String id, Map<String, dynamic> portfolioData) async {
     try {
-      // ✨ 추가: 요청 데이터 로그
+      // 요청 데이터 로그
       print('=== 포트폴리오 수정 요청 ===');
       print('URL: $_baseUrl/$id');
       print('데이터: $portfolioData');
@@ -144,7 +351,7 @@ class PortfolioApiService {
         data: portfolioData,
       );
 
-      // ✨ 추가: 응답 데이터 로그
+      // 응답 데이터 로그
       print('=== 포트폴리오 수정 응답 ===');
       print('상태 코드: ${response.statusCode}');
       print('응답 데이터: ${response.data}');
@@ -158,7 +365,7 @@ class PortfolioApiService {
         return responseData as Map<String, dynamic>;
       }
     } on DioException catch (e) {
-      // ✨ 추가: 에러 데이터 로그
+      // 에러 데이터 로그
       print('=== 포트폴리오 수정 에러 ===');
       print('에러 타입: ${e.type}');
       print('상태 코드: ${e.response?.statusCode}');

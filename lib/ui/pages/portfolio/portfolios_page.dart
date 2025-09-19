@@ -9,11 +9,47 @@ import 'portfolio_detail_page.dart';
 import 'portfolio_form_page.dart';
 import 'widgets/portfolio_card_widget.dart';
 
-class PortfolioPage extends ConsumerWidget {
-  const PortfolioPage({super.key});
+class PortfolioPage extends ConsumerStatefulWidget {
+  final String? photographerId;
+
+  const PortfolioPage({
+    super.key,
+    this.photographerId,
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PortfolioPage> createState() => _PortfolioPageState();
+}
+
+class _PortfolioPageState extends ConsumerState<PortfolioPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    print('=== PortfolioPage initState ===');
+    print('photographerId: ${widget.photographerId}');
+    print('photographerId != null: ${widget.photographerId != null}');
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.photographerId != null) {
+        // String을 int로 변환해서 전달
+        final photographerIdInt = int.tryParse(widget.photographerId!);
+        if (photographerIdInt != null) {
+          ref
+              .read(portfolioProvider.notifier)
+              .loadPortfoliosByPhotographer(widget.photographerId!);
+        } else {
+          print('photographerId 변환 실패: ${widget.photographerId}');
+          // 변환 실패 시 에러 처리 또는 기본 동작
+        }
+      } else {
+        ref.read(portfolioProvider.notifier).loadPortfolios();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final portfolioState = ref.watch(portfolioProvider);
     final authState = ref.watch(authProvider);
     final isPhotographer = authState.login?.userTypeCode == 'photographer';
@@ -25,10 +61,10 @@ class PortfolioPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(portfolioState.portfolios),
+              _buildHeader(portfolioState),
               const SizedBox(height: AppSizes.spacing12),
               Expanded(
-                child: _buildContent(context, ref, portfolioState),
+                child: _buildContent(context, portfolioState),
               ),
             ],
           ),
@@ -36,7 +72,7 @@ class PortfolioPage extends ConsumerWidget {
       ),
       floatingActionButton: isPhotographer
           ? FloatingActionButton(
-              onPressed: () => _onAddPortfolio(context, ref),
+              onPressed: () => _onAddPortfolio(context),
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.white,
               child: const Icon(Icons.add),
@@ -45,7 +81,7 @@ class PortfolioPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(List<Portfolio> portfolios) {
+  Widget _buildHeader(PortfolioState state) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -58,7 +94,7 @@ class PortfolioPage extends ConsumerWidget {
           ),
         ),
         Text(
-          '${portfolios.length}개 작품',
+          '${state.portfolios.length}/${state.totalElements}개 작품', // 수정
           style: const TextStyle(
             fontSize: 14,
             color: AppColors.textSecondary,
@@ -68,11 +104,10 @@ class PortfolioPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(
-      BuildContext context, WidgetRef ref, PortfolioState state) {
+  Widget _buildContent(BuildContext context, PortfolioState state) {
     // 에러 상태
-    if (state.errorMessage != null) {
-      return _buildErrorView(context, ref, state.errorMessage!);
+    if (state.errorMessage != null && state.portfolios.isEmpty) {
+      return _buildErrorView(context, state.errorMessage!);
     }
 
     // 로딩 상태
@@ -86,7 +121,7 @@ class PortfolioPage extends ConsumerWidget {
     }
 
     // 포트폴리오 목록
-    return _buildPortfolioList(context, state.portfolios);
+    return _buildPortfolioListWithInfiniteScroll(context, state);
   }
 
   Widget _buildLoadingView() {
@@ -108,8 +143,7 @@ class PortfolioPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorView(
-      BuildContext context, WidgetRef ref, String errorMessage) {
+  Widget _buildErrorView(BuildContext context, String errorMessage) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -142,7 +176,7 @@ class PortfolioPage extends ConsumerWidget {
           ),
           const SizedBox(height: AppSizes.spacing24),
           ElevatedButton.icon(
-            onPressed: () => _onRetry(ref),
+            onPressed: () => _onRetry(),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.white,
@@ -187,16 +221,48 @@ class PortfolioPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildPortfolioList(BuildContext context, List<Portfolio> portfolios) {
+  // 기존 _buildPortfolioList 메서드 전체를 아래로 교체:
+  Widget _buildPortfolioListWithInfiniteScroll(
+      BuildContext context, PortfolioState state) {
+    final itemCount = state.portfolios.length + 1; // 항상 +1 (메시지용)
+
+    print('=== ListView 구성 ===');
+    print('포트폴리오 수: ${state.portfolios.length}');
+    print('hasNextPage: ${state.hasNextPage}');
+    print('isLoadingMore: ${state.isLoadingMore}');
+    print('최종 itemCount: $itemCount');
+
     return RefreshIndicator(
       onRefresh: () => _onRefresh(context),
-      child: ListView.separated(
-        itemCount: portfolios.length,
-        separatorBuilder: (context, index) =>
-            const SizedBox(height: AppSizes.spacing12),
-        itemBuilder: (context, index) => PortfolioCardWidget(
-          portfolio: portfolios[index],
-          onTap: () => _onPortfolioTap(context, portfolios[index]),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (scrollInfo) {
+          if (scrollInfo.metrics.pixels >=
+              scrollInfo.metrics.maxScrollExtent - 200) {
+            _loadMoreIfNeeded();
+          }
+          return false;
+        },
+        child: ListView.separated(
+          itemCount: itemCount, // 변수 사용
+          separatorBuilder: (context, index) =>
+              index >= state.portfolios.length - 1
+                  ? const SizedBox.shrink()
+                  : const SizedBox(height: AppSizes.spacing12),
+          itemBuilder: (context, index) {
+            if (index < state.portfolios.length) {
+              return PortfolioCardWidget(
+                portfolio: state.portfolios[index],
+                onTap: () => _onPortfolioTap(context, state.portfolios[index]),
+              );
+            }
+
+            print('=== itemBuilder에서 하단 상태 확인 ===');
+            print('현재 index: $index, 포트폴리오 수: ${state.portfolios.length}');
+            print('isLoadingMore: ${state.isLoadingMore}');
+            print('hasNextPage: ${state.hasNextPage}');
+
+            return _buildBottomLoading(state);
+          },
         ),
       ),
     );
@@ -211,7 +277,7 @@ class PortfolioPage extends ConsumerWidget {
     );
   }
 
-  void _onAddPortfolio(BuildContext context, WidgetRef ref) async {
+  void _onAddPortfolio(BuildContext context) async {
     final result = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -222,17 +288,66 @@ class PortfolioPage extends ConsumerWidget {
     // 등록 성공 시 리스트 새로고침
     if (result == true) {
       debugPrint('포트폴리오 등록 완료');
-      await ref.read(portfolioProvider.notifier).loadPortfolios();
+
+      // photographerId에 따라 다른 메서드 호출
+      if (widget.photographerId != null) {
+        await ref
+            .read(portfolioProvider.notifier)
+            .loadPortfoliosByPhotographer(widget.photographerId!);
+      } else {
+        await ref.read(portfolioProvider.notifier).loadPortfolios();
+      }
     }
   }
 
-  void _onRetry(WidgetRef ref) {
+  void _onRetry() {
     ref.read(portfolioProvider.notifier).clearError();
-    ref.read(portfolioProvider.notifier).loadPortfolios();
+
+    // photographerId에 따라 다른 메서드 호출
+    if (widget.photographerId != null) {
+      ref
+          .read(portfolioProvider.notifier)
+          .loadPortfoliosByPhotographer(widget.photographerId!);
+    } else {
+      ref.read(portfolioProvider.notifier).loadPortfolios();
+    }
+  }
+
+  Widget _buildBottomLoading(PortfolioState state) {
+    print('=== 하단 로딩 상태 확인 ===');
+    print('isLoadingMore: ${state.isLoadingMore}');
+    print('hasNextPage: ${state.hasNextPage}');
+
+    if (state.isLoadingMore) {
+      return const Padding(
+        padding: EdgeInsets.all(AppSizes.spacing16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return state.hasNextPage
+        ? const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('스크롤하여 더 보기')))
+        : const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('모든 작품을 확인했습니다')));
+  }
+
+  void _loadMoreIfNeeded() {
+    final state = ref.read(portfolioProvider);
+    if (!state.isLoadingMore && state.hasNextPage) {
+      ref.read(portfolioProvider.notifier).loadMorePortfolios();
+    }
   }
 
   Future<void> _onRefresh(BuildContext context) async {
-    final ref = ProviderScope.containerOf(context);
-    await ref.read(portfolioProvider.notifier).loadPortfolios();
+    // photographerId에 따라 다른 메서드 호출
+    if (widget.photographerId != null) {
+      await ref
+          .read(portfolioProvider.notifier)
+          .loadPortfoliosByPhotographer(widget.photographerId!);
+    } else {
+      await ref.read(portfolioProvider.notifier).loadPortfolios();
+    }
   }
 }

@@ -103,7 +103,7 @@ class _PhotographerProfilePageState
         controller: _tabController,
         children: [
           _buildServiceTab(),
-          const PortfolioPage(),
+          PortfolioPage(photographerId: widget.photographerId.toString()),
           _buildScrollableContent(const PhotographerReviews()),
         ],
       ),

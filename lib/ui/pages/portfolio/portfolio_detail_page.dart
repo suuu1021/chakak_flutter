@@ -97,8 +97,6 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
       await ref
           .read(portfolioProvider.notifier)
           .selectPortfolio(widget.portfolio.id);
-      // 전체 목록도 새로고침 (목록 페이지용)
-      await ref.read(portfolioProvider.notifier).loadPortfolios();
     }
   }
 
