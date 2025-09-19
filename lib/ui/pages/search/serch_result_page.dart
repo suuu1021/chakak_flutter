@@ -8,8 +8,10 @@ import '../../../data/models/photographer.dart';
 import '../../../provider/global/search/search_provider.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
+import '../portfolio/widgets/portfolio_card_widget.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import 'widgets/custom_search_field.dart';
+import '../portfolio/portfolio_detail_page.dart';
 
 class SearchResultsPage extends ConsumerStatefulWidget {
   final String searchQuery;
@@ -29,7 +31,7 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
 
   List<Photographer> filteredPhotographers = [];
   List<PhotoService> filteredPhotoServices = [];
-  List<Map<String, dynamic>> filteredPortfolios = [];
+  List<Portfolio> filteredPortfolios = [];
 
   @override
   void initState() {
@@ -52,10 +54,12 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
       // 2. 포토그래퍼 검색
       final searchedPhotographers =
           await searchNotifier.searchPhotographers(query);
+      // 3. 포트폴리오 검색 추가
+      final searchedPortfolios = await searchNotifier.searchPortfolios(query);
 
       filteredPhotoServices = searchedServices;
       filteredPhotographers = searchedPhotographers;
-      _buildPortfolioResults();
+      filteredPortfolios = searchedPortfolios;
 
       print(
           '검색 결과 - 포토서비스: ${filteredPhotoServices.length}, 포토그래퍼: ${filteredPhotographers.length}, 포트폴리오: ${filteredPortfolios.length}');
@@ -64,25 +68,6 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
     }
 
     setState(() {});
-  }
-
-  void _buildPortfolioResults() {
-    final allPortfolios = <Map<String, dynamic>>[];
-
-    for (final service in filteredPhotoServices) {
-      for (int i = 0; i < service.portfolioImages.length; i++) {
-        allPortfolios.add({
-          'id': '${service.id}_$i',
-          'title': '${service.title} 포트폴리오 ${i + 1}',
-          'artist': '작가명', // photographer 정보가 필요하면 추가 로직 필요
-          'categories': service.categories,
-          'imageUrl': service.portfolioImages[i],
-          'service': service,
-        });
-      }
-    }
-
-    filteredPortfolios = allPortfolios;
   }
 
   @override
@@ -185,117 +170,23 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
       return const Center(child: Text('검색 결과가 없습니다.'));
     }
 
-    return GridView.builder(
+    return ListView.separated(
       padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.8,
-      ),
       itemCount: filteredPortfolios.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final portfolio = filteredPortfolios[index];
-        return GestureDetector(
+        return PortfolioCardWidget(
+          portfolio: filteredPortfolios[index],
           onTap: () {
-            // 포트폴리오를 탭했을 때 해당 서비스 상세 페이지로 이동
-            final service = portfolio['service'] as PhotoService;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PhotoServiceDetailPage(service: service),
+                builder: (context) => PortfolioDetailPage(
+                  portfolio: filteredPortfolios[index],
+                ),
               ),
             );
           },
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 포트폴리오 이미지
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
-                      color: Colors.grey[300],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12),
-                      ),
-                      child: Image.network(
-                        portfolio['imageUrl'] ?? '',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.photo,
-                                size: 40, color: Colors.grey),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 포트폴리오 정보
-                Expanded(
-                  flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          portfolio['title'],
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          portfolio['artist'],
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         );
       },
     );

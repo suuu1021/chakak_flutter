@@ -107,6 +107,36 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
     }
   }
 
+  Future<PaginatedPortfolioResult> searchPortfolios({
+    String? keyword,
+    List<int>? categoryIds,
+    int page = 0,
+    int size = 10,
+  }) async {
+    try {
+      final response = await _apiService.searchPortfolios(
+        keyword: keyword,
+        categoryIds: categoryIds,
+        page: page,
+        size: size,
+      );
+
+      final portfolios =
+          response.content.map((json) => Portfolio.fromJson(json)).toList();
+
+      return PaginatedPortfolioResult(
+        portfolios: portfolios,
+        currentPage: response.page,
+        totalPages: response.totalPages,
+        totalElements: response.totalElements,
+        hasNext: response.hasNext,
+        isLast: response.isLast,
+      );
+    } catch (e) {
+      throw Exception('포트폴리오 검색에 실패했습니다: $e');
+    }
+  }
+
   @override
   Future<Portfolio> getPortfolioById(String id) async {
     try {

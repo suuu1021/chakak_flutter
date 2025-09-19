@@ -2,10 +2,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photographer.dart';
+import '../../../data/models/portfolio.dart';
 import '../../../data/models/repositories/photo_service_repository.dart';
 import '../../../data/models/repositories/photographer_repository.dart';
+import '../../../data/models/repositories/portfolio_repository.dart';
 import '../../../data/models/repositories/search_history_repository.dart';
 import '../../../data/models/search_history.dart';
+import '../../../service/portfolio_api_service.dart';
+import '../../core/dio_provider.dart';
 
 class SearchState {
   final List<SearchHistory> recentSearches;
@@ -142,6 +146,91 @@ class SearchNotifier extends Notifier<SearchState> {
       }).toList();
     } catch (e) {
       print('포토그래퍼 검색 오류: $e');
+      return [];
+    }
+  }
+
+// SearchNotifier 클래스에 추가할 메서드 (dioProvider 활용)
+
+// 포트폴리오 검색 메서드 - dioProvider 활용
+  Future<List<Portfolio>> searchPortfolios(String query) async {
+    try {
+      print('포트폴리오 검색 시작: $query');
+
+      // 기존 dioProvider 활용 - ref를 통해 접근
+      final dio = ref.read(dioProvider);
+
+      final apiService = PortfolioApiService(dio);
+      final portfolioRepository = PortfolioRepositoryImpl(apiService);
+
+      // 검색 API 호출
+      final searchResult = await portfolioRepository.searchPortfolios(
+        keyword: query,
+        page: 0,
+        size: 20,
+      );
+
+      print('포트폴리오 검색 결과: ${searchResult.portfolios.length}개');
+
+      return searchResult.portfolios;
+    } catch (e) {
+      print('포트폴리오 검색 오류: $e');
+      return [];
+    }
+  }
+
+// 카테고리별 포트폴리오 검색 메서드 - dioProvider 활용
+  Future<List<Portfolio>> searchPortfoliosByCategory(
+      List<int> categoryIds) async {
+    try {
+      print('카테고리별 포트폴리오 검색 시작: $categoryIds');
+
+      final dio = ref.read(dioProvider);
+
+      final apiService = PortfolioApiService(dio);
+      final portfolioRepository = PortfolioRepositoryImpl(apiService);
+
+      final searchResult = await portfolioRepository.searchPortfolios(
+        categoryIds: categoryIds,
+        page: 0,
+        size: 20,
+      );
+
+      print('카테고리별 포트폴리오 검색 결과: ${searchResult.portfolios.length}개');
+
+      return searchResult.portfolios;
+    } catch (e) {
+      print('카테고리별 포트폴리오 검색 오류: $e');
+      return [];
+    }
+  }
+
+// 통합 포트폴리오 검색 메서드 - dioProvider 활용
+  Future<List<Portfolio>> searchPortfoliosAdvanced({
+    String? keyword,
+    List<int>? categoryIds,
+  }) async {
+    try {
+      print('통합 포트폴리오 검색 시작');
+      print('키워드: $keyword, 카테고리: $categoryIds');
+
+      final dio = ref.read(dioProvider);
+
+      final apiService = PortfolioApiService(dio);
+      final portfolioRepository = PortfolioRepositoryImpl(apiService);
+
+      final searchResult = await portfolioRepository.searchPortfolios(
+        keyword: keyword,
+        categoryIds: categoryIds,
+        page: 0,
+        size: 50,
+      );
+
+      print('통합 포트폴리오 검색 결과: ${searchResult.portfolios.length}개');
+
+      return searchResult.portfolios;
+    } catch (e) {
+      print('통합 포트폴리오 검색 오류: $e');
       return [];
     }
   }

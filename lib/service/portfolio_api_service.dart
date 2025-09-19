@@ -469,4 +469,118 @@ class PortfolioApiService {
     }
     return '알 수 없는 오류';
   }
+
+  // PortfolioApiService 클래스에 추가할 메서드들
+
+  /// 활성 카테고리 목록 조회
+  /// GET /api/portfolio-categories
+  Future<List<Map<String, dynamic>>> fetchActiveCategories() async {
+    try {
+      print('=== 활성 카테고리 조회 요청 ===');
+      print('URL: /api/portfolio-categories');
+
+      final response = await _dio.get('/api/portfolio-categories');
+
+      print('=== 활성 카테고리 조회 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      final responseData = response.data;
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData.containsKey('body')) {
+          final body = responseData['body'];
+          if (body is List) {
+            return List<Map<String, dynamic>>.from(body);
+          }
+        }
+      }
+
+      // 직접 배열인 경우
+      return List<Map<String, dynamic>>.from(responseData);
+    } on DioException catch (e) {
+      print('=== 활성 카테고리 조회 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      throw _handleDioError(e, '카테고리 목록 조회');
+    }
+  }
+
+  /// 포트폴리오 검색 (키워드 + 카테고리 필터)
+  /// GET /api/portfolios/search?keyword={keyword}&categoryIds={categoryIds}&page={page}&size={size}
+  Future<PaginatedResponse<Map<String, dynamic>>> searchPortfolios({
+    String? keyword,
+    List<int>? categoryIds,
+    int page = 0,
+    int size = 10,
+  }) async {
+    try {
+      print('=== 포트폴리오 검색 요청 ===');
+      print('키워드: $keyword');
+      print('카테고리 IDs: $categoryIds');
+      print('페이지: $page, 사이즈: $size');
+
+      final queryParameters = <String, dynamic>{
+        'page': page,
+        'size': size,
+      };
+
+      if (keyword != null && keyword.isNotEmpty) {
+        queryParameters['keyword'] = keyword;
+      }
+
+      if (categoryIds != null && categoryIds.isNotEmpty) {
+        queryParameters['categoryIds'] = categoryIds.join(',');
+      }
+
+      final response = await _dio.get(
+        '/api/portfolios/search',
+        queryParameters: queryParameters,
+      );
+
+      print('=== 포트폴리오 검색 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      final responseData = response.data;
+
+      if (responseData is Map<String, dynamic>) {
+        if (responseData.containsKey('body')) {
+          final body = responseData['body'];
+
+          if (body is Map<String, dynamic> && body.containsKey('content')) {
+            // 페이징된 응답: Page<T> 구조
+            return PaginatedResponse<Map<String, dynamic>>(
+              content: List<Map<String, dynamic>>.from(body['content']),
+              page: body['number'] ?? page,
+              size: body['size'] ?? size,
+              totalElements: body['totalElements'] ?? 0,
+              totalPages: body['totalPages'] ?? 0,
+              isLast: body['last'] ?? true,
+              hasNext: !(body['last'] ?? true),
+            );
+          } else if (body is List) {
+            // 직접 배열 응답 (페이징 정보 없음)
+            final content = List<Map<String, dynamic>>.from(body);
+            return PaginatedResponse<Map<String, dynamic>>(
+              content: content,
+              page: page,
+              size: content.length,
+              totalElements: content.length,
+              totalPages: 1,
+              isLast: true,
+              hasNext: false,
+            );
+          }
+        }
+      }
+
+      throw Exception('예상하지 못한 응답 구조');
+    } on DioException catch (e) {
+      print('=== 포트폴리오 검색 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      throw _handleDioError(e, '포트폴리오 검색');
+    }
+  }
 }
