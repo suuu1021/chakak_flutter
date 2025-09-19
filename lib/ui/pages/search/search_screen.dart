@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../../provider/global/search/search_provider.dart';
+import '../photo_service/category_service_list_page.dart';
+import '../profile/photographer/photographer_profile_page.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -62,11 +64,23 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   void _onCategoryTap(PhotoServiceCategory category) {
-    print('카테고리 선택: ${category.name}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategoryServiceListPage(category: category),
+      ),
+    );
   }
 
   void _onPhotographerTap(Photographer photographer) {
-    print('작가 선택: ${photographer.businessName}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhotographerProfilePage(
+          photographerId: photographer.id,
+        ),
+      ),
+    );
   }
 
   @override

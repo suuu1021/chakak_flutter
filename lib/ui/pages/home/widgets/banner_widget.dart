@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-
 import '../../../../data/models/banner.dart';
 import '../../../../provider/global/banner/banner_notifier.dart';
 
@@ -34,12 +33,12 @@ class _BannerWidgetState extends ConsumerState<BannerWidget> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(bannerNotifierProvider.notifier).loadBanners();
+      ref.read(bannerProvider.notifier).loadBanners();
     });
   }
 
   void _onBannerTap(BannerItem banner) {
-    ref.read(bannerNotifierProvider.notifier).trackBannerClick(banner.id);
+    ref.read(bannerProvider.notifier).trackBannerClick(banner.id);
     if (widget.onBannerTap != null) {
       widget.onBannerTap!(banner);
     } else {
@@ -51,7 +50,7 @@ class _BannerWidgetState extends ConsumerState<BannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final bannerState = ref.watch(bannerNotifierProvider);
+    final bannerState = ref.watch(bannerProvider);
 
     return Container(
       margin: widget.margin,
@@ -104,8 +103,7 @@ class _BannerWidgetState extends ConsumerState<BannerWidget> {
             ),
             const SizedBox(height: 8),
             TextButton(
-              onPressed: () =>
-                  ref.read(bannerNotifierProvider.notifier).loadBanners(),
+              onPressed: () => ref.read(bannerProvider.notifier).loadBanners(),
               child: const Text('다시 시도'),
             ),
           ],

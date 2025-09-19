@@ -96,6 +96,11 @@ class PhotoService {
     );
   }
 
+  @override
+  String toString() {
+    return 'PhotoService(id: $id, title: $title, images: ${portfolioImages.length}개)';
+  }
+
   // 편의 메서드들
   int get minPrice => priceOptions.isEmpty
       ? price

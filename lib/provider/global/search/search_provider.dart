@@ -1,5 +1,9 @@
 // 창고 데이터
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/models/photo_service/photo_service.dart';
+import '../../../data/models/photographer.dart';
+import '../../../data/models/repositories/photo_service_repository.dart';
+import '../../../data/models/repositories/photographer_repository.dart';
 import '../../../data/models/repositories/search_history_repository.dart';
 import '../../../data/models/search_history.dart';
 
@@ -44,7 +48,6 @@ class SearchNotifier extends Notifier<SearchState> {
   @override
   SearchState build() {
     _repository = SearchHistoryRepositoryImpl();
-
     return SearchState();
   }
 
@@ -77,7 +80,6 @@ class SearchNotifier extends Notifier<SearchState> {
       await _repository.addSearchHistory(keyword);
       print('Repository addSearch 호출 후');
 
-      // 최근 검색어를 다시 로드하지 말고 직접 업데이트
       final recentSearches = await _repository.getRecentSearches();
       state = state.copyWith(recentSearches: recentSearches);
       print('State 업데이트 완료');
@@ -90,7 +92,6 @@ class SearchNotifier extends Notifier<SearchState> {
     try {
       await _repository.removeSearchHistory(id);
 
-      // 로컬 상태에서도 제거
       final updatedRecentSearches =
           state.recentSearches.where((search) => search.id != id).toList();
 
@@ -109,12 +110,45 @@ class SearchNotifier extends Notifier<SearchState> {
     }
   }
 
-  // 에러 초기화
+  // 포토서비스 검색 메서드
+  Future<List<PhotoService>> searchPhotoServices(String query) async {
+    try {
+      final photoServiceRepository = PhotoServiceRepositoryImpl();
+      final allServices = await photoServiceRepository.getServices();
+
+      return allServices.where((service) {
+        return service.title.toLowerCase().contains(query.toLowerCase()) ||
+            service.categories.any((category) =>
+                category.toLowerCase().contains(query.toLowerCase()));
+      }).toList();
+    } catch (e) {
+      print('포토서비스 검색 오류: $e');
+      return [];
+    }
+  }
+
+  // 포토그래퍼 검색 메서드
+  Future<List<Photographer>> searchPhotographers(String query) async {
+    try {
+      final photographerRepository = PhotographerRepositoryImpl();
+      final allPhotographers = await photographerRepository.getPhotographers();
+
+      return allPhotographers.where((photographer) {
+        return photographer.businessName
+                .toLowerCase()
+                .contains(query.toLowerCase()) ||
+            photographer.categories.any((category) =>
+                category.toLowerCase().contains(query.toLowerCase()));
+      }).toList();
+    } catch (e) {
+      print('포토그래퍼 검색 오류: $e');
+      return [];
+    }
+  }
+
   void clearError() {
     state = state.copyWith(error: null);
   }
-
-// TODO - 추가 비즈니스 로직 설계 (검색 필터, 정렬 등)
 }
 
 // 실제 창고 개설

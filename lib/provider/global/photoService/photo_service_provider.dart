@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
+import '../../../data/models/repositories/photo_service_category_repository.dart';
 import '../../../data/models/repositories/photo_service_repository.dart';
 
 class ServiceState {
@@ -48,6 +49,22 @@ class ServiceNotifier extends Notifier<ServiceState> {
       state = state.copyWith(isLoading: true, error: null);
 
       final services = await _repository.getServices();
+      state = state.copyWith(services: services, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  // 카테고리별 서비스 로드 메서드 추가
+  Future<void> loadServicesByCategory(String categoryId) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      // PhotoServiceCategoryRepository 사용해야 함
+      final categoryRepository = PhotoServiceCategoryRepositoryImpl();
+      final services =
+          await categoryRepository.getServicesByCategory(categoryId);
+
       state = state.copyWith(services: services, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

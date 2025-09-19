@@ -25,23 +25,18 @@ class _CategoryServiceListPageState
   @override
   void initState() {
     super.initState();
-    // 서비스 데이터가 없으면 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final serviceState = ref.read(photoServiceProvider);
-      if (serviceState.services.isEmpty && !serviceState.isLoading) {
-        ref.read(photoServiceProvider.notifier).loadServices();
-      }
+      // 카테고리별 서비스 로드로 변경
+      ref
+          .read(photoServiceProvider.notifier)
+          .loadServicesByCategory(widget.category.id.toString());
     });
   }
 
+// 필터링 제거 (이미 카테고리별로 로드했으므로)
   @override
   Widget build(BuildContext context) {
     final serviceState = ref.watch(photoServiceProvider);
-
-    // 카테고리에 해당하는 서비스들 필터링
-    final filteredServices = serviceState.services
-        .where((service) => service.categories.contains(widget.category.name))
-        .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -49,7 +44,7 @@ class _CategoryServiceListPageState
         surfaceTintColor: Colors.transparent,
         backgroundColor: AppColors.primaryLight,
       ),
-      body: _buildBody(serviceState, filteredServices),
+      body: _buildBody(serviceState, serviceState.services), // 필터링 제거
     );
   }
 
