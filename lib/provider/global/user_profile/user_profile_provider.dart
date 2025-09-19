@@ -72,15 +72,16 @@ class UserProfileNotifier extends StateNotifier<UserProfileState> {
     }
   }
 
-  // 프로필 수정
+  // 프로필 수정 (최신 API 명세 반영)
   Future<bool> updateProfile(UserProfileUpdateRequestDto request) async {
     try {
       state = state.copyWith(isUpdating: true, clearErrorMessage: true);
-      // 1. 서비스 호출 (이제 반환값 없음)
-      await _userProfileService.updateProfile(request);
-      // 2. 성공 시, 최신 프로필 정보를 다시 불러옴
-      await loadMyProfile(); 
-      state = state.copyWith(isUpdating: false);
+      // 1. 서비스에서 수정된 프로필 DTO를 직접 받음
+      final updatedProfileDto = await _userProfileService.updateProfile(request);
+      // 2. DTO를 UI 모델로 변환
+      final updatedProfile = updatedProfileDto.toModel();
+      // 3. 변환된 모델로 상태를 즉시 업데이트 (불필요한 API 재호출 제거)
+      state = state.copyWith(profile: updatedProfile, isUpdating: false);
       return true;
     } catch (e) {
       state = state.copyWith(isUpdating: false, errorMessage: '프로필 수정에 실패했습니다: ${e.toString()}');

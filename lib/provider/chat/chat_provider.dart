@@ -65,6 +65,18 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     return ChatMessagesState();
   }
 
+  // 현재 채팅방 메시지 읽음 처리
+  Future<void> markCurrentRoomMessagesAsRead() async {
+    try {
+      print('[ChatMessagesNotifier] 채팅방 ${_chatRoomId} 메시지 읽음 처리 시도');
+      await _chatRepository.markMessagesAsRead(_chatRoomId);
+      print('[ChatMessagesNotifier] 채팅방 ${_chatRoomId} 메시지 읽음 처리 성공');
+    } catch (e) {
+      print('[ChatMessagesNotifier] 채팅방 ${_chatRoomId} 메시지 읽음 처리 실패: $e');
+      // 필요하다면 state.copyWith(errorMessage: ...)로 에러 상태 관리
+    }
+  }
+
   Future<void> connectAndListen({
     required String jwtToken,
     required int userId,
@@ -78,9 +90,11 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     state = state.copyWith(isConnecting: true, isLoading: true, clearErrorMessage: true);
     try {
       await fetchInitialMessages();
-
       await _chatRepository.connectStomp(_chatRoomId, jwtToken);
       state = state.copyWith(isConnected: true, isConnecting: false);
+
+      // STOMP 연결 성공 후 메시지 읽음 처리 호출
+      await markCurrentRoomMessagesAsRead();
 
       _messagesSubscription?.cancel();
       _messagesSubscription = _chatRepository.messages.listen(
@@ -97,7 +111,7 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
         }
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, isConnected: false, isConnecting: false, errorMessage: '채팅 서버 연결 실패');
+      state = state.copyWith(isLoading: false, isConnected: false, isConnecting: false, errorMessage: '채팅 서버 연결 실패: ${e.toString()}');
     }
   }
 

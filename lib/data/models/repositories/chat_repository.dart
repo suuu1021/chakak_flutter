@@ -23,12 +23,14 @@ class ChatRepository {
     print("[ChatRepository] 생성됨");
   }
 
+  // 명세서 기준: `body` 래퍼 없이 객체 직접 반환
   Future<ChatRoomResponseDto> createOrGetChatRoom(
       ChatRoomCreateRequestDto requestDto) async {
     final response = await _dio.post('/api/chat/rooms', data: requestDto.toJson());
     return ChatRoomResponseDto.fromJson(response.data);
   }
 
+  // 명세서 기준: `body` 래퍼 없이 리스트 직접 반환
   Future<List<ChatMessageDto>> getMessagesByRoomId(int chatRoomId) async {
     final response = await _dio.get('/api/chat/rooms/$chatRoomId/messages');
     final List<dynamic> responseData = response.data as List<dynamic>;
@@ -39,6 +41,7 @@ class ChatRepository {
     await _dio.post('/api/chat/rooms/$chatRoomId/read');
   }
 
+  // 명세서 기준: `body` 래퍼 없이 리스트 직접 반환
   Future<List<ChatRoomListItemDto>> getMyChatRooms() async {
     final response = await _dio.get('/api/chat/my/rooms');
     final List<dynamic> responseData = response.data as List<dynamic>;

@@ -36,10 +36,11 @@ class UserProfileService {
     }
   }
 
-  // 1. 반환 타입을 Future<void>로 변경하고, 응답 파싱 로직 제거
-  Future<void> updateProfile(UserProfileUpdateRequestDto request) async {
+  // 1. 반환 타입을 Future<UserProfileDto>로 다시 변경하고 파싱 로직 추가
+  Future<UserProfileDto> updateProfile(UserProfileUpdateRequestDto request) async {
     try {
-      await _dio.put('/api/v1/users/profile/update', data: request.toJson());
+      final response = await _dio.put('/api/v1/users/profile/update', data: request.toJson());
+      return _extractResponseData(response, (data) => UserProfileDto.fromJson(data));
     } on DioException catch (e) {
       throw Exception('프로필 수정 실패: ${e.message ?? e.toString()}');
     } catch (e) {
