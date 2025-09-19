@@ -3,64 +3,57 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../dtos/booking/booking_request_dto.dart';
 import '../../dtos/booking/booking_detail_dto.dart';
-import '../../dtos/booking/booking_photographer_list_dto.dart';
-import '../../dtos/booking/booking_user_list_dto.dart';
+import '../../dtos/booking/booking_dto.dart';
 
 class BookingRepository {
   late http.Client _client;
   String? _authToken;
 
-  // 플랫폼별 서버 주소 설정
   static String get serverUrl {
     if (Platform.isAndroid) {
-      return 'http://192.168.0.82:8080'; // 실제 IP로 수정
-      // return 'http://10.0.2.2:8080'; // Android 에뮬레이터
+      return 'http://192.168.0.82:8080';
     } else if (Platform.isIOS) {
-      return 'http://localhost:8080'; // iOS 시뮬레이터
+      return 'http://localhost:8080';
     } else {
       return 'http://localhost:8080';
     }
   }
 
-  // 인증 토큰 설정 메서드
   void setAuthToken(String? token) {
     _authToken = token;
   }
 
-  // 인증 토큰 확인 getter
   bool get isAuthenticated => _authToken != null;
 
-  // 콜백 함수들 - 상위 클래스에 이벤트 알림용
   void Function()? onAuthRequired;
   void Function(String error)? onNetworkError;
   void Function()? onBookingCreated;
   void Function()? onBookingCanceled;
 
-  // HTTP 클라이언트 초기화
   void init() {
     _client = http.Client();
   }
 
-  // 공통 헤더 생성
   Map<String, String> _getHeaders() {
     final headers = {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
     };
 
     if (_authToken != null) {
       headers['Authorization'] = 'Bearer $_authToken';
     }
-
     return headers;
   }
 
-  // API 응답 처리
   T _handleResponse<T>(
     http.Response response,
     T Function(dynamic) parser,
     String operation,
   ) {
     try {
+      print('Response Status: ${response.statusCode}');
+      print('Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonData = json.decode(utf8.decode(response.bodyBytes));
         return parser(jsonData);
@@ -75,98 +68,115 @@ class BookingRepository {
         throw Exception('서버 오류 발생: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error in $operation: $e');
       onNetworkError?.call('$operation 실패: $e');
       rethrow;
     }
   }
 
-  // 사용자 예약 목록 조회 (디버깅 로그 포함)
-  Future<List<BookingUserListDto>> getUserBookingList(int userId) async {
-    print('=== 예약 목록 API 호출 ===');
-    print('URL: $serverUrl/api/v1/users/booking/$userId/list');
-    print('인증됨: $isAuthenticated');
-    print('토큰: $_authToken');
+  // 실제 백엔드 응답 구조에 맞게 수정된 파싱 로직
+  List<T> _parseListResponse<T>(
+      dynamic jsonData, T Function(Map<String, dynamic>) fromJson) {
+    try {
+      print('Parsing response: $jsonData');
 
+      // 실제 백엔드 응답 구조: { "status": 200, "msg": "성공", "body": [...] }
+      if (jsonData is Map<String, dynamic> && jsonData.containsKey('body')) {
+        final dynamic bodyField = jsonData['body'];
+
+        if (bodyField is List) {
+          return bodyField
+              .cast<Map<String, dynamic>>()
+              .map((item) => fromJson(item))
+              .toList();
+        }
+      }
+
+      // ApiUtil<> 래핑 구조: { "data": [...] } (fallback)
+      if (jsonData is Map<String, dynamic> && jsonData.containsKey('data')) {
+        final dynamic dataField = jsonData['data'];
+
+        if (dataField is List) {
+          return dataField
+              .cast<Map<String, dynamic>>()
+              .map((item) => fromJson(item))
+              .toList();
+        }
+      }
+
+      // 직접 리스트인 경우 (fallback)
+      if (jsonData is List) {
+        return jsonData
+            .cast<Map<String, dynamic>>()
+            .map((item) => fromJson(item))
+            .toList();
+      }
+
+      print('Unexpected response format: $jsonData');
+      throw Exception('예상치 못한 응답 형식입니다: ${jsonData.runtimeType}');
+    } catch (e) {
+      print('Parse error: $e');
+      rethrow;
+    }
+  }
+
+  // 수정된 API 엔드포인트 - 백엔드와 일치
+  Future<List<BookingDto>> getUserBookingList(int userId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
       throw Exception('로그인이 필요합니다');
     }
 
     try {
+      print('Fetching user booking list...');
+
+      // 백엔드 엔드포인트에 맞게 수정: /api/v1/bookings/user/my-list
       final response = await _client
           .get(
-            Uri.parse('$serverUrl/api/v1/users/booking/$userId/list'),
+            Uri.parse(
+                '$serverUrl/api/v1/bookings/user/my-list'), // userId 파라미터 제거
             headers: _getHeaders(),
           )
-          .timeout(Duration(seconds: 10));
+          .timeout(const Duration(seconds: 10));
 
-      print('응답 상태: ${response.statusCode}');
-      print('응답 내용: ${response.body}');
-
-      return _handleResponse(response, (jsonData) {
-        print('파싱할 JSON: $jsonData');
-
-        // API 응답이 배열인 경우
-        if (jsonData is List) {
-          print('배열 형태 응답, 길이: ${jsonData.length}');
-          return jsonData
-              .map((item) => BookingUserListDto.fromJson(item))
-              .toList();
-        }
-
-        // API 응답이 객체로 감싸진 경우
-        if (jsonData is Map<String, dynamic> && jsonData.containsKey('data')) {
-          final List<dynamic> dataList = jsonData['data'];
-          print('객체 형태 응답, 데이터 길이: ${dataList.length}');
-          return dataList
-              .map((item) => BookingUserListDto.fromJson(item))
-              .toList();
-        }
-
-        throw Exception('예상치 못한 응답 형식입니다');
-      }, '사용자 예약 목록 조회');
+      return _handleResponse(
+          response,
+          (jsonData) => _parseListResponse(jsonData, BookingDto.fromJson),
+          '사용자 예약 목록 조회');
     } catch (e) {
-      print('에러 발생: $e');
+      print('getUserBookingList error: $e');
       throw Exception('사용자 예약 목록 조회 실패: $e');
     }
   }
 
-  // 포토그래퍼 예약 목록 조회
-  Future<List<BookingPhotographerListDto>> getPhotographerBookingList(
-      int userId) async {
+  // 수정된 API 엔드포인트 - 백엔드와 일치
+  Future<List<BookingDto>> getPhotographerBookingList(int userId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
       throw Exception('로그인이 필요합니다');
     }
 
     try {
+      print('Fetching photographer booking list...');
+
+      // 백엔드 엔드포인트에 맞게 수정: /api/v1/bookings/photographer/my-list
       final response = await _client.get(
-        Uri.parse('$serverUrl/api/v1/users/booking/photographer/$userId/list'),
+        Uri.parse(
+            '$serverUrl/api/v1/bookings/photographer/my-list'), // userId 파라미터 제거
         headers: _getHeaders(),
       );
 
-      return _handleResponse(response, (jsonData) {
-        if (jsonData is List) {
-          return jsonData
-              .map((item) => BookingPhotographerListDto.fromJson(item))
-              .toList();
-        }
-
-        if (jsonData is Map<String, dynamic> && jsonData.containsKey('data')) {
-          final List<dynamic> dataList = jsonData['data'];
-          return dataList
-              .map((item) => BookingPhotographerListDto.fromJson(item))
-              .toList();
-        }
-
-        throw Exception('예상치 못한 응답 형식입니다');
-      }, '포토그래퍼 예약 목록 조회');
+      return _handleResponse(
+          response,
+          (jsonData) => _parseListResponse(jsonData, BookingDto.fromJson),
+          '포토그래퍼 예약 목록 조회');
     } catch (e) {
+      print('getPhotographerBookingList error: $e');
       throw Exception('포토그래퍼 예약 목록 조회 실패: $e');
     }
   }
 
-  // 예약 상세 조회
+  // 수정된 API 엔드포인트 - 백엔드와 일치
   Future<BookingDetailDto> getBookingDetail(int bookingInfoId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
@@ -174,24 +184,26 @@ class BookingRepository {
     }
 
     try {
+      // 백엔드 엔드포인트에 맞게 수정: /api/v1/bookings/{bookingInfoId}
       final response = await _client.get(
-        Uri.parse('$serverUrl/api/v1/users/booking/$bookingInfoId/detail'),
+        Uri.parse('$serverUrl/api/v1/bookings/$bookingInfoId'),
         headers: _getHeaders(),
       );
 
       return _handleResponse(response, (jsonData) {
+        // ApiUtil 래핑 구조 처리
         if (jsonData is Map<String, dynamic>) {
-          // 응답이 직접 객체인 경우
+          if (jsonData.containsKey('data')) {
+            final data = jsonData['data'];
+            if (data is Map<String, dynamic>) {
+              return BookingDetailDto.fromJson(data);
+            }
+          }
+          // 직접 BookingDetailDto 필드가 있는 경우 (fallback)
           if (jsonData.containsKey('photographerProfileId')) {
             return BookingDetailDto.fromJson(jsonData);
           }
-
-          // 응답이 data로 감싸진 경우
-          if (jsonData.containsKey('data')) {
-            return BookingDetailDto.fromJson(jsonData['data']);
-          }
         }
-
         throw Exception('예상치 못한 응답 형식입니다');
       }, '예약 상세 조회');
     } catch (e) {
@@ -199,7 +211,7 @@ class BookingRepository {
     }
   }
 
-  // 예약 생성
+  // 수정된 API 엔드포인트 - 백엔드와 일치
   Future<void> createBooking(BookingCreateRequestDto request) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
@@ -207,8 +219,9 @@ class BookingRepository {
     }
 
     try {
+      // 백엔드 엔드포인트에 맞게 수정: /api/v1/bookings (POST)
       final response = await _client.post(
-        Uri.parse('$serverUrl/api/v1/users/booking/save'),
+        Uri.parse('$serverUrl/api/v1/bookings'),
         headers: _getHeaders(),
         body: json.encode(request.toJson()),
       );
@@ -222,7 +235,7 @@ class BookingRepository {
     }
   }
 
-  // 예약 취소 (사용자)
+  // 수정된 API 엔드포인트 - 백엔드와 일치 (PATCH)
   Future<void> cancelBooking(int bookingInfoId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
@@ -230,8 +243,9 @@ class BookingRepository {
     }
 
     try {
-      final response = await _client.put(
-        Uri.parse('$serverUrl/api/v1/users/booking/$bookingInfoId/user-cancel'),
+      // PUT에서 PATCH로 변경, 엔드포인트 수정
+      final response = await _client.patch(
+        Uri.parse('$serverUrl/api/v1/bookings/$bookingInfoId/cancel'),
         headers: _getHeaders(),
       );
 
@@ -244,7 +258,7 @@ class BookingRepository {
     }
   }
 
-  // 예약 승인 (포토그래퍼)
+  // 수정된 API 엔드포인트 - 백엔드와 일치 (PATCH)
   Future<void> confirmBooking(int bookingInfoId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
@@ -252,9 +266,9 @@ class BookingRepository {
     }
 
     try {
-      final response = await _client.put(
-        Uri.parse(
-            '$serverUrl/api/v1/users/booking/$bookingInfoId/photographer-confirm'),
+      // PUT에서 PATCH로 변경, 엔드포인트 수정
+      final response = await _client.patch(
+        Uri.parse('$serverUrl/api/v1/bookings/$bookingInfoId/confirm'),
         headers: _getHeaders(),
       );
 
@@ -264,7 +278,6 @@ class BookingRepository {
     }
   }
 
-  // 예약 거절 (포토그래퍼)
   Future<void> rejectBooking(int bookingInfoId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
@@ -272,9 +285,9 @@ class BookingRepository {
     }
 
     try {
-      final response = await _client.put(
-        Uri.parse(
-            '$serverUrl/api/v1/users/booking/$bookingInfoId/photographer-cancel'),
+      // 백엔드에 reject 엔드포인트가 없는 것 같으니 cancel을 사용
+      final response = await _client.patch(
+        Uri.parse('$serverUrl/api/v1/bookings/$bookingInfoId/cancel'),
         headers: _getHeaders(),
       );
 
@@ -284,7 +297,7 @@ class BookingRepository {
     }
   }
 
-  // 촬영 완료 처리 (포토그래퍼)
+  // 수정된 API 엔드포인트 - 백엔드와 일치 (PATCH)
   Future<void> completeBooking(int bookingInfoId) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
@@ -292,9 +305,9 @@ class BookingRepository {
     }
 
     try {
-      final response = await _client.put(
-        Uri.parse(
-            '$serverUrl/api/v1/users/booking/$bookingInfoId/photographer-service-end'),
+      // PUT에서 PATCH로 변경, 엔드포인트 수정
+      final response = await _client.patch(
+        Uri.parse('$serverUrl/api/v1/bookings/$bookingInfoId/complete'),
         headers: _getHeaders(),
       );
 
@@ -304,7 +317,6 @@ class BookingRepository {
     }
   }
 
-  // 리소스 해제
   void dispose() {
     _client.close();
   }

@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../data/models/payment.dart';
-import '../../../data/models/repositories/payment_repository.dart';
+import '../../../data/models/booking/booking_model.dart';
+import '../../../data/dtos/booking/booking_request_dto.dart';
+import '../../../data/models/repositories/booking_repository.dart';
 import '../../auth/session_provider.dart';
+import '../../../data/dtos/booking/booking_dto.dart';
+import '../../../data/models/booking/booking_list_item.dart';
 
-/// PaymentRepository Provider
-final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
-  final repository = PaymentRepository();
+final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
+  final repository = BookingRepository();
   repository.init();
 
   // 세션에서 JWT 토큰 가져와서 설정
@@ -14,160 +16,224 @@ final paymentRepositoryProvider = Provider<PaymentRepository>((ref) {
     repository.setAuthToken(session.jwtToken);
   }
 
-  // 콜백 함수 설정
-  repository.onAuthRequired = () {
-    print('로그인이 필요합니다');
-    // TODO: 로그인 화면으로 이동
-  };
-
-  repository.onNetworkError = (error) {
-    print('네트워크 오류: $error');
-  };
-
   return repository;
 });
 
-/// 결제 내역 상태 모델
-class PaymentListState {
-  final List<Payment> payments;
-  final bool isLoading;
-  final String? errorMessage;
-  final bool hasMoreData;
-  final int currentPage;
+class BookingListNotifier extends Notifier<BookingListState> {
+  late BookingRepository _repository;
 
-  const PaymentListState({
-    required this.payments,
-    required this.isLoading,
-    this.errorMessage,
-    this.hasMoreData = true,
-    this.currentPage = 0,
-  });
-
-  /// 초기 상태
-  factory PaymentListState.initial() {
-    return const PaymentListState(
-      payments: [],
-      isLoading: false,
-      hasMoreData: true,
-      currentPage: 0,
-    );
+  @override
+  BookingListState build() {
+    _repository = ref.watch(bookingRepositoryProvider);
+    return BookingListState.initial();
   }
 
-  /// 로딩 상태
-  PaymentListState loading() {
-    return copyWith(isLoading: true, errorMessage: null);
+  /// 내 예약 목록 로드 (userType에 따라 자동 분기)
+  Future<void> loadMyBookings() async {
+    print('=== loadMyBookings 시작 ==='); // 디버깅용
+
+    final session = ref.read(sessionProvider);
+
+    if (!session.isLogin || session.userId == null) {
+      print(
+          '로그인 상태 확인 실패 - isLogin: ${session.isLogin}, userId: ${session.userId}');
+      state = state.copyWith(errorMessage: '로그인이 필요합니다', isLoading: false);
+      return;
+    }
+
+    state = state.copyWith(isLoading: true, forceErrorMessageNull: true);
+
+    try {
+      final userType = session.userTypeCode; // "user" or "photographer"
+      final userId = session.userId!;
+
+      print('사용자 정보 - userType: $userType, userId: $userId');
+
+      List<BookingListItem> bookings = [];
+
+      if (userType == "user") {
+        print('사용자 예약 목록 조회 중...');
+        final dtoList = await _repository.getUserBookingList(userId);
+        print('서버에서 받은 데이터 개수: ${dtoList.length}');
+
+        // BookingMapper.toUserBookingListItem을 사용하여 변환
+        bookings = dtoList
+            .map((dto) => BookingMapper.toUserBookingListItem(dto))
+            .toList();
+      } else if (userType == "photographer") {
+        print('포토그래퍼 예약 목록 조회 중...');
+        final dtoList = await _repository.getPhotographerBookingList(userId);
+        print('서버에서 받은 데이터 개수: ${dtoList.length}');
+
+        // BookingMapper.toPhotographerBookingListItem을 사용하여 변환
+        bookings = dtoList
+            .map((dto) => BookingMapper.toPhotographerBookingListItem(dto))
+            .toList();
+      } else {
+        print('잘못된 사용자 타입: $userType');
+        state = state.copyWith(
+            errorMessage: '잘못된 사용자 타입입니다: $userType', isLoading: false);
+        return;
+      }
+
+      print('변환된 예약 목록 개수: ${bookings.length}');
+      state = state.copyWith(bookings: bookings, isLoading: false);
+    } catch (e) {
+      print('예약 목록 로드 중 오류 발생: $e');
+      state = state.copyWith(errorMessage: '예약 목록 로드 실패: $e', isLoading: false);
+    }
   }
 
-  /// 성공 상태
-  PaymentListState success(List<Payment> payments, {bool hasMoreData = true}) {
-    return copyWith(
-      payments: payments,
-      isLoading: false,
-      errorMessage: null,
-      hasMoreData: hasMoreData,
-    );
-  }
+  /// 예약 취소 (사용자만 가능)
+  Future<void> cancelBooking(int bookingInfoId) async {
+    final session = ref.read(sessionProvider);
 
-  /// 에러 상태
-  PaymentListState error(String message) {
-    return copyWith(
-      isLoading: false,
-      errorMessage: message,
-    );
-  }
-
-  /// copyWith 메서드
-  PaymentListState copyWith({
-    List<Payment>? payments,
-    bool? isLoading,
-    String? errorMessage,
-    bool? hasMoreData,
-    int? currentPage,
-  }) {
-    return PaymentListState(
-      payments: payments ?? this.payments,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
-      hasMoreData: hasMoreData ?? this.hasMoreData,
-      currentPage: currentPage ?? this.currentPage,
-    );
-  }
-}
-
-/// 결제 내역 목록 Notifier
-class PaymentListNotifier extends StateNotifier<PaymentListState> {
-  final PaymentRepository _repository;
-
-  PaymentListNotifier(this._repository) : super(PaymentListState.initial()) {
-    _initializeRepository();
-    loadPayments();
-  }
-
-  void _initializeRepository() {
-    _repository.onAuthRequired = () {
-      state = state.error('로그인이 필요합니다');
-    };
-
-    _repository.onNetworkError = (error) {
-      state = state.error(error);
-    };
-  }
-
-  /// 결제 내역 조회
-  Future<void> loadPayments({bool isRefresh = false}) async {
-    if (isRefresh) {
-      state = PaymentListState.initial().loading();
-    } else {
-      state = state.loading();
+    if (session.userTypeCode != "user") {
+      state = state.copyWith(errorMessage: '사용자만 예약을 취소할 수 있습니다');
+      return;
     }
 
     try {
-      final dtoList = await _repository.getUserPayments(page: 0, size: 20);
-      final payments = dtoList.map((dto) => dto.toModel()).toList();
+      await _repository.cancelBooking(bookingInfoId);
 
-      state = state.success(payments, hasMoreData: payments.length >= 20);
+      // 취소된 예약의 상태를 CANCELED로 업데이트
+      final updatedBookings = state.bookings.map((booking) {
+        if (booking.bookingInfoId == bookingInfoId) {
+          return booking.copyWith(status: BookingStatus.CANCELED);
+        }
+        return booking;
+      }).toList();
+
+      state = state.copyWith(bookings: updatedBookings);
     } catch (e) {
-      state = state.error(e.toString());
+      state = state.copyWith(errorMessage: '예약 취소 실패: $e');
+    }
+  }
+
+  /// 결제완료 확인 (포토그래퍼만 가능)
+  Future<void> confirmBooking(int bookingInfoId) async {
+    final session = ref.read(sessionProvider);
+
+    if (session.userTypeCode != "photographer") {
+      state = state.copyWith(errorMessage: '포토그래퍼만 결제확인을 할 수 있습니다');
+      return;
+    }
+
+    try {
+      await _repository.confirmBooking(bookingInfoId);
+
+      final updatedBookings = state.bookings.map((booking) {
+        if (booking.bookingInfoId == bookingInfoId) {
+          return booking.copyWith(status: BookingStatus.CONFIRMED);
+        }
+        return booking;
+      }).toList();
+
+      state = state.copyWith(bookings: updatedBookings);
+    } catch (e) {
+      state = state.copyWith(errorMessage: '결제확인 실패: $e');
+    }
+  }
+
+  /// 촬영완료 처리 (포토그래퍼만 가능)
+  Future<void> completeBooking(int bookingInfoId) async {
+    final session = ref.read(sessionProvider);
+
+    if (session.userTypeCode != "photographer") {
+      state = state.copyWith(errorMessage: '포토그래퍼만 촬영완료 처리를 할 수 있습니다');
+      return;
+    }
+
+    try {
+      await _repository.completeBooking(bookingInfoId);
+
+      final updatedBookings = state.bookings.map((booking) {
+        if (booking.bookingInfoId == bookingInfoId) {
+          return booking.copyWith(status: BookingStatus.COMPLETED);
+        }
+        return booking;
+      }).toList();
+
+      state = state.copyWith(bookings: updatedBookings);
+    } catch (e) {
+      state = state.copyWith(errorMessage: '촬영완료 처리 실패: $e');
     }
   }
 
   /// 새로고침
   Future<void> refresh() async {
-    await loadPayments(isRefresh: true);
+    await loadMyBookings();
   }
 
-  /// 더 많은 데이터 로드 (페이지네이션)
-  Future<void> loadMore() async {
-    if (state.isLoading || !state.hasMoreData) return;
-
-    try {
-      final nextPage = state.currentPage + 1;
-      final dtoList =
-          await _repository.getUserPayments(page: nextPage, size: 20);
-      final newPayments = dtoList.map((dto) => dto.toModel()).toList();
-
-      final allPayments = [...state.payments, ...newPayments];
-
-      state = state.copyWith(
-        payments: allPayments,
-        currentPage: nextPage,
-        hasMoreData: newPayments.length >= 20,
-      );
-    } catch (e) {
-      state = state.error('추가 데이터 로드 실패: $e');
-    }
+  /// 상태별 필터링
+  void setFilter(BookingStatus? filter) {
+    state = state.copyWith(selectedFilter: filter);
   }
 
-  @override
-  void dispose() {
-    _repository.dispose();
-    super.dispose();
+  /// 에러 초기화
+  void clearError() {
+    state = state.copyWith(forceErrorMessageNull: true);
   }
 }
 
-/// 결제 내역 목록 Provider
-final paymentListProvider =
-    StateNotifierProvider<PaymentListNotifier, PaymentListState>((ref) {
-  final repository = ref.watch(paymentRepositoryProvider);
-  return PaymentListNotifier(repository);
+/// 예약 생성 상태
+class BookingCreateState {
+  final bool isLoading;
+  final String? error;
+
+  BookingCreateState({
+    this.isLoading = false,
+    this.error,
+  });
+
+  BookingCreateState copyWith({
+    bool? isLoading,
+    String? error,
+  }) {
+    return BookingCreateState(
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
+  }
+}
+
+/// 예약 생성 Notifier
+class BookingCreateNotifier extends Notifier<BookingCreateState> {
+  late BookingRepository _repository;
+
+  @override
+  BookingCreateState build() {
+    _repository = ref.watch(bookingRepositoryProvider);
+    return BookingCreateState();
+  }
+
+  /// 예약 생성
+  Future<bool> createBooking(BookingCreateRequestDto request) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _repository.createBooking(request);
+      state = state.copyWith(isLoading: false);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      return false;
+    }
+  }
+
+  /// 에러 초기화
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+}
+
+/// Provider 등록
+final bookingListProvider =
+    NotifierProvider<BookingListNotifier, BookingListState>(() {
+  return BookingListNotifier();
+});
+
+final bookingCreateProvider =
+    NotifierProvider<BookingCreateNotifier, BookingCreateState>(() {
+  return BookingCreateNotifier();
 });

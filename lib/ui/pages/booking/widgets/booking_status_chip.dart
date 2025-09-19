@@ -1,5 +1,3 @@
-// features/booking/presentation/ui/widgets/booking_status_chip.dart
-
 import 'package:flutter/material.dart';
 import '../../../../data/models/booking/booking_model.dart';
 
@@ -37,31 +35,35 @@ class BookingStatusChip extends StatelessWidget {
   /// 상태별 칩 데이터 반환
   _ChipData _getChipData(BookingStatus status) {
     switch (status) {
-      case BookingStatus.pending:
+      case BookingStatus.PENDING:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFFFF9800), // 주황색
+          color: const Color(0xFFFF9800),
         );
-      case BookingStatus.confirmed:
+      case BookingStatus.CONFIRMED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFF4CAF50), // 초록색
+          color: const Color(0xFF4CAF50),
         );
-      case BookingStatus.rejected:
-      case BookingStatus.canceled:
+      case BookingStatus.CANCELED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFFF44336), // 빨간색
+          color: const Color(0xFFF44336),
         );
-      case BookingStatus.completed:
+      case BookingStatus.COMPLETED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFF2196F3), // 파란색
+          color: const Color(0xFF2196F3),
         );
-      case BookingStatus.reviewed:
+      case BookingStatus.REVIEWED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFF9C27B0), // 보라색
+          color: const Color(0xFF9C27B0),
+        );
+      default:
+        return _ChipData(
+          text: status.description,
+          color: Colors.grey,
         );
     }
   }

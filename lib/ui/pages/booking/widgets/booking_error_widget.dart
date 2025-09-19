@@ -1,5 +1,3 @@
-// features/booking/presentation/ui/widgets/booking_error_widget.dart
-
 import 'package:flutter/material.dart';
 
 /// 예약 에러 상태 위젯
