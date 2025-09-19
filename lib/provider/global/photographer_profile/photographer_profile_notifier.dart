@@ -25,7 +25,7 @@ class PhotographerProfileState {
     bool? isLoading,
     String? errorMessage,
     bool? isEditMode,
-    bool setProfileToNull = false, 
+    bool setProfileToNull = false,
   }) {
     return PhotographerProfileState(
       profile: setProfileToNull ? null : (profile ?? this.profile),
@@ -51,9 +51,27 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
 
   @override
   PhotographerProfileState build() {
-    final dio = ref.watch(dioProvider); 
+    final dio = ref.watch(dioProvider);
     _repository = PhotographerProfileRepositoryImpl(dio);
     return const PhotographerProfileState();
+  }
+
+  /// 특정 포토그래퍼 프로필 조회 (ID로)
+  Future<void> loadProfileById(String photographerId) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      final profile = await _repository.getProfile(photographerId);
+      state = state.copyWith(
+        profile: profile,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      );
+    }
   }
 
   Future<void> loadMyProfile() async {
@@ -64,7 +82,7 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
         profile: profile,
         isLoading: false,
         isEditMode: profile != null,
-        setProfileToNull: profile == null, 
+        setProfileToNull: profile == null,
       );
     } catch (e) {
       try {
@@ -73,14 +91,17 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
           try {
             ref.read(sessionProvider.notifier).logout();
           } catch (_) {}
-          state = state.copyWith(isLoading: false, errorMessage: '인증 정보가 유효하지 않습니다. 다시 로그인해주세요.', setProfileToNull: true);
+          state = state.copyWith(
+              isLoading: false,
+              errorMessage: '인증 정보가 유효하지 않습니다. 다시 로그인해주세요.',
+              setProfileToNull: true);
           return;
         }
       } catch (_) {}
       state = state.copyWith(
         isLoading: false,
         errorMessage: e.toString(),
-        setProfileToNull: true, 
+        setProfileToNull: true,
       );
     }
   }
@@ -116,16 +137,17 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
 
       if (state.isEditMode && state.profile != null) {
         await _repository.updateProfile(state.profile!.id, dto);
-        await loadMyProfile(); 
-        
-        if (state.errorMessage == null) { 
-          state = state.copyWith(isEditMode: true, isLoading: false); 
+        await loadMyProfile();
+
+        if (state.errorMessage == null) {
+          state = state.copyWith(isEditMode: true, isLoading: false);
           return true;
         } else {
           return false;
         }
       } else {
-        final PhotographerProfile createdProfile = await _repository.createProfile(dto);
+        final PhotographerProfile createdProfile =
+            await _repository.createProfile(dto);
         state = state.copyWith(
           profile: createdProfile,
           isLoading: false,
@@ -151,7 +173,7 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
         profile: null,
         isLoading: false,
         isEditMode: false,
-        setProfileToNull: true, 
+        setProfileToNull: true,
       );
       return true;
     } catch (e) {
@@ -161,7 +183,7 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
   }
 
   void clearError() {
-    if (state.errorMessage != null) { 
+    if (state.errorMessage != null) {
       state = state.copyWith(errorMessage: null);
     }
   }
@@ -169,8 +191,8 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
   void setEditMode(bool isEdit) {
     state = state.copyWith(isEditMode: isEdit);
   }
-  
-  void clearProfile() { 
+
+  void clearProfile() {
     state = const PhotographerProfileState();
   }
 
@@ -181,7 +203,8 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
   }) {
     if (businessName.trim().isEmpty) return '상호명을 입력해주세요';
     if (location.trim().isEmpty) return '활동 지역을 입력해주세요';
-    if (experienceYears != null && (experienceYears < 0 || experienceYears > 50)) {
+    if (experienceYears != null &&
+        (experienceYears < 0 || experienceYears > 50)) {
       return '경력 연수는 0-50 사이의 값을 입력해주세요';
     }
     return null;
@@ -197,7 +220,8 @@ class PhotographerProfileNotifier extends Notifier<PhotographerProfileState> {
   }) {
     return PhotographerProfileFormDto(
       businessName: businessName.trim(),
-      introduction: introduction?.trim().isNotEmpty == true ? introduction!.trim() : null,
+      introduction:
+          introduction?.trim().isNotEmpty == true ? introduction!.trim() : null,
       location: location.trim(),
       experienceYears: experienceYears,
       profileImageUrl: profileImageUrl,
@@ -220,7 +244,8 @@ final profileErrorMessageProvider = Provider<String?>((ref) {
 });
 
 final hasProfileProvider = Provider<bool>((ref) {
-  return ref.watch(photographerProfileProvider.select((s) => s.profile != null));
+  return ref
+      .watch(photographerProfileProvider.select((s) => s.profile != null));
 });
 
 final currentProfileProvider = Provider<PhotographerProfile?>((ref) {

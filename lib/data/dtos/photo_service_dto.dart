@@ -40,14 +40,14 @@ class PhotoServiceDto {
 
   factory PhotoServiceDto.fromJson(Map<String, dynamic> json) {
     // 디버깅: JSON 구조 확인
-    print('=== PhotoService JSON 디버깅 ===');
-    print('전체 JSON: $json');
-    print('photographerId 필드: ${json['photographerId']}');
-    print('userId 필드: ${json['userId']}');
-    print('user 필드: ${json['user']}');
-    print('ownerId 필드: ${json['ownerId']}');
-    print('photographer 필드: ${json['photographer']}');
-    print('===============================');
+    // print('=== PhotoService JSON 디버깅 ===');
+    // print('전체 JSON: $json');
+    // print('photographerId 필드: ${json['photographerId']}');
+    // print('userId 필드: ${json['userId']}');
+    // print('user 필드: ${json['user']}');
+    // print('ownerId 필드: ${json['ownerId']}');
+    // print('photographer 필드: ${json['photographer']}');
+    // print('===============================');
 
     List<String> categoryNames = [];
     if (json['categoryList'] != null && json['categoryList'] is List) {
@@ -91,7 +91,7 @@ class PhotoServiceDto {
       photographerId = json['photographer']['id'] as int;
     }
 
-    print('=== 최종 추출된 photographerId: $photographerId ===');
+    //print('=== 최종 추출된 photographerId: $photographerId ===');
 
     return PhotoServiceDto(
       id: json['serviceId'] ?? 0,
@@ -211,7 +211,7 @@ class PriceOptionDto {
   });
 
   factory PriceOptionDto.fromJson(Map<String, dynamic> json) {
-    print('Raw PriceInfo JSON: $json'); // 디버깅용 - 나중에 제거
+    //print('Raw PriceInfo JSON: $json'); // 디버깅용 - 나중에 제거
 
     List<String> constructedFeatures = [];
     if (json['specialEquipment'] != null) {

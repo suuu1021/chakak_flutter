@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../../../_core/constants/api_config.dart';
 import '../../dtos/booking/booking_request_dto.dart';
 import '../../dtos/booking/booking_detail_dto.dart';
 import '../../dtos/booking/booking_dto.dart';
@@ -11,7 +12,8 @@ class BookingRepository {
 
   static String get serverUrl {
     if (Platform.isAndroid) {
-      return 'http://192.168.0.82:8080';
+      return ApiConfig.baseUrl;
+      //return 'http://192.168.0.82:8080';
     } else if (Platform.isIOS) {
       return 'http://localhost:8080';
     } else {

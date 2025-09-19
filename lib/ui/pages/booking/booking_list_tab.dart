@@ -195,19 +195,22 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
       onRefresh: () async {
         await ref.read(bookingListProvider.notifier).refresh();
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: bookings.length,
-        itemBuilder: (context, index) {
-          final booking = bookings[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: BookingCard(
-              booking: booking,
-              onTap: () => _showBookingDetail(booking),
-            ),
-          );
-        },
+      child: Container(
+        color: AppColors.gray200,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(4),
+          itemCount: bookings.length,
+          itemBuilder: (context, index) {
+            final booking = bookings[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: BookingCard(
+                booking: booking,
+                onTap: () => _showBookingDetail(booking),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
