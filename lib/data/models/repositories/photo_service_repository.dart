@@ -27,7 +27,7 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
 
   @override
   Future<List<PhotoService>> getServices() async {
-    final String apiUrl = '$serverUrl/api/photo/services/list';
+    final String apiUrl = '$serverUrl/api/photo/services/list?size=30'; //
     try {
       final response = await _dio.get(apiUrl);
 
