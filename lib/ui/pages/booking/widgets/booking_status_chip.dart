@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import '../../../../data/models/booking/booking_model.dart';
 
 /// 예약 상태 칩 위젯
@@ -15,10 +16,10 @@ class BookingStatusChip extends StatelessWidget {
     final chipData = _getChipData(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // vertical 패딩 증가
       decoration: BoxDecoration(
         color: chipData.color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16), // 더 둥글게 유지
         border: Border.all(color: chipData.color.withOpacity(0.3)),
       ),
       child: Text(
@@ -38,32 +39,32 @@ class BookingStatusChip extends StatelessWidget {
       case BookingStatus.PENDING:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFFFF9800),
+          color: AppColors.warning, // AppColors 사용
         );
       case BookingStatus.CONFIRMED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFF4CAF50),
+          color: AppColors.success, // AppColors 사용
         );
       case BookingStatus.CANCELED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFFF44336),
+          color: AppColors.error, // AppColors 사용
         );
       case BookingStatus.COMPLETED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFF2196F3),
+          color: AppColors.info, // AppColors 사용
         );
       case BookingStatus.REVIEWED:
         return _ChipData(
           text: status.description,
-          color: const Color(0xFF9C27B0),
+          color: AppColors.secondary, // 보라색 대신 secondary 사용
         );
       default:
         return _ChipData(
           text: status.description,
-          color: Colors.grey,
+          color: AppColors.gray500, // AppColors.gray500 사용
         );
     }
   }

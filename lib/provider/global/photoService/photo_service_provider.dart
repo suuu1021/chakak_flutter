@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/repositories/photo_service_category_repository.dart';
 import '../../../data/models/repositories/photo_service_repository.dart';
+import '../../core/dio_provider.dart';
 
 class ServiceState {
   final List<PhotoService> services;
@@ -39,8 +40,8 @@ class ServiceNotifier extends Notifier<ServiceState> {
 
   @override
   ServiceState build() {
-    _repository = PhotoServiceRepositoryImpl();
-
+    final dio = ref.watch(dioProvider); // dioProvider에서 공통 Dio 인스턴스 가져오기
+    _repository = PhotoServiceRepositoryImpl(dio); // Dio 인스턴스 주입
     return ServiceState();
   }
 

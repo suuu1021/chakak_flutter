@@ -13,7 +13,9 @@ abstract class PhotoServiceRepository {
 }
 
 class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
-  final Dio _dio = Dio();
+  final Dio _dio;
+  PhotoServiceRepositoryImpl(this._dio);
+
 
   String get serverUrl {
     if (Platform.isAndroid) {

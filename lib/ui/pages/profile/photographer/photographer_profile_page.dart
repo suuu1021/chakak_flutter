@@ -67,7 +67,7 @@ class _PhotographerProfilePageState
   Widget _buildProfileSection() {
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacing16),
-      child: const PhotographerUpperProfile(),
+      child: PhotographerUpperProfile(photographerId: widget.photographerId),
     );
   }
 

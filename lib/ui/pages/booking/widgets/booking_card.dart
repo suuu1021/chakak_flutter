@@ -155,7 +155,7 @@ class BookingCard extends ConsumerWidget {
     );
   }
 
-  /// 헤더 영역 (상대방명 + 상태)
+  /// 헤더 영역
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -243,6 +243,66 @@ class BookingCard extends ConsumerWidget {
   Widget _buildUserButtons(BuildContext context, WidgetRef ref) {
     switch (booking.status) {
       case BookingStatus.PENDING:
+        return _buildActionChip(
+          text: '예약 취소',
+          color: AppColors.error,
+          onPressed: () => _showCancelDialog(context, ref),
+        );
+      case BookingStatus.CONFIRMED:
+        return _buildActionChip(text: '촬영 예정', color: AppColors.success);
+      case BookingStatus.COMPLETED:
+        return _buildActionChip(
+          text: '리뷰 작성',
+          color: AppColors.info,
+          onPressed: () => _writeReview(context),
+        );
+      case BookingStatus.REVIEWED:
+        return _buildActionChip(
+          text: '내 리뷰 보기',
+          color: AppColors.secondary,
+          onPressed: () => _viewMyReview(context),
+        );
+      case BookingStatus.CANCELED:
+        return _buildActionChip(text: '취소된 예약', color: AppColors.error);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  /// 포토그래퍼 버튼들
+  Widget _buildPhotographerButtons(BuildContext context, WidgetRef ref) {
+    switch (booking.status) {
+      case BookingStatus.PENDING:
+        return _buildActionChip(
+          text: '결제 확인',
+          color: AppColors.warning,
+          onPressed: () => _confirmBooking(context, ref),
+        );
+      case BookingStatus.CONFIRMED:
+        return _buildActionChip(
+          text: '촬영 완료',
+          color: AppColors.success,
+          onPressed: () => _completeBooking(context, ref),
+        );
+      case BookingStatus.COMPLETED:
+        return _buildActionChip(text: '촬영 완료', color: AppColors.info);
+      case BookingStatus.REVIEWED:
+        return _buildActionChip(
+          text: '리뷰 확인',
+          color: AppColors.secondary,
+          onPressed: () => _viewReview(context),
+        );
+      case BookingStatus.CANCELED:
+        return _buildActionChip(text: '취소된 예약', color: AppColors.error);
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+  /*
+  /// 사용자 버튼들
+  Widget _buildUserButtons(BuildContext context, WidgetRef ref) {
+    switch (booking.status) {
+      case BookingStatus.PENDING:
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -254,7 +314,7 @@ class BookingCard extends ConsumerWidget {
           ],
         );
       case BookingStatus.CONFIRMED:
-        return _buildReadOnlyChip('촬영 예정', Colors.green);
+        return _buildReadOnlyChip('촬영 예정', Colors.lightGreen);
       case BookingStatus.COMPLETED:
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
@@ -362,7 +422,56 @@ class BookingCard extends ConsumerWidget {
       ],
     );
   }
+*/
+  /// 통합 액션 칩 위젯
+  Widget _buildActionChip({
+    required String text,
+    required Color color,
+    VoidCallback? onPressed,
+  }) {
+    final isClickable = onPressed != null;
 
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                // 클릭 가능하면 진한 배경, 아니면 연한 배경
+                color: isClickable ? color : color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8), // 상태칩보다 덜 둥글게
+                border: Border.all(
+                  color: isClickable ? color : color.withOpacity(0.3),
+                ),
+                // 클릭 가능하면 미세한 그림자
+                boxShadow: isClickable ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.6),
+                    blurRadius: 4,
+                    offset: const Offset(1, 2),
+                  ),
+                ] : null,
+              ),
+              child: Text(
+                text,
+                style: TextStyle(
+                  // 클릭 가능하면 흰색, 아니면 원래 색상
+                  color: isClickable ? Colors.white : color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
   /// 예약 취소 다이얼로그 표시
   void _showCancelDialog(BuildContext context, WidgetRef ref) {
     showDialog(

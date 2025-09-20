@@ -117,7 +117,9 @@ class SearchNotifier extends Notifier<SearchState> {
   // 포토서비스 검색 메서드
   Future<List<PhotoService>> searchPhotoServices(String query) async {
     try {
-      final photoServiceRepository = PhotoServiceRepositoryImpl();
+      final dio = ref.read(dioProvider); // 추가
+
+      final photoServiceRepository = PhotoServiceRepositoryImpl(dio);
       final allServices = await photoServiceRepository.getServices();
 
       return allServices.where((service) {

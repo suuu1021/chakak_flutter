@@ -89,13 +89,13 @@ class PhotographerProfileRepositoryImpl implements PhotographerProfileRepository
   Future<PhotographerProfile?> getProfile(String id) async {
     try {
       final response = await _dio.get('/api/photographers/$id');
-      print('[DEBUG] getProfile 응답 코드: ${response.statusCode}');
-      print('[DEBUG] getProfile 응답 데이터: ${response.data}');
       if (response.statusCode == 200) {
-        if (response.data != null && response.data['response'] is Map<String, dynamic>) {
+        if (response.data != null && response.data['body'] is Map<String, dynamic>) {
+          return PhotographerProfile.fromJson(response.data['body']);
+        } else if (response.data != null && response.data['response'] is Map<String, dynamic>) {
           return PhotographerProfile.fromJson(response.data['response']);
         } else if (response.data is Map<String, dynamic>){
-            return PhotographerProfile.fromJson(response.data);
+          return PhotographerProfile.fromJson(response.data);
         }
         return null;
       }
@@ -108,7 +108,6 @@ class PhotographerProfileRepositoryImpl implements PhotographerProfileRepository
       throw Exception('프로필 조회에 실패했습니다: ${e.toString()}');
     }
   }
-
   @override
   Future<PhotographerProfile?> getMyProfile() async {
     try {

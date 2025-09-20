@@ -226,16 +226,19 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
         // 새로고침 로직
         await Future.delayed(const Duration(milliseconds: 500));
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: filteredPayments.length,
-        itemBuilder: (context, index) {
-          final payment = filteredPayments[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildPaymentCard(payment),
-          );
-        },
+      child: Container(
+        color: AppColors.gray200,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: filteredPayments.length,
+          itemBuilder: (context, index) {
+            final payment = filteredPayments[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: _buildPaymentCard(payment),
+            );
+          },
+        ),
       ),
     );
   }
@@ -261,7 +264,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

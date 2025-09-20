@@ -97,29 +97,6 @@ class _HomeContentState extends ConsumerState<HomeContent>
     ]);
   }
 
-  // 임시 채팅방 시작 함수
-  void _startTempChat(BuildContext context, WidgetRef ref) async {
-    try {
-      // 사진작가 1번과의 채팅방 생성/조회를 요청합니다.
-      final chatRoomResponse = await ref.read(createChatRoomProvider(1).future);
-
-      // 성공적으로 chatRoomId를 받아오면 채팅 화면으로 이동합니다.
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChatScreen(
-            chatRoomId: chatRoomResponse.chatRoomId,
-            opponentNickname: '작가 1', // opponentNickname을 직접 지정
-          ),
-        ),
-      );
-    } catch (e) {
-      // 에러 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('채팅방 입장에 실패했습니다: $e')),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,34 +110,26 @@ class _HomeContentState extends ConsumerState<HomeContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 임시 채팅 시작 버튼 (활성화)
-            ElevatedButton(
-              onPressed: () => _startTempChat(context, ref),
-              child: const Text('작가 1과 임시 채팅 시작'),
-            ),
-            const SizedBox(height: 16),
 
             // 배너 영역
             BannerWidget(
-              height: 180,
+              height: 130,
               autoSlideInterval: const Duration(seconds: 3),
               showIndicators: true,
               onBannerTap: _onBannerTap,
-              margin: const EdgeInsets.all(16),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
             ),
-
             // 카테고리
             PhotoServiceCategoryWidget(
               height: 120,
               onCategorySelected: (category) =>
                   _onCategoryTap(context, category),
             ),
-
-            const SizedBox(height: 10),
+            //const SizedBox(height: 8),
             ServiceCardList(
               onServiceTap: (service) => _onServiceTap(context, service),
             ),
-            const SizedBox(height: 24),
+            //const SizedBox(height: 8),
             PhotographerCardList(
               onPhotographerTap: (photographer) =>
                   _onPhotographerTap(context, photographer),

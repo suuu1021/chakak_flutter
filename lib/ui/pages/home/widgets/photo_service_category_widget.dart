@@ -15,8 +15,8 @@ class PhotoServiceCategoryWidget extends ConsumerStatefulWidget {
   const PhotoServiceCategoryWidget({
     Key? key,
     required this.onCategorySelected,
-    this.height = 120.0,
-    this.padding = const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+    this.height = 80.0,
+    this.padding = const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
   }) : super(key: key);
 
   @override
@@ -168,7 +168,7 @@ class _PhotoServiceCategoryWidgetState
         widget.onCategorySelected(category);
       },
       child: Container(
-        width: 80,
+        width: 60,
         margin: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

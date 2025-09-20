@@ -1,30 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_images.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/constants/app_sizes.dart';
+import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 
-class PhotographerUpperProfile extends StatelessWidget {
-  const PhotographerUpperProfile({super.key});
+class PhotographerUpperProfile extends ConsumerStatefulWidget {
+  final int photographerId;
+
+  const PhotographerUpperProfile({
+    super.key,
+    required this.photographerId,
+  });
+
+  @override
+  ConsumerState<PhotographerUpperProfile> createState() => _PhotographerUpperProfileState();
+}
+
+class _PhotographerUpperProfileState extends ConsumerState<PhotographerUpperProfile> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(photographerProfileProvider.notifier)
+          .loadProfileById(widget.photographerId.toString());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(photographerProfileProvider);
+
     return Column(
       children: [
-        _buildProfileSection(context),
+        _buildProfileSection(context, profileState),
         const SizedBox(height: AppSizes.spacing12),
-        _buildStatsCard(),
+        _buildStatsCard(profileState),
       ],
     );
   }
 
-  Widget _buildProfileSection(BuildContext context) {
+  Widget _buildProfileSection(BuildContext context, PhotographerProfileState profileState) {
     return Row(
       children: [
-        _buildProfileImage(),
+        _buildProfileImage(profileState),
         const SizedBox(width: AppSizes.spacing16),
-        Expanded(child: _buildProfileInfo()),
+        Expanded(child: _buildProfileInfo(profileState)),
         const SizedBox(width: AppSizes.spacing16),
         IconButton(
           onPressed: () {
@@ -36,32 +60,80 @@ class PhotographerUpperProfile extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileImage() {
-    return const CircleAvatar(
-      backgroundImage: AssetImage(AppImages.photographerProfile),
+  Widget _buildProfileImage(PhotographerProfileState profileState) {
+    final imageUrl = profileState.profile?.profileImageUrl;
+
+    return CircleAvatar(
+      backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+          ? NetworkImage(imageUrl)
+          : const AssetImage(AppImages.photographerProfile) as ImageProvider,
       maxRadius: 40,
       minRadius: 20,
       backgroundColor: AppColors.gray200,
+      onBackgroundImageError: imageUrl != null
+          ? (exception, stackTrace) => const AssetImage(AppImages.photographerProfile)
+          : null,
     );
   }
 
-  Widget _buildProfileInfo() {
+  Widget _buildProfileInfo(PhotographerProfileState profileState) {
+    if (profileState.isLoading) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLoadingShimmer(width: 120, height: 16),
+          const SizedBox(height: 4),
+          _buildLoadingShimmer(width: 80, height: 14),
+          const SizedBox(height: 4),
+          _buildLoadingShimmer(width: 150, height: 12),
+          const SizedBox(height: 4),
+          _buildLoadingShimmer(width: 100, height: 12),
+        ],
+      );
+    }
+
+    if (profileState.profile == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            profileState.errorMessage ?? '프로필 정보 없음',
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.error,
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildUsername(),
+        _buildUsername(profileState.profile!.businessName),
         _buildRatingSection(),
-        _buildWorkingHours(),
-        _buildResponseTime(),
-        _buildHashTags(),
+        _buildLocation(profileState.profile!.location),
+        // _buildExperience(profileState.profile!.experienceYears),
+        _buildHashTags(profileState.profile!.categories),
       ],
     );
   }
 
-  Widget _buildUsername() {
-    return const Text(
-      'PhotographerUsername',
-      style: TextStyle(
+  Widget _buildLoadingShimmer({required double width, required double height}) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.gray300,
+        borderRadius: BorderRadius.circular(4),
+      ),
+    );
+  }
+
+  Widget _buildUsername(String businessName) {
+    return Text(
+      businessName,
+      style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
@@ -98,30 +170,46 @@ class PhotographerUpperProfile extends StatelessWidget {
     );
   }
 
-  Widget _buildWorkingHours() {
-    return const Text(
-      '연락가능시간 : 10:00 ~ 18:00',
-      style: TextStyle(
+  Widget _buildLocation(String location) {
+    return Text(
+      '활동 지역: $location',
+      style: const TextStyle(
         fontSize: 12,
         color: AppColors.textSecondary,
       ),
     );
   }
 
-  Widget _buildResponseTime() {
-    return const Text(
-      '평균응답시간 : 1시간 이내',
-      style: TextStyle(
-        fontSize: 12,
-        color: AppColors.textSecondary,
-      ),
-    );
-  }
+  // Widget _buildExperience(int? experienceYears) {
+  //   return Text(
+  //     '경력: ${experienceYears ?? 0}년',
+  //     style: const TextStyle(
+  //       fontSize: 12,
+  //       color: AppColors.textSecondary,
+  //     ),
+  //   );
+  // }
 
-  Widget _buildHashTags() {
-    return const Text(
-      '#데일리 포토, #스냅샷, #인생샷',
-      style: TextStyle(
+  Widget _buildHashTags(List<dynamic>? categories) {
+    if (categories == null || categories.isEmpty) {
+      return const Text(
+        '#포토그래퍼',
+        style: TextStyle(
+          fontSize: 12,
+          color: AppColors.primary,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    final categoryNames = categories
+        .take(3) // 최대 3개만 표시
+        .map((category) => '#${category.name ?? category.toString()}')
+        .join(', ');
+
+    return Text(
+      categoryNames,
+      style: const TextStyle(
         fontSize: 12,
         color: AppColors.primary,
         fontWeight: FontWeight.w500,
@@ -129,7 +217,7 @@ class PhotographerUpperProfile extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsCard() {
+  Widget _buildStatsCard(PhotographerProfileState profileState) {
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacing6),
       decoration: BoxDecoration(
@@ -143,7 +231,7 @@ class PhotographerUpperProfile extends StatelessWidget {
           _buildVerticalDivider(),
           _buildStatItem('만족도', '98%'),
           _buildVerticalDivider(),
-          _buildStatItem('회원 구분', '개인 작가'),
+          _buildStatItem('경력', '${profileState.profile?.experienceYears ?? 0}년'),
         ],
       ),
     );

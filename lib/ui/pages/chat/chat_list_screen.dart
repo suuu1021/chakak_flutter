@@ -3,8 +3,10 @@ import 'package:chakak_flutter/provider/chat/chat_list_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../_core/constants/app_colors.dart';
 import '../../../_core/constants/app_text_styles.dart';
 import '../../../data/dtos/chat_room_list_item_dto.dart';
+import '../../../provider/chat/chat_room_provider.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends ConsumerStatefulWidget {
@@ -64,16 +66,36 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     }
   }
 
+  // 임시 채팅방 시작 함수
+  void _startTempChat(BuildContext context, WidgetRef ref) async {
+    try {
+      // 사진작가 1번과의 채팅방 생성/조회를 요청합니다.
+      final chatRoomResponse = await ref.read(createChatRoomProvider(1).future);
+
+      // 성공적으로 chatRoomId를 받아오면 채팅 화면으로 이동합니다.
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatRoomId: chatRoomResponse.chatRoomId,
+            opponentNickname: '작가 1', // opponentNickname을 직접 지정
+          ),
+        ),
+      );
+    } catch (e) {
+      // 에러 처리
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅방 입장에 실패했습니다: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final chatListState = ref.watch(chatListProvider);
     final chatRooms = chatListState.chatRooms;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text(AppStrings.chat, style: AppTextStyles.h4),
-      ),
       body: RefreshIndicator(
         onRefresh: _onRefresh,
         child: Stack(
@@ -111,6 +133,17 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                 child: Text('채팅 내역이 없습니다.\n작가에게 먼저 말을 걸어보세요!'),
               ),
           ],
+        ),
+      ),
+      // 임시 채팅 시작 버튼 (활성화)
+      floatingActionButton: FloatingActionButton(
+        shape: const CircleBorder(), // 완전한 원형
+
+        backgroundColor: AppColors.primaryLight,
+        onPressed: () => _startTempChat(context, ref),
+        child: const Icon(
+          Icons.add_comment,
+          color: AppColors.primary,
         ),
       ),
     );
