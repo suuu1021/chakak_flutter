@@ -5,6 +5,7 @@ import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_images.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/constants/app_sizes.dart';
+import '../../../../../provider/auth/session_provider.dart';
 import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 
 class PhotographerUpperProfile extends ConsumerStatefulWidget {
@@ -16,10 +17,12 @@ class PhotographerUpperProfile extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PhotographerUpperProfile> createState() => _PhotographerUpperProfileState();
+  ConsumerState<PhotographerUpperProfile> createState() =>
+      _PhotographerUpperProfileState();
 }
 
-class _PhotographerUpperProfileState extends ConsumerState<PhotographerUpperProfile> {
+class _PhotographerUpperProfileState
+    extends ConsumerState<PhotographerUpperProfile> {
   @override
   void initState() {
     super.initState();
@@ -43,19 +46,29 @@ class _PhotographerUpperProfileState extends ConsumerState<PhotographerUpperProf
     );
   }
 
-  Widget _buildProfileSection(BuildContext context, PhotographerProfileState profileState) {
+  Widget _buildProfileSection(
+      BuildContext context, PhotographerProfileState profileState) {
+    final session = ref.watch(sessionProvider); // 세션 정보 가져오기
+
+    // 현재 로그인한 포토그래퍼가 자신의 프로필을 보고 있는지 확인
+    final isOwner = session.isLogin &&
+        session.userTypeCode == 'photographer' &&
+        profileState.profile != null &&
+        session.userId.toString() == profileState.profile!.userId;
+
     return Row(
       children: [
         _buildProfileImage(profileState),
         const SizedBox(width: AppSizes.spacing16),
         Expanded(child: _buildProfileInfo(profileState)),
         const SizedBox(width: AppSizes.spacing16),
-        IconButton(
-          onPressed: () {
-            Navigator.pushNamed(context, AppRoutes.photographerProfileForm);
-          },
-          icon: const Icon(Icons.settings),
-        )
+        if (isOwner) // 조건부 렌더링으로 설정 아이콘 표시
+          IconButton(
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.photographerProfileForm);
+            },
+            icon: const Icon(Icons.edit),
+          ),
       ],
     );
   }
@@ -71,7 +84,8 @@ class _PhotographerUpperProfileState extends ConsumerState<PhotographerUpperProf
       minRadius: 20,
       backgroundColor: AppColors.gray200,
       onBackgroundImageError: imageUrl != null
-          ? (exception, stackTrace) => const AssetImage(AppImages.photographerProfile)
+          ? (exception, stackTrace) =>
+              const AssetImage(AppImages.photographerProfile)
           : null,
     );
   }
@@ -231,7 +245,8 @@ class _PhotographerUpperProfileState extends ConsumerState<PhotographerUpperProf
           _buildVerticalDivider(),
           _buildStatItem('만족도', '98%'),
           _buildVerticalDivider(),
-          _buildStatItem('경력', '${profileState.profile?.experienceYears ?? 0}년'),
+          _buildStatItem(
+              '경력', '${profileState.profile?.experienceYears ?? 0}년'),
         ],
       ),
     );

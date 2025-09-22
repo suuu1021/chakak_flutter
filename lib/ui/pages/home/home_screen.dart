@@ -1,6 +1,4 @@
-import 'package:chakak_flutter/provider/chat/chat_room_provider.dart';
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
-import 'package:chakak_flutter/ui/pages/chat/chat_screen.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/banner_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photo_service_category_widget.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_card_list.dart';
@@ -17,8 +15,8 @@ import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../community/commmunity_list_page.dart';
 import '../photo_service/category_service_list_page.dart';
 import '../photo_service/photo_service_detail_page.dart';
-import '../profile/user/my_profile_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
+import '../profile/user/my_profile_page.dart';
 import '../search/search_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -97,7 +95,6 @@ class _HomeContentState extends ConsumerState<HomeContent>
     ]);
   }
 
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -110,7 +107,6 @@ class _HomeContentState extends ConsumerState<HomeContent>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // 배너 영역
             BannerWidget(
               height: 130,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../data/models/portfolio.dart';
+import '../../../provider/auth/session_provider.dart';
 import '../../../provider/auth_provider.dart';
 import '../../../provider/global/portfolio/portfolio_notifier.dart';
 import 'portfolio_detail_page.dart';
@@ -51,8 +52,39 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
   @override
   Widget build(BuildContext context) {
     final portfolioState = ref.watch(portfolioProvider);
-    final authState = ref.watch(authProvider);
-    final isPhotographer = authState.login?.userTypeCode == 'photographer';
+    final session = ref.watch(sessionProvider);
+
+    // 디버깅을 위한 로그
+    print("=== PortfolioPage 디버깅 ===");
+    print("session.isLogin: ${session.isLogin}");
+    print("session.userId: ${session.userId}");
+    print("session.userTypeCode: ${session.userTypeCode}");
+    print("widget.photographerId: ${widget.photographerId}");
+    print(
+        "portfolioState.portfolios.length: ${portfolioState.portfolios.length}");
+
+    // 포트폴리오가 있을 때 첫 번째 포트폴리오의 소유자 ID 확인
+    String? portfolioOwnerUserId;
+    if (portfolioState.portfolios.isNotEmpty) {
+      portfolioOwnerUserId = portfolioState.portfolios.first.photographerUserId;
+      print("portfolioOwnerUserId: $portfolioOwnerUserId");
+    }
+
+    // 자신의 포트폴리오인지 확인
+    final isMyPortfolio = session.isLogin &&
+        session.userTypeCode?.toLowerCase() == 'photographer' &&
+        portfolioOwnerUserId != null &&
+        session.userId.toString() == portfolioOwnerUserId;
+
+    print("각 조건 체크:");
+    print("  session.isLogin: ${session.isLogin}");
+    print(
+        "  session.userTypeCode?.toLowerCase() == 'photographer': ${session.userTypeCode?.toLowerCase() == 'photographer'}");
+    print("  portfolioOwnerUserId != null: ${portfolioOwnerUserId != null}");
+    print(
+        "  session.userId.toString() == portfolioOwnerUserId: ${session.userId.toString() == portfolioOwnerUserId}");
+    print("최종 isMyPortfolio: $isMyPortfolio");
+    print("====================================");
 
     return Scaffold(
       body: SafeArea(
@@ -70,7 +102,7 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
           ),
         ),
       ),
-      floatingActionButton: isPhotographer
+      floatingActionButton: isMyPortfolio
           ? FloatingActionButton(
               onPressed: () => _onAddPortfolio(context),
               backgroundColor: AppColors.primary,
