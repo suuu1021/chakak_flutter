@@ -379,6 +379,50 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     }
   }
 
+  /// 포트폴리오 생성 (파일 업로드 포함)
+  Future<bool> createPortfolioWithFiles({
+    required String title,
+    required String description,
+    required List<String> categories,
+    required int photographerId,
+    required List<String> imagePaths,
+  }) async {
+    if (kDebugMode) {
+      print('파일 업로드 포트폴리오 생성 시작: $title');
+      print('이미지 파일 개수: ${imagePaths.length}');
+    }
+
+    try {
+      final createdPortfolio =
+          await _portfolioRepository.createPortfolioWithFiles(
+        title: title,
+        description: description,
+        categories: categories,
+        photographerId: photographerId,
+        imageData: imagePaths,
+      );
+
+      if (kDebugMode) {
+        print('파일 업로드 포트폴리오 생성 완료: ${createdPortfolio.title}');
+      }
+
+      // 기존 목록에 새 포트폴리오 추가
+      state = state.copyWith(
+        portfolios: [...state.portfolios, createdPortfolio],
+        totalElements: state.totalElements + 1,
+      );
+
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('파일 업로드 포트폴리오 생성 실패: $e');
+      }
+
+      state = state.copyWith(errorMessage: e.toString());
+      return false;
+    }
+  }
+
   /// 포트폴리오 수정
   Future<bool> updatePortfolio(String id, Portfolio portfolio) async {
     if (kDebugMode) {
@@ -413,6 +457,61 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     } catch (e) {
       if (kDebugMode) {
         print('포트폴리오 수정 실패: $e');
+      }
+
+      state = state.copyWith(errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  /// 포트폴리오 수정 (파일 업로드 포함)
+  Future<bool> updatePortfolioWithFiles({
+    required String portfolioId,
+    required String title,
+    required String description,
+    required List<String> categories,
+    required List<String> imagePaths,
+  }) async {
+    if (kDebugMode) {
+      print('파일 업로드 포트폴리오 수정 시작: $portfolioId');
+      print('제목: $title');
+      print('이미지 파일 개수: ${imagePaths.length}');
+    }
+
+    try {
+      final updatedPortfolio =
+          await _portfolioRepository.updatePortfolioWithFiles(
+        portfolioId: portfolioId,
+        title: title,
+        description: description,
+        categories: categories,
+        imagePaths: imagePaths,
+      );
+
+      if (kDebugMode) {
+        print('파일 업로드 포트폴리오 수정 완료: ${updatedPortfolio.title}');
+      }
+
+      // 기존 목록에서 해당 포트폴리오 업데이트
+      final updatedList = state.portfolios.map((p) {
+        return p.id == portfolioId ? updatedPortfolio : p;
+      }).toList();
+
+      // selectedPortfolio도 함께 업데이트
+      Portfolio? updatedSelectedPortfolio = state.selectedPortfolio;
+      if (state.selectedPortfolio?.id == portfolioId) {
+        updatedSelectedPortfolio = updatedPortfolio;
+      }
+
+      state = state.copyWith(
+        portfolios: updatedList,
+        selectedPortfolio: updatedSelectedPortfolio,
+      );
+
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('파일 업로드 포트폴리오 수정 실패: $e');
       }
 
       state = state.copyWith(errorMessage: e.toString());

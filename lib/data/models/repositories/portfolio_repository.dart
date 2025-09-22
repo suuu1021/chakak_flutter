@@ -48,6 +48,24 @@ abstract class PortfolioRepository {
   /// 포트폴리오 생성
   Future<Portfolio> createPortfolio(Portfolio portfolio);
 
+  /// 포트폴리오 생성 (파일 업로드 포함)
+  Future<Portfolio> createPortfolioWithFiles({
+    required String title,
+    required String description,
+    required List<String> categories,
+    required int photographerId,
+    required List<String> imageData,
+  });
+
+  /// 포트폴리오 수정 (파일 업로드 포함)
+  Future<Portfolio> updatePortfolioWithFiles({
+    required String portfolioId,
+    required String title,
+    required String description,
+    required List<String> categories,
+    required List<String> imagePaths,
+  });
+
   /// 포트폴리오 수정
   Future<Portfolio> updatePortfolio(String id, Portfolio portfolio);
 
@@ -219,6 +237,38 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
   }
 
   @override
+  Future<Portfolio> createPortfolioWithFiles({
+    required String title,
+    required String description,
+    required List<String> categories,
+    required int photographerId,
+    required List<String> imageData,
+  }) async {
+    try {
+      print('=== Repository: Base64 파일 업로드 포트폴리오 생성 ===');
+      print('제목: $title');
+      print('이미지 파일 개수: ${imageData.length}');
+
+      final response = await _apiService.createPortfolioWithFiles(
+        title: title,
+        description: description,
+        categories: categories,
+        photographerId: photographerId,
+        imagePaths: imageData,
+      );
+
+      print('=== Repository: Base64 파일 업로드 포트폴리오 생성 완료 ===');
+      print('응답 데이터: $response');
+
+      return Portfolio.fromJson(response);
+    } catch (e) {
+      print('=== Repository: Base64 파일 업로드 포트폴리오 생성 실패 ===');
+      print('에러: $e');
+      throw Exception('Base64 파일 업로드 포트폴리오 생성에 실패했습니다: $e');
+    }
+  }
+
+  @override
   Future<Portfolio> updatePortfolio(String id, Portfolio portfolio) async {
     try {
       print('=== 포트폴리오 수정 요청 ===');
@@ -243,6 +293,39 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
       return updatedPortfolio;
     } catch (e) {
       throw Exception('포트폴리오 수정에 실패했습니다: $e');
+    }
+  }
+
+  @override
+  Future<Portfolio> updatePortfolioWithFiles({
+    required String portfolioId,
+    required String title,
+    required String description,
+    required List<String> categories,
+    required List<String> imagePaths,
+  }) async {
+    try {
+      print('=== Repository: Base64 파일 업로드 포트폴리오 수정 ===');
+      print('포트폴리오 ID: $portfolioId');
+      print('제목: $title');
+      print('이미지 파일 개수: ${imagePaths.length}');
+
+      final response = await _apiService.updatePortfolioWithFiles(
+        portfolioId: portfolioId,
+        title: title,
+        description: description,
+        categories: categories,
+        imagePaths: imagePaths,
+      );
+
+      print('=== Repository: Base64 파일 업로드 포트폴리오 수정 완료 ===');
+      print('응답 데이터: $response');
+
+      return Portfolio.fromJson(response);
+    } catch (e) {
+      print('=== Repository: Base64 파일 업로드 포트폴리오 수정 실패 ===');
+      print('에러: $e');
+      throw Exception('Base64 파일 업로드 포트폴리오 수정에 실패했습니다: $e');
     }
   }
 

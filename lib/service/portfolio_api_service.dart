@@ -1,5 +1,8 @@
 // lib/services/api/portfolio_api_service.dart
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 // 페이징 응답 데이터 클래스 (클래스 외부에서 정의)
@@ -336,6 +339,190 @@ class PortfolioApiService {
     }
   }
 
+  /// Base64 파일 변환 및 검증 헬퍼 메서드
+  Future<List<Map<String, String>>> _convertFilesToBase64(
+      List<String> imagePaths) async {
+    const int maxFileSize = 10 * 1024 * 1024; // 10MB 제한
+    const List<String> supportedExtensions = [
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'webp'
+    ];
+
+    List<Map<String, String>> base64Images = [];
+
+    for (String imagePath in imagePaths) {
+      try {
+        final file = File(imagePath);
+
+        // 1. 파일 존재 확인
+        if (!await file.exists()) {
+          print('경고: 파일이 존재하지 않음 - $imagePath');
+          throw Exception('파일을 찾을 수 없습니다: ${imagePath.split('/').last}');
+        }
+
+        // 2. 파일 확장자 검증
+        final fileName = imagePath.split('/').last;
+        final extension = fileName.split('.').last.toLowerCase();
+        if (!supportedExtensions.contains(extension)) {
+          throw Exception(
+              '지원하지 않는 파일 형식입니다: .$extension\n지원 형식: ${supportedExtensions.join(', ')}');
+        }
+
+        // 3. 파일 크기 검증
+        final fileSize = await file.length();
+        if (fileSize > maxFileSize) {
+          final sizeMB = (fileSize / (1024 * 1024)).toStringAsFixed(1);
+          throw Exception(
+              '파일 크기가 너무 큽니다: ${sizeMB}MB\n최대 크기: ${maxFileSize ~/ (1024 * 1024)}MB');
+        }
+
+        if (fileSize == 0) {
+          throw Exception('빈 파일입니다: $fileName');
+        }
+
+        // 4. 파일 읽기 및 Base64 변환
+        final bytes = await file.readAsBytes();
+
+        // 5. Base64 인코딩 (메모리 부족 가능성 체크)
+        String base64String;
+        try {
+          base64String = base64Encode(bytes);
+        } catch (e) {
+          throw Exception('파일 인코딩에 실패했습니다: $fileName\n원인: 메모리 부족 또는 파일 손상');
+        }
+
+        // 6. MIME 타입 설정
+        String mimeType;
+        switch (extension) {
+          case 'png':
+            mimeType = 'image/png';
+            break;
+          case 'gif':
+            mimeType = 'image/gif';
+            break;
+          case 'webp':
+            mimeType = 'image/webp';
+            break;
+          case 'jpg':
+          case 'jpeg':
+          default:
+            mimeType = 'image/jpeg';
+            break;
+        }
+
+        base64Images.add({
+          'fileName': fileName,
+          'mimeType': mimeType,
+          'base64Data': base64String,
+        });
+
+        print(
+            '파일 변환 성공: $fileName (${(fileSize / 1024).toStringAsFixed(1)}KB)');
+      } catch (e) {
+        // 개별 파일 처리 실패 시 전체 작업 중단
+        print('파일 변환 실패: $imagePath - $e');
+        rethrow;
+      }
+    }
+
+    // 7. 전체 데이터 크기 검증 (Base64는 약 33% 증가)
+    final totalBase64Size = base64Images.fold<int>(
+        0, (sum, image) => sum + (image['base64Data']?.length ?? 0));
+
+    const int maxTotalSize = 50 * 1024 * 1024; // 50MB 제한
+    if (totalBase64Size > maxTotalSize) {
+      final sizeMB = (totalBase64Size / (1024 * 1024)).toStringAsFixed(1);
+      throw Exception(
+          '전체 이미지 크기가 너무 큽니다: ${sizeMB}MB\n최대 크기: ${maxTotalSize ~/ (1024 * 1024)}MB');
+    }
+
+    print(
+        'Base64 변환 완료: ${base64Images.length}개 파일, 총 ${(totalBase64Size / (1024 * 1024)).toStringAsFixed(1)}MB');
+    return base64Images;
+  }
+
+  /// 포트폴리오 생성 (서버 구조에 맞춘 버전)
+  /// POST /api/portfolios/create
+  Future<Map<String, dynamic>> createPortfolioWithFiles({
+    required String title,
+    required String description,
+    required List<String> categories,
+    required int photographerId,
+    required List<String> imagePaths,
+  }) async {
+    try {
+      print('=== 포트폴리오 서버 맞춤 생성 요청 ===');
+      print('제목: $title');
+      print('이미지 파일 개수: ${imagePaths.length}');
+
+// 카테고리 String을 실제 ID로 변환
+      List<int> categoryIds = await _convertCategoriesToIds(categories);
+
+      // Base64 이미지를 AddImageDTO 형태로 변환
+      List<Map<String, dynamic>> imageInfoList = [];
+      for (String imagePath in imagePaths) {
+        final file = File(imagePath);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          final base64String = base64Encode(bytes);
+          final fileName = imagePath.split('/').last;
+
+          // 서버 AddImageDTO 구조에 맞게 변환
+          imageInfoList.add({
+            'portfolioId': null, // 생성 시에는 null
+            'imageData': 'data:image/jpeg;base64,$base64String', // data URL 형태
+            'originalFileName': fileName,
+            'isMain': imageInfoList.isEmpty, // 첫 번째를 메인으로
+          });
+
+          print('파일 변환 완료: $fileName (${bytes.length} bytes)');
+        }
+      }
+
+      // 서버 DTO 구조에 맞춘 JSON 데이터
+      final requestData = {
+        'title': title,
+        'description': description,
+        'thumbnailUrl':
+            imageInfoList.isNotEmpty ? imageInfoList[0]['imageData'] : null,
+        'categoryIds': categoryIds, // Long 배열
+        'imageInfoList': imageInfoList, // AddImageDTO 배열
+      };
+
+      print('=== 서버 전송 데이터 ===');
+      print('categoryIds: $categoryIds');
+      print('imageInfoList 개수: ${imageInfoList.length}');
+
+      final response = await _dio.post(
+        '$_baseUrl/create',
+        data: requestData,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+          sendTimeout: const Duration(minutes: 5),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
+
+      print('=== 포트폴리오 서버 맞춤 생성 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('body')) {
+        return responseData['body'] as Map<String, dynamic>;
+      } else {
+        return responseData as Map<String, dynamic>;
+      }
+    } on DioException catch (e) {
+      print('=== 포트폴리오 서버 맞춤 생성 에러 ===');
+      print('에러: $e');
+      throw _handleDioError(e, '포트폴리오 생성');
+    }
+  }
+
   /// 포트폴리오 수정
   /// PUT /api/portfolios/{id}/update
   Future<Map<String, dynamic>> updatePortfolio(
@@ -373,6 +560,116 @@ class PortfolioApiService {
       print('응답 데이터: ${e.response?.data}');
 
       throw _handleDioError(e, '포트폴리오 수정');
+    }
+  }
+
+  /// 포트폴리오 수정 (서버 구조에 맞춘 버전)
+  /// PUT /api/portfolios/{portfolioId}/update
+  Future<Map<String, dynamic>> updatePortfolioWithFiles({
+    required String portfolioId,
+    required String title,
+    required String description,
+    required List<String> categories,
+    required List<String> imagePaths,
+  }) async {
+    try {
+      print('=== 포트폴리오 서버 맞춤 수정 요청 ===');
+      print('포트폴리오 ID: $portfolioId');
+      print('제목: $title');
+      print('이미지 파일 개수: ${imagePaths.length}');
+
+      // 입력값 검증
+      if (portfolioId.isEmpty) {
+        throw Exception('포트폴리오 ID가 필요합니다.');
+      }
+
+      if (imagePaths.isEmpty) {
+        throw Exception('최소 1개의 이미지를 선택해주세요.');
+      }
+
+      if (imagePaths.length > 10) {
+        throw Exception('이미지는 최대 10개까지 업로드할 수 있습니다.');
+      }
+
+      // 카테고리 String을 실제 ID로 변환
+      List<int> categoryIds = await _convertCategoriesToIds(categories);
+
+      // Base64 이미지를 AddImageDTO 형태로 변환
+      List<Map<String, dynamic>> imageInfoList = [];
+      for (String imagePath in imagePaths) {
+        final file = File(imagePath);
+        if (await file.exists()) {
+          final bytes = await file.readAsBytes();
+          final base64String = base64Encode(bytes);
+          final fileName = imagePath.split('/').last;
+
+          // 서버 AddImageDTO 구조에 맞게 변환
+          imageInfoList.add({
+            'portfolioId': int.parse(portfolioId), // 수정 시에는 실제 ID 사용
+            'imageData': 'data:image/jpeg;base64,$base64String',
+            'originalFileName': fileName,
+            'isMain': imageInfoList.isEmpty, // 첫 번째를 메인으로
+          });
+
+          print('파일 변환 완료: $fileName (${bytes.length} bytes)');
+        }
+      }
+
+      // 서버 DTO 구조에 맞춘 JSON 데이터
+      final requestData = {
+        'title': title,
+        'description': description,
+        // 'thumbnailUrl': null, // 서버에서 자동 설정
+        'categoryIds': categoryIds,
+        'imageInfoList': imageInfoList,
+      };
+
+      print('=== 서버 전송 데이터 ===');
+      print('categoryIds: $categoryIds');
+      print('imageInfoList 개수: ${imageInfoList.length}');
+
+      final response = await _dio.put(
+        '$_baseUrl/$portfolioId/update',
+        data: requestData,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+          sendTimeout: const Duration(minutes: 5),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
+
+      print('=== 포트폴리오 서버 맞춤 수정 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('body')) {
+        return responseData['body'] as Map<String, dynamic>;
+      } else {
+        return responseData as Map<String, dynamic>;
+      }
+    } catch (e) {
+      print('=== 포트폴리오 서버 맞춤 수정 에러 ===');
+      print('에러: $e');
+
+      // 사용자 친화적 에러 메시지로 변환
+      if (e.toString().contains('포트폴리오 ID가 필요') ||
+          e.toString().contains('파일을 찾을 수 없습니다') ||
+          e.toString().contains('지원하지 않는 파일 형식') ||
+          e.toString().contains('파일 크기가 너무') ||
+          e.toString().contains('최대') ||
+          e.toString().contains('빈 파일') ||
+          e.toString().contains('파일 인코딩에 실패')) {
+        throw Exception(e.toString());
+      }
+
+      // Dio 에러는 기존 핸들러 사용
+      if (e is DioException) {
+        throw _handleDioError(e, '포트폴리오 수정');
+      }
+
+      // 기타 예상치 못한 에러
+      throw Exception('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -581,6 +878,83 @@ class PortfolioApiService {
       print('에러 타입: ${e.type}');
       print('상태 코드: ${e.response?.statusCode}');
       throw _handleDioError(e, '포트폴리오 검색');
+    }
+  }
+
+  // ========== PortfolioApiService에 추가할 카테고리 매핑 메서드 ==========
+
+  /// 카테고리명을 ID로 변환하는 임시 매핑 테이블
+  /// 실제로는 서버에서 카테고리 목록 API를 호출해야 함
+  Map<String, int> _getCategoryMapping() {
+    return {
+      '웨딩촬영': 1,
+      '인물촬영': 2,
+      '가족사진': 3,
+      '커플촬영': 4,
+    };
+  }
+
+  /// 카테고리명 배열을 ID 배열로 변환 (서버 API 사용)
+  Future<List<int>> _convertCategoriesToIds(List<String> categoryNames) async {
+    final mapping = await fetchCategoryMapping();
+    List<int> categoryIds = [];
+
+    for (String categoryName in categoryNames) {
+      final id = mapping[categoryName];
+      if (id != null) {
+        categoryIds.add(id);
+        print('카테고리 매핑: $categoryName -> $id');
+      } else {
+        print('경고: 알 수 없는 카테고리 - $categoryName');
+        // 기본값 처리: 첫 번째 카테고리 ID 사용 또는 스킵
+        if (mapping.isNotEmpty) {
+          final defaultId = mapping.values.first;
+          categoryIds.add(defaultId);
+          print('기본 카테고리 ID 사용: $defaultId');
+        }
+      }
+    }
+
+    return categoryIds;
+  }
+
+  /// 서버에서 실제 카테고리 목록을 가져오는 메서드
+  Future<Map<String, int>> fetchCategoryMapping() async {
+    try {
+      print('=== 카테고리 목록 조회 요청 ===');
+      final response = await _dio.get('/api/portfolio-categories');
+
+      print('=== 카테고리 목록 조회 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      Map<String, int> mapping = {};
+
+      // 서버 응답 구조에 맞게 파싱
+      final responseData = response.data;
+      List categories;
+
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('body')) {
+        categories = responseData['body'] as List;
+      } else {
+        categories = responseData as List;
+      }
+
+      for (var category in categories) {
+        final id = category['categoryId'] ?? category['id'];
+        final name = category['categoryName'] ?? category['name'];
+        if (id != null && name != null) {
+          mapping[name] = id;
+          print('카테고리 매핑: $name -> $id');
+        }
+      }
+
+      print('총 ${mapping.length}개 카테고리 매핑 완료');
+      return mapping;
+    } catch (e) {
+      print('카테고리 목록 조회 실패, 기본 매핑 사용: $e');
+      return _getCategoryMapping();
     }
   }
 }

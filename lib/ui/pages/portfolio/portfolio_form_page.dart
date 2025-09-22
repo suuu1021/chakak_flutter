@@ -125,6 +125,8 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
     );
   }
 
+  // ========== PortfolioFormPage 클래스의 _savePortfolio 메서드 수정 ==========
+
   Future<void> _savePortfolio() async {
     if (!_formKey.currentState!.validate() || _selectedCategories.isEmpty) {
       _showValidationError();
@@ -139,46 +141,81 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
     setState(() => _isLoading = true);
 
     try {
-      final List<String> imageUrls = _selectedImages.map((image) {
+      // 이미지를 File과 String으로 분리
+      final List<String> existingImageUrls = [];
+      final List<String> newImagePaths = [];
+
+      for (final image in _selectedImages) {
         if (image is File) {
-          // File인 경우 경로(path)를 사용
-          return image.path;
+          newImagePaths.add(image.path);
         } else if (image is String) {
-          // String인 경우 URL을 그대로 사용
-          return image;
+          existingImageUrls.add(image);
         }
-        return '';
-      }).toList();
+      }
 
-      final String thumbnailUrl = _thumbnailIndex != null
-          ? (_selectedImages[_thumbnailIndex!] is File
-              ? (_selectedImages[_thumbnailIndex!] as File).path
-              : _selectedImages[_thumbnailIndex!] as String)
-          : imageUrls.first;
+      debugPrint('=== 포트폴리오 저장 데이터 분석 ===');
+      debugPrint('제목: ${_titleController.text.trim()}');
+      debugPrint('기존 이미지 URL 수: ${existingImageUrls.length}');
+      debugPrint('새 이미지 파일 수: ${newImagePaths.length}');
+      debugPrint('전체 이미지 수: ${_selectedImages.length}');
 
-      final portfolio = Portfolio.create(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        imageUrls: imageUrls,
-        categories: _selectedCategories,
-        photographerId: '1', // 임시 ID
-      ).copyWith(
-        thumbnailUrl: thumbnailUrl,
-      );
+      bool success = false;
 
-      debugPrint('=== 포트폴리오 저장 데이터 ===');
-      debugPrint('제목: ${portfolio.title}');
-      debugPrint('이미지 수: ${portfolio.imageUrls.length}');
-      debugPrint('썸네일: ${portfolio.thumbnailUrl}');
-      debugPrint('대표 이미지 인덱스: $_thumbnailIndex');
+      // 새로운 파일이 있는 경우 파일 업로드 메서드 사용
+      if (newImagePaths.isNotEmpty) {
+        debugPrint('파일 업로드 메서드 사용');
 
-      final success = widget.portfolio != null
-          ? await ref
+        if (widget.portfolio != null) {
+          // 수정 모드: 파일 업로드로 수정
+          success = await ref
               .read(portfolioProvider.notifier)
-              .updatePortfolio(widget.portfolio!.id, portfolio)
-          : await ref
+              .updatePortfolioWithFiles(
+                portfolioId: widget.portfolio!.id,
+                title: _titleController.text.trim(),
+                description: _descriptionController.text.trim(),
+                categories: _selectedCategories,
+                imagePaths: newImagePaths,
+              );
+        } else {
+          // 생성 모드: 파일 업로드로 생성
+          success = await ref
+              .read(portfolioProvider.notifier)
+              .createPortfolioWithFiles(
+                title: _titleController.text.trim(),
+                description: _descriptionController.text.trim(),
+                categories: _selectedCategories,
+                photographerId: 1, // 임시 ID (실제로는 세션에서 가져와야 함)
+                imagePaths: newImagePaths,
+              );
+        }
+      } else {
+        // 기존 URL만 있는 경우 기존 메서드 사용
+        debugPrint('기존 메서드 사용 (URL만)');
+
+        final String thumbnailUrl = _thumbnailIndex != null
+            ? _selectedImages[_thumbnailIndex!] as String
+            : existingImageUrls.first;
+
+        final portfolio = Portfolio.create(
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          imageUrls: existingImageUrls,
+          categories: _selectedCategories,
+          photographerId: '1', // 임시 ID
+        ).copyWith(
+          thumbnailUrl: thumbnailUrl,
+        );
+
+        if (widget.portfolio != null) {
+          success = await ref
+              .read(portfolioProvider.notifier)
+              .updatePortfolio(widget.portfolio!.id, portfolio);
+        } else {
+          success = await ref
               .read(portfolioProvider.notifier)
               .createPortfolio(portfolio);
+        }
+      }
 
       if (success && mounted) {
         debugPrint(
