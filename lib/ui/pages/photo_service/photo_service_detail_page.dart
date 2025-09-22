@@ -4,8 +4,13 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/utils/error_handler.dart';
+import '../../../data/dtos/chat_room_create_request_dto.dart';
 import '../../../data/models/photo_service/photo_service.dart';
+import '../../../provider/auth/session_provider.dart';
+import '../../../provider/chat/chat_provider.dart';
 import '../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../provider/global/photographer/photographer_provider.dart';
+import '../chat/chat_screen.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../review/review_list_screen.dart';
 import 'widgets/service_image_section.dart';
@@ -118,7 +123,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
           const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
-              onPressed: () => _onBookingTap(context),
+              onPressed: () => _onBookingTap(context, ref),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -175,17 +180,39 @@ class PhotoServiceDetailPage extends ConsumerWidget {
     }
   }
 
-  void _onBookingTap(BuildContext context) {
+  void _onBookingTap(BuildContext context, WidgetRef ref) async {
     try {
-      // TODO: 예약하기 기능 구현
-      print('예약하기 - serviceId: ${service.id}');
+      final session = ref.read(sessionProvider);
 
-      ErrorHandler.showWarning(context, '예약 기능을 준비 중입니다');
+      // 포토그래퍼 정보 조회
+      final photographer = ref
+          .read(photographerProvider.notifier)
+          .getPhotographerById(service.photographerId);
+
+      // 채팅방 생성/조회 요청
+      final chatRequest = ChatRoomCreateRequestDto(
+        photographerProfileId: service.photographerId,
+        userProfileId: session.userId,
+      );
+
+      final chatRoom = await ref
+          .read(chatRepositoryProvider)
+          .createOrGetChatRoom(chatRequest);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatRoomId: chatRoom.chatRoomId,
+            opponentNickname: photographer?.businessName ?? "포토그래퍼",
+          ),
+        ),
+      );
     } catch (error) {
       ErrorHandler.handleError(
         context,
         error,
-        customMessage: '예약 처리 중 오류가 발생했습니다',
+        customMessage: '채팅 연결 중 오류가 발생했습니다',
       );
     }
   }
@@ -211,11 +238,16 @@ class PhotoServiceDetailPage extends ConsumerWidget {
 
   void _onOtherServiceTap(BuildContext context, PhotoService otherService) {
     try {
+      final remainingServices = otherServices
+          ?.where((s) => s.id != service.id && s.id != otherService.id)
+          .toList();
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => PhotoServiceDetailPage(
             service: otherService,
+            otherServices: remainingServices,
           ),
         ),
       );

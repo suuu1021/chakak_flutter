@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
+import '../../../../../../provider/global/photoService/photo_service_provider.dart';
 
-class OtherServicesSection extends StatelessWidget {
+class OtherServicesSection extends ConsumerWidget {
   final PhotoService service;
   final List<PhotoService>? otherServices;
   final Function(PhotoService)? onServiceTap;
@@ -15,7 +17,37 @@ class OtherServicesSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serviceNotifier = ref.read(photoServiceProvider.notifier);
+    final serviceState = ref.watch(photoServiceProvider);
+
+    // 포토그래퍼의 서비스들이 캐시되어 있는지 확인
+    final cachedServices =
+        serviceNotifier.getPhotographerServices(service.photographerId);
+
+    // 캐시가 없고 로딩 중이 아니면 로드
+    if (cachedServices.isEmpty && !serviceState.isLoading) {
+      Future.microtask(() {
+        serviceNotifier.loadServicesByPhotographer(service.photographerId);
+      });
+    }
+
+    // 현재 서비스를 제외한 다른 서비스들
+    final filteredServices =
+        cachedServices.where((s) => s.id != service.id).toList();
+
+    // 로딩 중이거나 다른 서비스가 없으면 숨김
+    if (serviceState.isLoading && cachedServices.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(AppSizes.spacing16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (filteredServices.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Padding(
       padding: const EdgeInsets.all(AppSizes.spacing16),
       child: Column(
@@ -23,7 +55,7 @@ class OtherServicesSection extends StatelessWidget {
         children: [
           _buildTitle(),
           const SizedBox(height: AppSizes.spacing12),
-          _buildContent(),
+          _buildServicesList(filteredServices),
         ],
       ),
     );
@@ -35,37 +67,6 @@ class OtherServicesSection extends StatelessWidget {
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    final filteredServices = _getFilteredServices();
-
-    if (filteredServices.isEmpty) {
-      return _buildPlaceholder();
-    }
-
-    return _buildServicesList(filteredServices);
-  }
-
-  // 현재 서비스를 제외한 다른 서비스들만 반환
-  List<PhotoService> _getFilteredServices() {
-    if (otherServices == null || otherServices!.isEmpty) {
-      return [];
-    }
-
-    return otherServices!
-        .where((otherService) => otherService.id != service.id)
-        .toList();
-  }
-
-  Widget _buildPlaceholder() {
-    return const Text(
-      '다른 서비스들이 여기에 표시됩니다.',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.grey,
       ),
     );
   }
