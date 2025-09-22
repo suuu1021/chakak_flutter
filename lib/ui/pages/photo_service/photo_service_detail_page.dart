@@ -13,14 +13,14 @@ import '../../../provider/global/photographer/photographer_provider.dart';
 import '../chat/chat_screen.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 import '../review/review_list_screen.dart';
+import 'widgets/other_services_section.dart';
+import 'widgets/photographer_info_section.dart';
+import 'widgets/service_description_section.dart';
+import 'widgets/service_gallery_section.dart';
 import 'widgets/service_image_section.dart';
 import 'widgets/service_info_section.dart';
 import 'widgets/service_price_section.dart';
-import 'widgets/service_description_section.dart';
-import 'widgets/service_gallery_section.dart';
-import 'widgets/photographer_info_section.dart';
 import 'widgets/service_review_section.dart';
-import 'widgets/other_services_section.dart';
 
 class PhotoServiceDetailPage extends ConsumerWidget {
   final PhotoService service;

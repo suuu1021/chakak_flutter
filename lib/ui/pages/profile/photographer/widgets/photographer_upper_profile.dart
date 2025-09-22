@@ -5,8 +5,12 @@ import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_images.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/constants/app_sizes.dart';
+import '../../../../../data/dtos/chat_room_create_request_dto.dart';
 import '../../../../../provider/auth/session_provider.dart';
+import '../../../../../provider/chat/chat_provider.dart';
+import '../../../../../provider/global/photographer/photographer_provider.dart';
 import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
+import '../../../chat/chat_screen.dart';
 
 class PhotographerUpperProfile extends ConsumerStatefulWidget {
   final int photographerId;
@@ -68,6 +72,15 @@ class _PhotographerUpperProfileState
               Navigator.pushNamed(context, AppRoutes.photographerProfileForm);
             },
             icon: const Icon(Icons.edit),
+          )
+        else if (session.isLogin) // 로그인했고 본인이 아닐 때 채팅 아이콘
+          IconButton(
+            onPressed: () => _onChatTap(context),
+            icon: const Icon(Icons.chat),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
           ),
       ],
     );
@@ -282,5 +295,40 @@ class _PhotographerUpperProfileState
         ),
       ],
     );
+  }
+
+  void _onChatTap(BuildContext context) async {
+    try {
+      final session = ref.read(sessionProvider);
+
+      // 포토그래퍼 정보 조회
+      final photographer = ref
+          .read(photographerProvider.notifier)
+          .getPhotographerById(widget.photographerId);
+
+      // 채팅방 생성/조회 요청
+      final chatRequest = ChatRoomCreateRequestDto(
+        photographerProfileId: widget.photographerId,
+        userProfileId: session.userId,
+      );
+
+      final chatRoom = await ref
+          .read(chatRepositoryProvider)
+          .createOrGetChatRoom(chatRequest);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            chatRoomId: chatRoom.chatRoomId,
+            opponentNickname: photographer?.businessName ?? "포토그래퍼",
+          ),
+        ),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('채팅 연결 중 오류가 발생했습니다')),
+      );
+    }
   }
 }
