@@ -8,6 +8,7 @@ import '../../../../data/models/booking/booking_list_item.dart';
 import '../../../../data/models/booking/booking_model.dart';
 import '../../../../provider/auth/session_provider.dart';
 import '../../../../provider/global/booking/booking_list_notifier.dart';
+import '../../review/review_form_screen.dart';
 import 'booking_cancel_dialog.dart';
 import 'booking_status_chip.dart';
 
@@ -254,7 +255,7 @@ class BookingCard extends ConsumerWidget {
         return _buildActionChip(
           text: '리뷰 작성',
           color: AppColors.info,
-          onPressed: () => _writeReview(context),
+          onPressed: () => _writeReview(context, ref),
         );
       case BookingStatus.REVIEWED:
         return _buildActionChip(
@@ -298,131 +299,7 @@ class BookingCard extends ConsumerWidget {
         return const SizedBox.shrink();
     }
   }
-  /*
-  /// 사용자 버튼들
-  Widget _buildUserButtons(BuildContext context, WidgetRef ref) {
-    switch (booking.status) {
-      case BookingStatus.PENDING:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () => _showCancelDialog(context, ref),
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('예약 취소'), // 하드코딩된 텍스트로 변경
-            ),
-          ],
-        );
-      case BookingStatus.CONFIRMED:
-        return _buildReadOnlyChip('촬영 예정', Colors.lightGreen);
-      case BookingStatus.COMPLETED:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ElevatedButton(
-              onPressed: () => _writeReview(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('리뷰 작성'),
-            ),
-          ],
-        );
-      case BookingStatus.REVIEWED:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () => _viewMyReview(context),
-              style: TextButton.styleFrom(foregroundColor: Colors.purple),
-              child: const Text('내 리뷰 보기'),
-            ),
-          ],
-        );
-      case BookingStatus.CANCELED:
-        return _buildReadOnlyChip('취소된 예약', Colors.red);
-      default:
-        return const SizedBox.shrink();
-    }
-  }
 
-  /// 포토그래퍼 버튼들
-  Widget _buildPhotographerButtons(BuildContext context, WidgetRef ref) {
-    switch (booking.status) {
-      case BookingStatus.PENDING:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ElevatedButton(
-              onPressed: () => _confirmBooking(context, ref),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('결제 확인'),
-            ),
-          ],
-        );
-      case BookingStatus.CONFIRMED:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ElevatedButton(
-              onPressed: () => _completeBooking(context, ref),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('촬영 완료'),
-            ),
-          ],
-        );
-      case BookingStatus.COMPLETED:
-        return _buildReadOnlyChip('촬영 완료', Colors.blue);
-      case BookingStatus.REVIEWED:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(
-              onPressed: () => _viewReview(context),
-              style: TextButton.styleFrom(foregroundColor: Colors.purple),
-              child: const Text('리뷰 확인'),
-            ),
-          ],
-        );
-      case BookingStatus.CANCELED:
-        return _buildReadOnlyChip('취소된 예약', Colors.red);
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  /// 읽기 전용 상태 표시 칩
-  Widget _buildReadOnlyChip(String text, Color color) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withOpacity(0.3)),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-*/
   /// 통합 액션 칩 위젯
   Widget _buildActionChip({
     required String text,
@@ -449,13 +326,15 @@ class BookingCard extends ConsumerWidget {
                   color: isClickable ? color : color.withOpacity(0.3),
                 ),
                 // 클릭 가능하면 미세한 그림자
-                boxShadow: isClickable ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.6),
-                    blurRadius: 4,
-                    offset: const Offset(1, 2),
-                  ),
-                ] : null,
+                boxShadow: isClickable
+                    ? [
+                        BoxShadow(
+                          color: color.withOpacity(0.6),
+                          blurRadius: 4,
+                          offset: const Offset(1, 2),
+                        ),
+                      ]
+                    : null,
               ),
               child: Text(
                 text,
@@ -472,6 +351,7 @@ class BookingCard extends ConsumerWidget {
       ],
     );
   }
+
   /// 예약 취소 다이얼로그 표시
   void _showCancelDialog(BuildContext context, WidgetRef ref) {
     showDialog(
@@ -504,10 +384,13 @@ class BookingCard extends ConsumerWidget {
     }
   }
 
-  /// 리뷰 작성 (TODO: 리뷰 화면으로 이동)
-  void _writeReview(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('리뷰 작성 기능은 준비 중입니다')),
+  /// 리뷰 작성
+  void _writeReview(BuildContext context, WidgetRef ref) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReviewFormScreen(booking: booking),
+      ),
     );
   }
 
