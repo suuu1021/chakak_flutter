@@ -192,26 +192,26 @@ class PhotographerCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: imageWidget,
                 ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: onLikeTap,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        photographer.isLiked
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: photographer.isLiked ? Colors.red : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
+                // Positioned(
+                //   top: 8,
+                //   right: 8,
+                //   child: GestureDetector(
+                //     onTap: onLikeTap,
+                //     child: Container(
+                //       padding: const EdgeInsets.all(4),
+                //       decoration: BoxDecoration(
+                //         color: Colors.white.withOpacity(0.8),
+                //         shape: BoxShape.circle,
+                //       ),
+                //       child: Icon(
+                //         photographer.isLiked
+                //             ? Icons.favorite
+                //             : Icons.favorite_border,
+                //         color: photographer.isLiked ? Colors.red : Colors.black,
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             Padding(

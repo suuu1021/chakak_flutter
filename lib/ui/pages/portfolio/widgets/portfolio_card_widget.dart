@@ -53,7 +53,7 @@ class PortfolioCardWidget extends StatelessWidget {
         children: [
           _buildImageContainer(),
           _buildCategoryBadge(),
-          _buildLikeButton(),
+          // _buildLikeButton(),
         ],
       ),
     );

@@ -51,7 +51,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
             ServiceInfoSection(service: service),
             ServicePriceSection(service: service),
             ServiceDescriptionSection(service: service),
-            ServiceGallerySection(service: service),
+            ServiceGallerySection(photographerId: service.photographerId),
             PhotographerInfoSection(
               service: service,
               onProfileTap: () => _onPhotographerProfileTap(context),
@@ -113,14 +113,6 @@ class PhotoServiceDetailPage extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => _onLikeTap(context, ref),
-            icon: Icon(
-              currentService.isLiked ? Icons.favorite : Icons.favorite_border,
-              color: currentService.isLiked ? Colors.red : Colors.grey,
-            ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: ElevatedButton(
               onPressed: () => _onBookingTap(context, ref),
@@ -164,18 +156,6 @@ class PhotoServiceDetailPage extends ConsumerWidget {
         context,
         error,
         customMessage: '공유 중 오류가 발생했습니다',
-      );
-    }
-  }
-
-  void _onLikeTap(BuildContext context, WidgetRef ref) async {
-    try {
-      await ref.read(photoServiceProvider.notifier).toggleLike(service.id);
-    } catch (error) {
-      ErrorHandler.handleError(
-        context,
-        error,
-        customMessage: '찜하기 처리 중 오류가 발생했습니다',
       );
     }
   }

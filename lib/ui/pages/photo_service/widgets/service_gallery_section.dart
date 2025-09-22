@@ -1,16 +1,35 @@
 import 'package:flutter/material.dart';
-import '../../../../../../_core/constants/app_sizes.dart';
-import '../../../../../../data/models/photo_service/photo_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ServiceGallerySection extends StatelessWidget {
-  final PhotoService service;
+import '../../../../../../_core/constants/app_sizes.dart';
+import '../../../../provider/global/portfolio/portfolio_notifier.dart';
+
+class ServiceGallerySection extends ConsumerStatefulWidget {
+  final int photographerId;
   final int defaultImageCount;
 
   const ServiceGallerySection({
     super.key,
-    required this.service,
+    required this.photographerId,
     this.defaultImageCount = 5,
   });
+
+  @override
+  ConsumerState<ServiceGallerySection> createState() =>
+      _ServiceGallerySectionState();
+}
+
+class _ServiceGallerySectionState extends ConsumerState<ServiceGallerySection> {
+  @override
+  void initState() {
+    super.initState();
+    // 포토그래퍼의 포트폴리오 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(portfolioProvider.notifier)
+          .loadPortfoliosByPhotographer(widget.photographerId.toString());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +57,43 @@ class ServiceGallerySection extends StatelessWidget {
   }
 
   Widget _buildGallery() {
-    final portfolioImages = _getDisplayImages();
+    final portfolioState = ref.watch(portfolioProvider);
+
+    if (portfolioState.isLoading) {
+      return SizedBox(
+        height: 120,
+        child: _buildLoadingIndicator(),
+      );
+    }
+
+    if (portfolioState.errorMessage != null) {
+      return SizedBox(
+        height: 120,
+        child: _buildErrorWidget(),
+      );
+    }
+
+    // 포트폴리오에서 이미지 URL들을 추출
+    final portfolioImages = portfolioState.portfolios
+        .expand(
+            (portfolio) => portfolio.imageUrls) // Portfolio 모델의 imageData 필드 사용
+        .toList();
+
+    print(
+        '[DEBUG] 포토그래퍼 ${widget.photographerId}의 포트폴리오 이미지: ${portfolioImages.length}개');
+    print('[DEBUG] 이미지 URL들: $portfolioImages');
+
+    if (portfolioImages.isEmpty) {
+      return SizedBox(
+        height: 120,
+        child: Center(
+          child: Text(
+            '포트폴리오 이미지가 없습니다',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
 
     return SizedBox(
       height: 120,
@@ -112,13 +167,13 @@ class ServiceGallerySection extends StatelessWidget {
     );
   }
 
-  List<String> _getDisplayImages() {
-    if (service.portfolioImages.isNotEmpty) {
-      return service.portfolioImages;
-    }
-
-    // 포트폴리오 이미지가 없으면 빈 플레이스홀더 생성
-    return List.generate(defaultImageCount, (index) => '');
+  Widget _buildErrorWidget() {
+    return const Center(
+      child: Text(
+        '포트폴리오를 불러올 수 없습니다',
+        style: TextStyle(color: Colors.grey),
+      ),
+    );
   }
 
   void _onImageTap(String imageUrl, int index) {

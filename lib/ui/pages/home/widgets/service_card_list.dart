@@ -185,27 +185,27 @@ class ServiceCard extends StatelessWidget {
                       const BorderRadius.vertical(top: Radius.circular(12)),
                   child: imageWidget,
                 ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: onLikeTap,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        service.isLiked
-                            ? Icons.bookmark_outlined
-                            : Icons.bookmark_border_outlined,
-                        color:
-                            service.isLiked ? AppColors.primary : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
+                // Positioned(
+                //   top: 8,
+                //   right: 8,
+                //   child: GestureDetector(
+                //     onTap: onLikeTap,
+                //     child: Container(
+                //       padding: const EdgeInsets.all(4),
+                //       decoration: BoxDecoration(
+                //         color: Colors.white.withOpacity(0.8),
+                //         shape: BoxShape.circle,
+                //       ),
+                //       child: Icon(
+                //         service.isLiked
+                //             ? Icons.bookmark_outlined
+                //             : Icons.bookmark_border_outlined,
+                //         color:
+                //             service.isLiked ? AppColors.primary : Colors.black,
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             Padding(
