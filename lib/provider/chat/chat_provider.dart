@@ -39,12 +39,14 @@ class ChatMessagesState {
       isLoading: isLoading ?? this.isLoading,
       isConnecting: isConnecting ?? this.isConnecting,
       isConnected: isConnected ?? this.isConnected,
-      errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+      errorMessage:
+          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
     );
   }
 }
 
-class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, int> {
+class ChatMessagesNotifier
+    extends AutoDisposeFamilyNotifier<ChatMessagesState, int> {
   late final ChatRepository _chatRepository;
   late final int _chatRoomId;
   StreamSubscription<ChatMessageDto>? _messagesSubscription;
@@ -87,7 +89,8 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     _currentUserId = userId;
     _currentUserType = userType;
 
-    state = state.copyWith(isConnecting: true, isLoading: true, clearErrorMessage: true);
+    state = state.copyWith(
+        isConnecting: true, isLoading: true, clearErrorMessage: true);
     try {
       await fetchInitialMessages();
       await _chatRepository.connectStomp(_chatRoomId, jwtToken);
@@ -97,31 +100,36 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
       await markCurrentRoomMessagesAsRead();
 
       _messagesSubscription?.cancel();
-      _messagesSubscription = _chatRepository.messages.listen(
-        (message) {
-          if (!state.messages.any((m) => m.chatMessageId != null && m.chatMessageId == message.chatMessageId)) {
-             state = state.copyWith(messages: [...state.messages, message]);
-          }
-        },
-        onError: (error) {
-          state = state.copyWith(errorMessage: '메시지 수신 오류', isConnected: false, isConnecting: false);
-        },
-        onDone: () {
-          state = state.copyWith(isConnected: false, isConnecting: false);
+      _messagesSubscription = _chatRepository.messages.listen((message) {
+        if (!state.messages.any((m) =>
+            m.chatMessageId != null &&
+            m.chatMessageId == message.chatMessageId)) {
+          state = state.copyWith(messages: [...state.messages, message]);
         }
-      );
+      }, onError: (error) {
+        state = state.copyWith(
+            errorMessage: '메시지 수신 오류', isConnected: false, isConnecting: false);
+      }, onDone: () {
+        state = state.copyWith(isConnected: false, isConnecting: false);
+      });
     } catch (e) {
-      state = state.copyWith(isLoading: false, isConnected: false, isConnecting: false, errorMessage: '채팅 서버 연결 실패: ${e.toString()}');
+      state = state.copyWith(
+          isLoading: false,
+          isConnected: false,
+          isConnecting: false,
+          errorMessage: '채팅 서버 연결 실패: ${e.toString()}');
     }
   }
 
   Future<void> fetchInitialMessages() async {
     state = state.copyWith(isLoading: true, clearErrorMessage: true);
     try {
-      final initialMessages = await _chatRepository.getMessagesByRoomId(_chatRoomId);
+      final initialMessages =
+          await _chatRepository.getMessagesByRoomId(_chatRoomId);
       state = state.copyWith(messages: initialMessages, isLoading: false);
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: '대화 기록을 불러오지 못했습니다.');
+      state =
+          state.copyWith(isLoading: false, errorMessage: '대화 기록을 불러오지 못했습니다.');
     }
   }
 
@@ -142,7 +150,7 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
     final messageDto = ChatMessageDto(
       chatRoomId: _chatRoomId,
       senderId: senderId,
-      senderType: SenderType.fromJson(senderTypeString), // String을 Enum으로 변환
+      senderType: SenderType.fromJson(senderTypeString),
       messageType: 'TEXT',
       message: messageContent,
       isRead: false,
@@ -151,6 +159,92 @@ class ChatMessagesNotifier extends AutoDisposeFamilyNotifier<ChatMessagesState, 
 
     _chatRepository.sendStompChatMessage(messageDto);
   }
+
+  // 이미지 메시지 전송
+  void sendImageMessage({
+    required String base64Image,
+    required String fileName,
+    required int fileSize,
+  }) {
+    if (!state.isConnected) {
+      state = state.copyWith(errorMessage: "채팅 서버에 연결되어 있지 않습니다.");
+      return;
+    }
+
+    final senderId = _currentUserId;
+    final senderTypeString = _currentUserType;
+
+    if (senderId == null || senderTypeString == null) {
+      state = state.copyWith(errorMessage: "사용자 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    final messageDto = ChatMessageDto(
+      chatRoomId: _chatRoomId,
+      senderId: senderId,
+      senderType: SenderType.fromJson(senderTypeString),
+      messageType: 'IMAGE',
+      message: fileName, // 파일명을 메시지로 사용
+      isRead: false,
+      createdAt: DateTime.now().toIso8601String(),
+      // 이미지 관련 필드들
+      imageData: base64Image,
+      fileName: fileName,
+      fileSize: fileSize,
+    );
+
+    try {
+      _chatRepository.sendStompChatMessage(messageDto);
+      print(
+          '[ChatMessagesNotifier] 이미지 메시지 전송 완료: $fileName (${fileSize}bytes)');
+    } catch (e) {
+      state = state.copyWith(errorMessage: "이미지 전송에 실패했습니다: ${e.toString()}");
+      print('[ChatMessagesNotifier] 이미지 메시지 전송 실패: $e');
+    }
+  }
+
+  // 결제 요청 메시지 전송
+  void sendPaymentRequest({
+    required String title,
+    required int amount,
+    String? description,
+  }) {
+    if (!state.isConnected) {
+      state = state.copyWith(errorMessage: "채팅 서버에 연결되어 있지 않습니다.");
+      return;
+    }
+
+    final senderId = _currentUserId;
+    final senderTypeString = _currentUserType;
+
+    if (senderId == null || senderTypeString == null) {
+      state = state.copyWith(errorMessage: "사용자 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    final messageDto = ChatMessageDto(
+      chatRoomId: _chatRoomId,
+      senderId: senderId,
+      senderType: SenderType.fromJson(senderTypeString),
+      messageType: 'PAYMENT_REQUEST',
+      message: title, // 결제 요청 제목
+      isRead: false,
+      createdAt: DateTime.now().toIso8601String(),
+      // 결제 관련 필드들
+      paymentAmount: amount,
+      paymentDescription: description,
+    );
+
+    try {
+      _chatRepository.sendStompChatMessage(messageDto);
+      print('[ChatMessagesNotifier] 결제 요청 메시지 전송 완료: $title (${amount}원)');
+    } catch (e) {
+      state = state.copyWith(errorMessage: "결제 요청 전송에 실패했습니다: ${e.toString()}");
+      print('[ChatMessagesNotifier] 결제 요청 메시지 전송 실패: $e');
+    }
+  }
 }
 
-final chatMessagesProvider = NotifierProvider.family.autoDispose<ChatMessagesNotifier, ChatMessagesState, int>(ChatMessagesNotifier.new);
+final chatMessagesProvider = NotifierProvider.family
+    .autoDispose<ChatMessagesNotifier, ChatMessagesState, int>(
+        ChatMessagesNotifier.new);
