@@ -12,13 +12,14 @@ class ReviewCreationRequestDto {
   });
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['service_id'] = serviceId;
-    data['booking_id'] = bookingId;
-    data['rating'] = rating;
+    final map = <String, dynamic>{
+      'bookingId': bookingId,
+      'serviceId': serviceId,
+      'rating': rating,
+    };
     if (reviewContent != null && reviewContent!.isNotEmpty) {
-      data['review_content'] = reviewContent;
+      map['reviewContent'] = reviewContent;
     }
-    return data;
+    return map;
   }
 }

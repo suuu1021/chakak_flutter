@@ -6,6 +6,7 @@ final List<ReviewDto> dummyReviews = List.generate(20, (index) {
     id: (index + 1).toString(),
     reviewerId: "user_${100 + index}",
     serviceId: (500 + (index % 3)).toString(), // ✅ 서비스 ID 3개 순환
+    bookingId: 700 + index,
     rating: (index % 5) + 1,
     comment: "이것은 ${index + 1}번째 리뷰 코멘트입니다. 촬영이 매우 즐거웠습니다!",
     createdAt: DateTime.now().subtract(Duration(days: index)),

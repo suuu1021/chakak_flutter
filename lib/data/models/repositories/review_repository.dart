@@ -1,5 +1,9 @@
+import 'dart:convert';
+
+import 'package:chakak_flutter/data/dtos/paged_response_dto.dart';
 import 'package:dio/dio.dart';
 
+import '../../dtos/booking/api_booking_item_dto.dart';
 import '../review/reviewCreationRequestDto.dart';
 import '../review/review_dto.dart';
 
@@ -35,6 +39,29 @@ class ReviewRepository {
     }
   }
 
-  // /// 내 예약 목록 조회 API 호출
-  // Future<PageResponseDto<ApiBookingItemDto>> getMyBookings(>
+  /// 내 예약 목록 조회 API 호출
+  Future<PagedResponseDto<ApiBookingItemDto>> getMyBookings({int page = 0, int size = 10}) async {
+    try {
+      final response = await _dio.get(
+        _myBookingsEndpoint,
+        queryParameters: {
+          'page': page,
+          'size': size,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data != null && response.data['body'] != null) {
+      // PagedResponseDto.fromJsom을 사용하고, 내부 항목은 ApiBookingItemDto.fromJson으로 파싱
+        return PagedResponseDto.fromJson(
+          response.data['body'] as Map<String, dynamic>,
+            (json) => ApiBookingItemDto.fromJson(json as Map<String, dynamic>),
+        );
+      } else {
+        throw Exception('내 예약 목록 조회에 실패 서버 응답: (코드: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('[ReviewRepository] getMyBookings 알 수 없는 에러: $e');
+      throw Exception('알수 없는 오류로 내 예약 목록 조회에 실패했습니다.');
+    }
+  }
 }
