@@ -217,6 +217,7 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
             final dummyService = PhotoService(
               id: int.tryParse(reviewModel.serviceId ?? '') ?? 0,
               photographerId: 1,
+              photographerUserId: 0,
               title: "서비스 상세",
               imageUrl: "https://via.placeholder.com/150",
               categories: [],

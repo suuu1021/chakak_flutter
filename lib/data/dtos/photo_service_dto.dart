@@ -3,27 +3,25 @@ import '../models/photo_service/price_option.dart'; // Assuming this model is st
 
 class PhotoServiceDto {
   final int id;
-  final int
-      photographerId; // TODO: Not in the new service list item JSON, defaults to 0. Verify if needed from another source or if API changed.
+  final int photographerId;
+  final int photographerUserId; // 추가: 포토그래퍼의 사용자 ID
   final String title;
   final String description;
   final String imageUrl;
   final List<String> categories;
   final int price;
-  final double
-      rating; // TODO: Not in the new service list item JSON, defaults to 0.0. Verify.
-  final int
-      reviewCount; // TODO: Not in the new service list item JSON, defaults to 0. Verify.
-  final bool isLiked; // Usually client-side state
+  final double rating;
+  final int reviewCount;
+  final bool isLiked;
   final List<PriceOptionDto> priceOptions;
-  final List<String>
-      portfolioImages; // TODO: Not in the new service list item JSON, defaults to empty list. Verify.
+  final List<String> portfolioImages;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   PhotoServiceDto({
     required this.id,
     required this.photographerId,
+    required this.photographerUserId, // 생성자에 추가
     required this.title,
     required this.description,
     required this.imageUrl,
@@ -39,16 +37,6 @@ class PhotoServiceDto {
   });
 
   factory PhotoServiceDto.fromJson(Map<String, dynamic> json) {
-    // 디버깅: JSON 구조 확인
-    // print('=== PhotoService JSON 디버깅 ===');
-    // print('전체 JSON: $json');
-    // print('photographerId 필드: ${json['photographerId']}');
-    // print('userId 필드: ${json['userId']}');
-    // print('user 필드: ${json['user']}');
-    // print('ownerId 필드: ${json['ownerId']}');
-    // print('photographer 필드: ${json['photographer']}');
-    // print('===============================');
-
     List<String> categoryNames = [];
     if (json['categoryList'] != null && json['categoryList'] is List) {
       for (var categoryItem in (json['categoryList'] as List<dynamic>)) {
@@ -66,36 +54,10 @@ class PhotoServiceDto {
           .toList();
     }
 
-    // photographerId 추출 - 여러 가능한 필드명 시도
-    int photographerId = 0;
-
-    // 시도 1: 직접 photographerId
-    if (json['photographerId'] != null) {
-      photographerId = json['photographerId'] as int;
-    }
-    // 시도 2: userId
-    else if (json['userId'] != null) {
-      photographerId = json['userId'] as int;
-    }
-    // 시도 3: ownerId
-    else if (json['ownerId'] != null) {
-      photographerId = json['ownerId'] as int;
-    }
-    // 시도 4: user.id (중첩 객체)
-    else if (json['user'] != null && json['user']['id'] != null) {
-      photographerId = json['user']['id'] as int;
-    }
-    // 시도 5: photographer.id (중첩 객체)
-    else if (json['photographer'] != null &&
-        json['photographer']['id'] != null) {
-      photographerId = json['photographer']['id'] as int;
-    }
-
-    //print('=== 최종 추출된 photographerId: $photographerId ===');
-
     return PhotoServiceDto(
       id: json['serviceId'] ?? 0,
-      photographerId: photographerId, // 수정된 부분
+      photographerId: json['photographerId'] ?? 0,
+      photographerUserId: json['photographerUserId'] ?? json['userId'] ?? 0,
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       imageUrl: json['imageData'] ?? '',
@@ -114,18 +76,15 @@ class PhotoServiceDto {
           : DateTime.now(),
     );
   }
-
   Map<String, dynamic> toJson() {
-    // This toJson might need adjustment if you send data back to an API expecting the new structure
     return {
-      'serviceId': id, // Changed to serviceId to match new JSON
+      'serviceId': id,
       'photographerId': photographerId,
+      'userId': photographerUserId, // toJson에 추가
       'title': title,
       'description': description,
-      'imageData': imageUrl, // Changed to imageData
-      'categoryList': categories
-          .map((name) => {'categoryName': name})
-          .toList(), // Approximate inverse
+      'imageData': imageUrl,
+      'categoryList': categories.map((name) => {'categoryName': name}).toList(),
       'price': price,
       'rating': rating,
       'reviewCount': reviewCount,
@@ -137,11 +96,10 @@ class PhotoServiceDto {
     };
   }
 
-  // copyWith might need to be re-evaluated based on fields that are no longer present or changed.
-  // For now, keeping it as is from the provided file.
   PhotoServiceDto copyWith({
     int? id,
     int? photographerId,
+    int? photographerUserId, // copyWith에 추가
     String? title,
     String? description,
     String? imageUrl,
@@ -158,6 +116,8 @@ class PhotoServiceDto {
     return PhotoServiceDto(
       id: id ?? this.id,
       photographerId: photographerId ?? this.photographerId,
+      photographerUserId:
+          photographerUserId ?? this.photographerUserId, // copyWith 로직에 추가
       title: title ?? this.title,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -177,6 +137,7 @@ class PhotoServiceDto {
     return PhotoService(
       id: id,
       photographerId: photographerId,
+      photographerUserId: photographerUserId, // toModel에 추가
       title: title,
       description: description,
       imageUrl: imageUrl,
@@ -194,14 +155,16 @@ class PhotoServiceDto {
 }
 
 class PriceOptionDto {
+  final int id; // 새로운 필드 추가
   final String name;
   final int price;
   final String duration;
-  final String photoCount; // Not in new JSON for priceInfoList
-  final String editingLevel; // Not in new JSON for priceInfoList
+  final String photoCount;
+  final String editingLevel;
   final List<String> features;
 
   const PriceOptionDto({
+    required this.id,
     required this.name,
     required this.price,
     required this.duration,
@@ -211,8 +174,6 @@ class PriceOptionDto {
   });
 
   factory PriceOptionDto.fromJson(Map<String, dynamic> json) {
-    //print('Raw PriceInfo JSON: $json'); // 디버깅용 - 나중에 제거
-
     List<String> constructedFeatures = [];
     if (json['specialEquipment'] != null) {
       constructedFeatures.add('장비: ${json['specialEquipment']}');
@@ -225,7 +186,8 @@ class PriceOptionDto {
     }
 
     return PriceOptionDto(
-      name: json['title'] ?? 'Unknown Option', // 이 부분이 핵심
+      id: json['priceInfoId'] ?? 0, // priceInfoId 필드에 맞춰 파싱
+      name: json['title'] ?? 'Unknown Option',
       price: json['price'] ?? 0,
       duration: json['shootingDuration'] != null
           ? '${json['shootingDuration']}분'
@@ -240,18 +202,23 @@ class PriceOptionDto {
   }
 
   Map<String, dynamic> toJson() {
-    // This toJson might need adjustment if you send data back to an API
     return {
-      'name': name, // Or perhaps priceInfoId if that's what the server expects
+      'priceInfoId': id,
+      'title': name,
       'price': price,
-      'shootingDuration': duration.replaceAll('시간', ''), // Approximate inverse
-      // photoCount, editingLevel are not directly mapped back from the current structure
-      'features': features, // This might need more specific field mapping back
+      'shootingDuration': duration,
+      'specialEquipment':
+          features.firstWhere((f) => f.startsWith('장비: '), orElse: () => ''),
+      'isMakeupService': features.contains('메이크업 서비스 포함'),
+      'outfitChanges': features
+          .firstWhere((f) => f.startsWith('의상 변경 '), orElse: () => '0')
+          .replaceAll(RegExp(r'[^0-9]'), ''),
     };
   }
 
   PriceOption toModel() {
     return PriceOption(
+      id: id,
       name: name,
       price: price,
       duration: duration,
