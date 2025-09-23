@@ -82,6 +82,14 @@ class BookingCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        '${DateFormat('yyyy년 M월 d일 HH:mm').format(booking.bookingDateTime)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
                         booking.otherPartyName,
                         style: const TextStyle(
                           fontSize: 16,
@@ -90,7 +98,7 @@ class BookingCard extends ConsumerWidget {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Row(
                         children: [
                           Container(
