@@ -58,7 +58,8 @@ class BookingListNotifier extends Notifier<BookingListState> {
 
         // BookingMapper.toUserBookingListItem을 사용하여 변환
         bookings = dtoList
-            .map((dto) => BookingMapper.toUserBookingListItem(dto))
+            .map((dto) => BookingMapper.toUserBookingListItem(dto,
+                photographerUserId: userId)) // userId 전달
             .toList();
       } else if (userType == "photographer") {
         print('포토그래퍼 예약 목록 조회 중...');
@@ -67,7 +68,8 @@ class BookingListNotifier extends Notifier<BookingListState> {
 
         // BookingMapper.toPhotographerBookingListItem을 사용하여 변환
         bookings = dtoList
-            .map((dto) => BookingMapper.toPhotographerBookingListItem(dto))
+            .map((dto) => BookingMapper.toPhotographerBookingListItem(dto,
+                photographerUserId: userId)) // userId 전달
             .toList();
       } else {
         print('잘못된 사용자 타입: $userType');

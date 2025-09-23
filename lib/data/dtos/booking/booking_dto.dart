@@ -112,15 +112,14 @@ class BookingDto {
   }
 }
 
-// -------------------------------------------------------------
-
 /// DTO를 모델로 변환하는 클래스 (Mapper)
 /// UI에 필요한 BookingListItem 모델로 변환하는 역할을 수행
 class BookingMapper {
   /// BookingDto를 BookingListItem으로 변환 (사용자 관점)
-  static BookingListItem toUserBookingListItem(BookingDto dto) {
+  static BookingListItem toUserBookingListItem(BookingDto dto,
+      {required int photographerUserId}) {
     final bookingDateTime = _parseDateTime(dto.bookingDate, dto.bookingTime);
-    final photoService = _createPhotoService(dto);
+    final photoService = _createPhotoService(dto, photographerUserId);
 
     return BookingListItem(
       bookingInfoId: dto.bookingInfoId,
@@ -133,9 +132,10 @@ class BookingMapper {
   }
 
   /// BookingDto를 BookingListItem으로 변환 (포토그래퍼 관점)
-  static BookingListItem toPhotographerBookingListItem(BookingDto dto) {
+  static BookingListItem toPhotographerBookingListItem(BookingDto dto,
+      {required int photographerUserId}) {
     final bookingDateTime = _parseDateTime(dto.bookingDate, dto.bookingTime);
-    final photoService = _createPhotoService(dto);
+    final photoService = _createPhotoService(dto, photographerUserId);
 
     return BookingListItem(
       bookingInfoId: dto.bookingInfoId,
@@ -148,12 +148,14 @@ class BookingMapper {
   }
 
   /// PhotoService 생성 로직을 별도 메서드로 분리 (코드 중복 제거)
-  static PhotoService? _createPhotoService(BookingDto dto) {
+  static PhotoService? _createPhotoService(
+      BookingDto dto, int photographerUserId) {
     if (dto.serviceName != null && dto.price != null) {
       return PhotoService(
         id: dto.photoServiceInfoId ??
             0, // 수정된 부분: BookingDto의 photoServiceInfoId 사용
         photographerId: int.tryParse(dto.photographerProfileId) ?? 0,
+        photographerUserId: photographerUserId, // 여기에 값 전달
         title: dto.serviceName!,
         imageUrl: dto.imageUrl ?? '',
         categories: [],

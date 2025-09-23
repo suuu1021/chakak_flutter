@@ -104,6 +104,7 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
       ),
       floatingActionButton: isMyPortfolio
           ? FloatingActionButton(
+              heroTag: null,
               onPressed: () => _onAddPortfolio(context),
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.white,
