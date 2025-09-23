@@ -12,12 +12,15 @@ class ChatMessageDto {
   final String? paymentOrderId;
   final bool? isRead;
   final String? createdAt;
+  final String? imageData;
+  final String? fileName;
+  final int? fileSize;
+  final String? paymentDescription;
 
-  // 이미지 관련 필드 추가
-  final String? imageData; // Base64 이미지 데이터
-  final String? fileName; // 파일명
-  final int? fileSize; // 파일 크기 (bytes)
-  final String? paymentDescription; // 결제 설명
+  // 새로 추가된 필드들
+  final int? photoServiceInfoId;
+  final int? priceInfoId;
+  final int? bookingInfoId;
 
   ChatMessageDto({
     this.chatMessageId,
@@ -34,6 +37,9 @@ class ChatMessageDto {
     this.fileName,
     this.fileSize,
     this.paymentDescription,
+    this.photoServiceInfoId,
+    this.priceInfoId,
+    this.bookingInfoId,
   });
 
   factory ChatMessageDto.fromJson(Map<String, dynamic> json) {
@@ -53,6 +59,10 @@ class ChatMessageDto {
       fileName: json['fileName'] as String?,
       fileSize: json['fileSize'] as int?,
       paymentDescription: json['paymentDescription'] as String?,
+      // 추가된 필드들
+      photoServiceInfoId: json['photoServiceInfoId'] as int?,
+      priceInfoId: json['priceInfoId'] as int?,
+      bookingInfoId: json['bookingInfoId'] as int?,
     );
 
     if (kDebugMode) {
@@ -76,7 +86,6 @@ class ChatMessageDto {
       'createdAt': createdAt,
     };
 
-    // 이미지 관련 필드는 null이 아닐 때만 추가
     if (imageData != null) {
       json['imageData'] = imageData;
     }
@@ -88,6 +97,17 @@ class ChatMessageDto {
     }
     if (paymentDescription != null) {
       json['paymentDescription'] = paymentDescription;
+    }
+
+    // 추가된 필드는 null이 아닐 때만 추가
+    if (photoServiceInfoId != null) {
+      json['photoServiceInfoId'] = photoServiceInfoId;
+    }
+    if (priceInfoId != null) {
+      json['priceInfoId'] = priceInfoId;
+    }
+    if (bookingInfoId != null) {
+      json['bookingInfoId'] = bookingInfoId;
     }
 
     return json;
@@ -109,19 +129,19 @@ class ChatMessageDto {
         '  imageData: ${imageData != null ? '[${imageData!.length} chars]' : null},\n'
         '  fileName: $fileName,\n'
         '  fileSize: $fileSize,\n'
-        '  paymentDescription: $paymentDescription\n'
+        '  paymentDescription: $paymentDescription,\n'
+        '  photoServiceInfoId: $photoServiceInfoId,\n'
+        '  priceInfoId: $priceInfoId\n'
+        '  bookingInfoId: $bookingInfoId\n'
         '}';
   }
 
-  // 편의 메서드들
   bool get isImageMessage => messageType == 'IMAGE';
   bool get isPaymentRequest => messageType == 'PAYMENT_REQUEST';
   bool get isTextMessage => messageType == 'TEXT';
 
-  // 이미지 데이터가 있는지 확인
   bool get hasImageData => imageData != null && imageData!.isNotEmpty;
 
-  // 파일 크기를 사람이 읽기 쉬운 형태로 변환
   String get readableFileSize {
     if (fileSize == null) return '0 B';
 

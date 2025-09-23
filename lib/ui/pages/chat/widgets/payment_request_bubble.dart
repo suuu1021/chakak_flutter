@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../../payment/payment_form_screen.dart';
 
 class PaymentRequestBubble extends StatelessWidget {
-  final String title;       // 상품명
-  final int price;          // 가격
+  final String title; // 상품명
+  final int price; // 가격
   final String description; // 설명
-  final bool isMe;          // 내가 보낸 메시지인지 여부
+  final bool isMe; // 내가 보낸 메시지인지 여부
+  final int? bookingInfoId;
 
   const PaymentRequestBubble({
     super.key,
@@ -13,6 +14,7 @@ class PaymentRequestBubble extends StatelessWidget {
     required this.price,
     required this.description,
     required this.isMe,
+    this.bookingInfoId,
   });
 
   @override

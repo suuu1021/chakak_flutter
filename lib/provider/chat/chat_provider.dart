@@ -1,14 +1,30 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../_core/constants/sender_type.dart';
 import '../../data/models/repositories/chat_repository.dart';
 import '../../data/dtos/chat_message_dto.dart';
+import '../../data/models/repositories/booking_repository.dart';
+import '../../data/dtos/booking/booking_request_dto.dart';
+import '../../data/models/repositories/photo_service_repository.dart';
+import '../../_core/constants/api_config.dart';
 import '../core/dio_provider.dart';
+
+final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
+  final repository = BookingRepository();
+  repository.init();
+  return repository;
+});
 
 final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return ChatRepository(dio);
+});
+
+final photoServiceRepositoryProvider = Provider<PhotoServiceRepository>((ref) {
+  final dio = ref.watch(dioProvider);
+  return PhotoServiceRepositoryImpl(dio);
 });
 
 class ChatMessagesState {
@@ -51,13 +67,18 @@ class ChatMessagesNotifier
   late final int _chatRoomId;
   StreamSubscription<ChatMessageDto>? _messagesSubscription;
 
+  late final BookingRepository _bookingRepository;
   int? _currentUserId;
   String? _currentUserType;
+  int? _opponentUserId;
+
+  int? get opponentUserId => _opponentUserId;
 
   @override
   ChatMessagesState build(int chatRoomId) {
     _chatRoomId = chatRoomId;
     _chatRepository = ref.watch(chatRepositoryProvider);
+    _bookingRepository = ref.watch(bookingRepositoryProvider);
 
     ref.onDispose(() {
       _messagesSubscription?.cancel();
@@ -67,7 +88,6 @@ class ChatMessagesNotifier
     return ChatMessagesState();
   }
 
-  // 현재 채팅방 메시지 읽음 처리
   Future<void> markCurrentRoomMessagesAsRead() async {
     try {
       print('[ChatMessagesNotifier] 채팅방 ${_chatRoomId} 메시지 읽음 처리 시도');
@@ -75,7 +95,6 @@ class ChatMessagesNotifier
       print('[ChatMessagesNotifier] 채팅방 ${_chatRoomId} 메시지 읽음 처리 성공');
     } catch (e) {
       print('[ChatMessagesNotifier] 채팅방 ${_chatRoomId} 메시지 읽음 처리 실패: $e');
-      // 필요하다면 state.copyWith(errorMessage: ...)로 에러 상태 관리
     }
   }
 
@@ -83,11 +102,15 @@ class ChatMessagesNotifier
     required String jwtToken,
     required int userId,
     required String userType,
+    int? opponentUserId,
   }) async {
     if (state.isConnected || state.isConnecting) return;
 
     _currentUserId = userId;
     _currentUserType = userType;
+    _opponentUserId = opponentUserId;
+
+    _bookingRepository.setAuthToken(jwtToken);
 
     state = state.copyWith(
         isConnecting: true, isLoading: true, clearErrorMessage: true);
@@ -96,7 +119,6 @@ class ChatMessagesNotifier
       await _chatRepository.connectStomp(_chatRoomId, jwtToken);
       state = state.copyWith(isConnected: true, isConnecting: false);
 
-      // STOMP 연결 성공 후 메시지 읽음 처리 호출
       await markCurrentRoomMessagesAsRead();
 
       _messagesSubscription?.cancel();
@@ -126,6 +148,19 @@ class ChatMessagesNotifier
     try {
       final initialMessages =
           await _chatRepository.getMessagesByRoomId(_chatRoomId);
+
+      if (_opponentUserId == null &&
+          _currentUserId != null &&
+          initialMessages.isNotEmpty) {
+        for (final message in initialMessages) {
+          if (message.senderId != _currentUserId) {
+            _opponentUserId = message.senderId;
+            print('[ChatMessagesNotifier] 메시지에서 상대방 ID 추출: $_opponentUserId');
+            break;
+          }
+        }
+      }
+
       state = state.copyWith(messages: initialMessages, isLoading: false);
     } catch (e) {
       state =
@@ -160,7 +195,6 @@ class ChatMessagesNotifier
     _chatRepository.sendStompChatMessage(messageDto);
   }
 
-  // 이미지 메시지 전송
   void sendImageMessage({
     required String base64Image,
     required String fileName,
@@ -184,10 +218,9 @@ class ChatMessagesNotifier
       senderId: senderId,
       senderType: SenderType.fromJson(senderTypeString),
       messageType: 'IMAGE',
-      message: fileName, // 파일명을 메시지로 사용
+      message: fileName,
       isRead: false,
       createdAt: DateTime.now().toIso8601String(),
-      // 이미지 관련 필드들
       imageData: base64Image,
       fileName: fileName,
       fileSize: fileSize,
@@ -203,12 +236,15 @@ class ChatMessagesNotifier
     }
   }
 
-  // 결제 요청 메시지 전송
-  void sendPaymentRequest({
+  Future<void> sendPaymentRequest({
     required String title,
     required int amount,
     String? description,
-  }) {
+    required int photoServiceInfoId,
+    required int priceInfoId,
+    required int photographerId,
+    required int userProfileId,
+  }) async {
     if (!state.isConnected) {
       state = state.copyWith(errorMessage: "채팅 서버에 연결되어 있지 않습니다.");
       return;
@@ -222,25 +258,68 @@ class ChatMessagesNotifier
       return;
     }
 
-    final messageDto = ChatMessageDto(
-      chatRoomId: _chatRoomId,
-      senderId: senderId,
-      senderType: SenderType.fromJson(senderTypeString),
-      messageType: 'PAYMENT_REQUEST',
-      message: title, // 결제 요청 제목
-      isRead: false,
-      createdAt: DateTime.now().toIso8601String(),
-      // 결제 관련 필드들
-      paymentAmount: amount,
-      paymentDescription: description,
-    );
+    if (_opponentUserId == null) {
+      state = state.copyWith(errorMessage: "상대방 정보가 없어 결제 요청을 보낼 수 없습니다.");
+      print('[ChatMessagesNotifier] 상대방 ID가 없어 결제 요청을 중단합니다.');
+      return;
+    }
 
     try {
+      final now = DateTime.now();
+      final bookingDto = BookingCreateRequestDto(
+        photographerProfileId: photographerId,
+        userProfileId: userProfileId,
+        photoServiceInfoId: photoServiceInfoId,
+        priceInfoId: priceInfoId,
+        bookingDate: now.toIso8601String().substring(0, 10),
+        bookingTime:
+            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:00',
+        specialRequests: description,
+      );
+
+      print('[ChatMessagesNotifier] 예약 생성 요청 데이터:');
+      print('  - photographerProfileId: $photographerId (photographer.id)');
+      print('  - userProfileId: $userProfileId (상대방 ID)');
+      print('  - photoServiceInfoId: $photoServiceInfoId');
+      print('  - priceInfoId: $priceInfoId');
+      print('[ChatMessagesNotifier] 생성된 DTO:');
+      print('  - bookingDate: ${bookingDto.bookingDate}');
+      print('  - bookingTime: ${bookingDto.bookingTime}');
+      print('  - specialRequests: ${bookingDto.specialRequests}');
+
+      print('[ChatMessagesNotifier] 전송할 JSON:');
+      print(json.encode(bookingDto.toJson()));
+
+      // 1. 예약 생성 API 호출 및 응답 대기
+      final response = await _bookingRepository.createBooking(bookingDto);
+      print('[ChatMessagesNotifier] 예약 생성 API 호출 완료');
+
+      // 2. 응답에서 bookingInfoId 추출
+      final bookingInfoId = json.decode(response.body)['body']['bookingInfoId'];
+      print('[ChatMessagesNotifier] 추출된 bookingInfoId: $bookingInfoId');
+
+      // 3. 추출한 ID를 포함하여 메시지 DTO 생성
+      final messageDto = ChatMessageDto(
+        chatRoomId: _chatRoomId,
+        senderId: senderId,
+        senderType: SenderType.fromJson(senderTypeString),
+        messageType: 'PAYMENT_REQUEST',
+        message: title,
+        isRead: false,
+        createdAt: DateTime.now().toIso8601String(),
+        paymentAmount: amount,
+        paymentDescription: description,
+        photoServiceInfoId: photoServiceInfoId,
+        priceInfoId: priceInfoId,
+        bookingInfoId: bookingInfoId,
+      );
+
+      // 4. 메시지 전송
       _chatRepository.sendStompChatMessage(messageDto);
       print('[ChatMessagesNotifier] 결제 요청 메시지 전송 완료: $title (${amount}원)');
     } catch (e) {
-      state = state.copyWith(errorMessage: "결제 요청 전송에 실패했습니다: ${e.toString()}");
-      print('[ChatMessagesNotifier] 결제 요청 메시지 전송 실패: $e');
+      state = state.copyWith(errorMessage: "결제 요청 처리에 실패했습니다: ${e.toString()}");
+      print('[ChatMessagesNotifier] 결제 요청 처리 실패: $e');
     }
   }
 }
