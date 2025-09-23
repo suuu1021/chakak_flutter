@@ -13,6 +13,7 @@ import '../../data/models/repositories/review_repository.dart';
 import '../../data/dtos/review/review_status_dto.dart';
 import '../../data/dtos/review/review_dto.dart';
 import '../../data/dtos/paged_response_dto.dart';
+import '../../data/dtos/review/reviewCreationRequestDto.dart'; // ReviewCreationRequestDto import 추가
 
 // 1. ReviewRepositoryProvider (변경 없음)
 final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
@@ -286,4 +287,114 @@ class ReviewsListNotifier extends Notifier<ReviewsListState> {
 final reviewsListProvider =
     NotifierProvider<ReviewsListNotifier, ReviewsListState>(
   ReviewsListNotifier.new,
+);
+
+// --- Review Creation (리뷰 작성) ---
+
+// 10. 리뷰 생성 상태 Enum
+enum ReviewCreationStatus {
+  initial,
+  loading,
+  success,
+  error,
+}
+
+// 11. 리뷰 생성 상태 클래스
+class ReviewCreationState {
+  final ReviewCreationStatus status;
+  final String? errorMessage;
+  final ReviewDto? createdReview; // 생성 성공 시 반환될 수 있는 리뷰 상세 정보
+
+  const ReviewCreationState({
+    this.status = ReviewCreationStatus.initial,
+    this.errorMessage,
+    this.createdReview,
+  });
+
+  ReviewCreationState copyWith({
+    ReviewCreationStatus? status,
+    String? errorMessage,
+    bool clearErrorMessage = false,
+    ReviewDto? createdReview,
+    bool clearCreatedReview = false,
+  }) {
+    return ReviewCreationState(
+      status: status ?? this.status,
+      errorMessage:
+          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+      createdReview:
+          clearCreatedReview ? null : createdReview ?? this.createdReview,
+    );
+  }
+}
+
+// 12. 리뷰 생성 Notifier
+class ReviewCreationNotifier extends Notifier<ReviewCreationState> {
+  @override
+  ReviewCreationState build() {
+    return const ReviewCreationState();
+  }
+
+  Future<bool> createReview(
+      ReviewCreationRequestDto reviewCreationRequestDto) async {
+    // ▼▼▼ 로그 추가 ▼▼▼
+    print('[ReviewCreationNotifier] createReview 시작');
+    print('[ReviewCreationNotifier] 전달받은 reviewCreationRequestDto:');
+    print('  serviceId: ${reviewCreationRequestDto.serviceId}');
+    print('  bookingId: ${reviewCreationRequestDto.bookingId}');
+    print('  rating: ${reviewCreationRequestDto.rating}');
+    print('  reviewContent: ${reviewCreationRequestDto.reviewContent}');
+
+    state = state.copyWith(
+        status: ReviewCreationStatus.loading,
+        clearErrorMessage: true,
+        clearCreatedReview: true);
+
+    try {
+      final repo = ref.read(reviewRepositoryProvider);
+
+      // ▼▼▼ 로그 추가 ▼▼▼
+      print('[ReviewCreationNotifier] reviewRepository.createReview 호출 직전');
+      print('  보내는 DTO (JSON): ${reviewCreationRequestDto.toJson()}');
+
+      // ReviewRepository의 createReview는 생성된 ReviewDto를 반환한다고 가정합니다.
+      final createdReviewDto =
+          await repo.createReview(reviewCreationRequestDto);
+
+      // ▼▼▼ 로그 추가 ▼▼▼
+      print('[ReviewCreationNotifier] reviewRepository.createReview 호출 성공');
+      print(
+          '  서버로부터 받은 createdReviewDto: $createdReviewDto'); // 또는 createdReviewDto.id 등 주요 정보
+
+      state = state.copyWith(
+        status: ReviewCreationStatus.success,
+        createdReview: createdReviewDto, // API 응답으로 받은 ReviewDto 저장
+      );
+      // 리뷰 목록이나 통계가 업데이트 되어야 한다면 여기서 해당 Provider를 refresh 할 수 있습니다.
+      // 예: ref.invalidate(reviewsListProvider); // 관련 리뷰 목록 새로고침
+      // 예: ref.read(reviewsListProvider.notifier).refresh(); // 또는 이렇게 호출
+      // 예: ref.invalidate(reviewStatusProvider); // 관련 리뷰 통계 새로고침 (필요시 serviceId 다시 조회)
+      print('[ReviewCreationNotifier] createReview 성공 처리 완료');
+      return true;
+    } catch (e, stackTrace) {
+      // ▼▼▼ stackTrace 추가 ▼▼▼
+      // ▼▼▼ 로그 추가 ▼▼▼
+      print('[ReviewCreationNotifier] createReview 중 심각한 오류 발생: $e');
+      print('[ReviewCreationNotifier] StackTrace: $stackTrace');
+
+      state = state.copyWith(
+          status: ReviewCreationStatus.error, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  void resetState() {
+    state = const ReviewCreationState();
+  }
+}
+
+// 13. 리뷰 생성 Provider 정의
+final reviewCreationProvider =
+    NotifierProvider<ReviewCreationNotifier, ReviewCreationState>(
+  ReviewCreationNotifier.new,
 );

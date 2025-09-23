@@ -3,8 +3,8 @@ import '../../models/review.dart'; // Review 모델 사용 여부에 따라 유�
 class ReviewDto {
   final String id;
   final String reviewerId; // 리뷰 작성자 (서버에서는 userId (int)로 옴)
-  final String? serviceId; // 리뷰가 달린 서비스 ID (서버 응답에 현재 없음)
-  final int? bookingId; // 리뷰가 속한 예약 ID (서버 응답에 현재 없음)
+  final String? serviceId; // 리뷰가 달린 서비스 ID
+  final int? bookingId; // 리뷰가 속한 예약 ID
   final double rating; // 별점 (1~5)
   final String? reviewContent; // 코멘트
   final DateTime createdAt;
@@ -43,7 +43,13 @@ class ReviewDto {
     }
 
     final int? bookingIdFromServer = json['bookingId'] as int?;
-    final String? serviceIdFromServer = json['serviceId'] as String?;
+
+    // serviceId 파싱 수정
+    final dynamic rawServiceId = json['serviceId'];
+    String? parsedServiceId;
+    if (rawServiceId != null) {
+      parsedServiceId = rawServiceId.toString();
+    }
 
     final num? ratingFromServer = json['rating'] as num?;
     if (ratingFromServer == null) {
@@ -57,13 +63,20 @@ class ReviewDto {
           "[ReviewDto.fromJson 오류] 'createdAt' 필드가 없거나 null입니다.");
     }
 
+    // reviewContent 파싱은 이전 수정 유지
+    final dynamic rawReviewContent = json['reviewContent'];
+    String? parsedReviewContent;
+    if (rawReviewContent != null) {
+      parsedReviewContent = rawReviewContent.toString();
+    }
+
     return ReviewDto(
       id: parsedId,
       reviewerId: userIdFromServer.toString(),
-      serviceId: serviceIdFromServer,
+      serviceId: parsedServiceId, // 수정된 serviceId 사용
       bookingId: bookingIdFromServer,
       rating: ratingFromServer.toDouble(),
-      reviewContent: json['reviewContent'] as String?,
+      reviewContent: parsedReviewContent,
       createdAt: DateTime.parse(createdAtString),
     );
   }
