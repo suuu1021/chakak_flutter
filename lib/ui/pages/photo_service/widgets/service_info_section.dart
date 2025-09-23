@@ -50,7 +50,7 @@ class ServiceInfoSection extends ConsumerWidget {
     );
   }
 
-  // _buildTitle 메소드는 기존과 동일 (변경 없음)
+  // _buildTitle 메소드는 기존과 동일 (변경 없음)//
   Widget _buildTitle() {
     return Text(
       service.title,
