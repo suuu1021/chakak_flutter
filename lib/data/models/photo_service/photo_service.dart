@@ -1,5 +1,3 @@
-// data/models/photo_service.dart
-
 import '../../dtos/photo_service_dto.dart';
 import 'price_option.dart';
 
@@ -44,8 +42,8 @@ class PhotoService {
       reviewCount: dto.reviewCount,
       isLiked: dto.isLiked,
       description: dto.description,
-      priceOptions: dto.priceOptions.map((dto) => dto.toModel()).toList(), // 변경
-      portfolioImages: dto.portfolioImages, // 변경
+      priceOptions: dto.priceOptions.map((dto) => dto.toModel()).toList(),
+      portfolioImages: dto.portfolioImages,
     );
   }
 
@@ -116,6 +114,7 @@ class PhotoService {
   // 기본 옵션들 생성 (데이터가 없을 때 사용)
   List<PriceOption> get defaultOptions => [
         PriceOption(
+          id: 1, // 기본 ID 추가
           name: '에센셜',
           price: price,
           duration: '1시간',
@@ -124,6 +123,7 @@ class PhotoService {
           features: const ['스튜디오 촬영', '기본 의상 제공', '48시간 내 전달'],
         ),
         PriceOption(
+          id: 2,
           name: '프리미엄',
           price: (price * 1.5).round(),
           duration: '2시간',
@@ -132,6 +132,7 @@ class PhotoService {
           features: const ['실외 + 스튜디오', '의상 컨설팅', '소품 제공', '24시간 내 전달'],
         ),
         PriceOption(
+          id: 3,
           name: '시그니처',
           price: (price * 2.5).round(),
           duration: '3시간',
@@ -141,7 +142,6 @@ class PhotoService {
         ),
       ];
 
-  // 실제 사용할 옵션들 (데이터가 있으면 사용, 없으면 기본값)
   List<PriceOption> get availableOptions =>
       priceOptions.isNotEmpty ? priceOptions : defaultOptions;
 }

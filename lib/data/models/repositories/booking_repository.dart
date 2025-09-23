@@ -214,7 +214,7 @@ class BookingRepository {
   }
 
   // 수정된 API 엔드포인트 - 백엔드와 일치
-  Future<void> createBooking(BookingCreateRequestDto request) async {
+  Future<http.Response> createBooking(BookingCreateRequestDto request) async {
     if (!isAuthenticated) {
       onAuthRequired?.call();
       throw Exception('로그인이 필요합니다');
@@ -228,10 +228,14 @@ class BookingRepository {
         body: json.encode(request.toJson()),
       );
 
+      // _handleResponse를 사용하여 응답 상태를 확인하고 예외 처리
       _handleResponse(response, (jsonData) {
         onBookingCreated?.call();
-        return null;
+        // 실제 데이터 파싱은 호출자(ChatMessagesNotifier)가 담당
       }, '예약 생성');
+
+      // 응답 객체를 직접 반환
+      return response;
     } catch (e) {
       throw Exception('예약 생성 실패: $e');
     }
