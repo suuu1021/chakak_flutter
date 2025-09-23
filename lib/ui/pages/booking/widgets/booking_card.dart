@@ -385,13 +385,33 @@ class BookingCard extends ConsumerWidget {
   }
 
   /// 리뷰 작성
-  void _writeReview(BuildContext context, WidgetRef ref) {
-    Navigator.push(
+  void _writeReview(BuildContext context, WidgetRef ref) async {
+    // 1. async 추가
+    final result = await Navigator.push(
+      // 2. await으로 결과 받기
       context,
       MaterialPageRoute(
         builder: (context) => ReviewFormScreen(booking: booking),
       ),
     );
+
+    // 3. ReviewFormScreen에서 true를 반환했고, 위젯이 아직 화면에 있다면
+    if (result == true && context.mounted) {
+      if (booking.bookingInfoId != null) {
+        // 4. BookingListNotifier의 markBookingAsReviewed 메서드 호출
+        ref
+            .read(bookingListProvider.notifier)
+            .markBookingAsReviewed(booking.bookingInfoId!);
+        print(
+            '[BookingCard] markBookingAsReviewed 호출 완료 for bookingId: ${booking.bookingInfoId}');
+
+        // (선택적) 사용자에게 추가적인 피드백을 주고 싶다면 여기에 SnackBar 등을 표시할 수 있습니다.
+        // 하지만 ReviewFormScreen 에서 이미 성공 다이얼로그를 보여주므로 중복될 수 있습니다.
+      } else {
+        print(
+            '[BookingCard] booking.bookingInfoId is null, cannot update status.');
+      }
+    }
   }
 
   /// 내 리뷰 보기 (TODO: 리뷰 상세 화면으로 이동)

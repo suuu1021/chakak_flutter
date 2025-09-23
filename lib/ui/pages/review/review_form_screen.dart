@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/dtos/review/reviewCreationRequestDto.dart';
 import '../../../data/models/booking/booking_list_item.dart';
-
+import '../../../provider/review/review_provider.dart'; // Provider import
 import 'widgets/review_star_widget.dart';
 
 class ReviewFormScreen extends ConsumerStatefulWidget {
@@ -24,9 +24,8 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
   final TextEditingController _controller = TextEditingController();
   late AnimationController _starAnimationController;
   late AnimationController _submitAnimationController;
-  bool _isSubmitting = false;
+  bool _isSubmitting = false; // 기존 _isSubmitting 상태 유지
 
-  // 별점별 감정 표현
   final List<String> _ratingLabels = [
     '',
     '별로예요 😞',
@@ -67,35 +66,49 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
   }
 
   void _submitReview() async {
+    // ▼▼▼ This is the only new code block being added ▼▼▼
+    if (widget.booking.photoService == null ||
+        widget.booking.photoService!.id == 0) {
+      _showErrorSnackBar("유효하지 않은 서비스 정보입니다. 다시 시도해주세요.");
+      // 로딩 중이었다면 상태를 되돌림
+      if (_isSubmitting) {
+        setState(() {
+          _isSubmitting = false;
+        });
+        if (_submitAnimationController.isAnimating) {
+          _submitAnimationController.reverse();
+        }
+      }
+      return;
+    }
+    // ▲▲▲ End of the new code block ▲▲▲
+
     if (_rating == 0 || _controller.text.isEmpty) {
       _showErrorSnackBar("별점과 리뷰 내용을 입력해주세요.");
       return;
     }
 
     setState(() {
+      // 기존 로직 유지
       _isSubmitting = true;
     });
+    _submitAnimationController.forward(); // 기존 로직 유지
 
-    _submitAnimationController.forward();
-
-    // 업데이트된 DTO 활용
     final reviewRequest = ReviewCreationRequestDto(
-      serviceId: widget.booking.photoService!.id,
+      serviceId: widget.booking.photoService!.id, // 이 값이 0이 아니어야 함
       bookingId: widget.booking.bookingInfoId!,
       rating: _rating.toDouble(),
       reviewContent: _controller.text,
     );
 
-    // TODO: 실제 API 호출
-    await Future.delayed(const Duration(seconds: 1)); // 시뮬레이션
-    print("리뷰 데이터: ${reviewRequest.toJson()}");
+    // Provider를 통해 리뷰 생성 요청
+    await ref.read(reviewCreationProvider.notifier).createReview(reviewRequest);
 
-    if (mounted) {
-      _showSuccessDialog();
-    }
+    // _isSubmitting = false 및 애니메이션 reverse는 ref.listen에서 처리
   }
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -113,10 +126,11 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
   }
 
   void _showSuccessDialog() {
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -156,8 +170,9 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // 다이얼로그 닫기
-                  Navigator.of(context).pop(); // 리뷰 화면 닫기
+                  Navigator.of(dialogContext).pop(); // 다이얼로그 닫기
+                  Navigator.of(context).pop(true); // 리뷰 화면 닫고 true 반환
+                  // Provider 상태 초기화는 ref.listen에서 담당
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade600,
@@ -176,6 +191,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
     );
   }
 
+  // _buildServiceCard, _buildRatingSection, _buildReviewInput 메서드는 기존 코드 유지
   Widget _buildServiceCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -193,14 +209,13 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
       ),
       child: Row(
         children: [
-          // 포토 서비스 이미지 (산 풍경)
           Container(
             width: 60,
             height: 60,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              image: const DecorationImage(
-                image: NetworkImage(
+              image: DecorationImage(
+                image: NetworkImage(widget.booking.photoService?.imageUrl ??
                     'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'),
                 fit: BoxFit.cover,
               ),
@@ -218,6 +233,8 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -237,7 +254,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      '0.0 (0)',
+                      '0.0 (0)', // 이 부분은 실제 데이터로 채워져야 합니다.
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -247,7 +264,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '200,000원~',
+                  '200,000원~', // 이 부분은 실제 데이터로 채워져야 합니다.
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.black,
@@ -276,15 +293,11 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
             ),
           ),
           const SizedBox(height: 20),
-
-          // 별점 선택
           GestureDetector(
             onTapDown: (details) {
               RenderBox box = context.findRenderObject() as RenderBox;
               Offset localPosition = box.globalToLocal(details.globalPosition);
-
-              // 별점 영역만 계산 (대략적인 위치 계산)
-              double starAreaWidth = 5 * 50.0; // 5개 별 * 각 50px
+              double starAreaWidth = 5 * 50.0;
               double screenWidth = MediaQuery.of(context).size.width;
               double startX = (screenWidth - starAreaWidth) / 2;
 
@@ -307,7 +320,6 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
                 int starNumber = index + 1;
                 bool isFilled =
                     starNumber <= (_hoverRating > 0 ? _hoverRating : _rating);
-
                 return AnimatedBuilder(
                   animation: _starAnimationController,
                   builder: (context, child) {
@@ -342,10 +354,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
               }),
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // 별점 라벨
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             child: _rating > 0
@@ -422,6 +431,41 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ReviewCreationState>(reviewCreationProvider, (previous, next) {
+      final nextStatus = next.status;
+
+      if (nextStatus == ReviewCreationStatus.success) {
+        if (mounted) {
+          _showSuccessDialog(); // 다이얼로그의 확인 버튼이 pop(true)를 호출
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+        if (_submitAnimationController.isAnimating) {
+          _submitAnimationController.reverse();
+        }
+        ref.read(reviewCreationProvider.notifier).resetState();
+      } else if (nextStatus == ReviewCreationStatus.error) {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+        if (_submitAnimationController.isAnimating) {
+          _submitAnimationController.reverse();
+        }
+        if (next.errorMessage != null) {
+          _showErrorSnackBar(next.errorMessage!);
+        } else {
+          _showErrorSnackBar("알 수 없는 오류로 리뷰 등록에 실패했습니다.");
+        }
+        ref.read(reviewCreationProvider.notifier).resetState();
+      }
+      // ReviewCreationStatus.loading 상태는 _submitReview에서 _isSubmitting = true로 이미 처리됨
+    });
+
+    // ElevatedButton의 상태는 _isSubmitting 변수를 직접 사용 (기존 로직 유지)
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -459,23 +503,25 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
           ],
         ),
         child: AnimatedBuilder(
-          animation: _submitAnimationController,
+          animation: _submitAnimationController, // 기존 애니메이션 컨트롤러 유지
           builder: (context, child) {
             return SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitReview,
+                onPressed:
+                    _isSubmitting ? null : _submitReview, // _isSubmitting 사용
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      _isSubmitting ? Colors.grey.shade400 : Colors.black87,
+                  backgroundColor: _isSubmitting
+                      ? Colors.grey.shade400
+                      : Colors.black87, // _isSubmitting 사용
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
-                child: _isSubmitting
+                child: _isSubmitting // _isSubmitting 사용
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

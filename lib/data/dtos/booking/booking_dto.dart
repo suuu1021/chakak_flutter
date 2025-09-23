@@ -18,6 +18,7 @@ class BookingDto {
   final int? price;
   final double? rating;
   final String? imageUrl;
+  final int? photoServiceInfoId;
 
   BookingDto({
     this.bookingInfoId,
@@ -31,15 +32,46 @@ class BookingDto {
     this.price,
     this.rating,
     this.imageUrl,
+    this.photoServiceInfoId,
   });
 
   /// JSON 데이터로부터 BookingDto 인스턴스를 생성하는 팩토리 생성자
   /// 백엔드 BookingUserListDTO 응답에 맞게 수정
   factory BookingDto.fromJson(Map<String, dynamic> json) {
-    print('Parsing BookingDto from JSON: $json'); // 디버깅용
+    print('[BookingDto.fromJson] Raw JSON: $json'); // 최상단에 전체 JSON 로깅
+
+    int? parsedPhotoServiceInfoId;
+    try {
+      final dynamic photoServiceIdValue = json['photoServiceInfoId'];
+      print(
+          '[BookingDto.fromJson] photoServiceInfoId raw value: $photoServiceIdValue, type: ${photoServiceIdValue.runtimeType}');
+      if (photoServiceIdValue != null) {
+        if (photoServiceIdValue is int) {
+          parsedPhotoServiceInfoId = photoServiceIdValue;
+        } else if (photoServiceIdValue is String) {
+          parsedPhotoServiceInfoId = int.tryParse(photoServiceIdValue);
+          if (parsedPhotoServiceInfoId == null) {
+            print(
+                '[BookingDto.fromJson] WARNING: photoServiceInfoId was a String but could not be parsed to int: "$photoServiceIdValue"');
+          }
+        } else {
+          print(
+              '[BookingDto.fromJson] WARNING: photoServiceInfoId is not an int or String, actual type: ${photoServiceIdValue.runtimeType}');
+        }
+      } else {
+        print('[BookingDto.fromJson] photoServiceInfoId is null in JSON');
+      }
+    } catch (e, s) {
+      print(
+          '[BookingDto.fromJson] EXCEPTION while parsing photoServiceInfoId: $e');
+      print(s);
+    }
+    print(
+        '[BookingDto.fromJson] Parsed photoServiceInfoId: $parsedPhotoServiceInfoId');
 
     return BookingDto(
       bookingInfoId: json['bookingInfoId'] as int?,
+      photoServiceInfoId: parsedPhotoServiceInfoId, // 여기서 파싱된 값 사용
 
       // 백엔드 BookingUserListDTO 기준으로 수정
       userProfileId: json['userProfileId']?.toString() ?? '',
@@ -119,7 +151,8 @@ class BookingMapper {
   static PhotoService? _createPhotoService(BookingDto dto) {
     if (dto.serviceName != null && dto.price != null) {
       return PhotoService(
-        id: 0,
+        id: dto.photoServiceInfoId ??
+            0, // 수정된 부분: BookingDto의 photoServiceInfoId 사용
         photographerId: int.tryParse(dto.photographerProfileId) ?? 0,
         title: dto.serviceName!,
         imageUrl: dto.imageUrl ?? '',
