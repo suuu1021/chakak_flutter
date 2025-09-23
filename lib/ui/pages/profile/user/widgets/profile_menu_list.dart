@@ -1,3 +1,5 @@
+import 'package:chakak_flutter/provider/global/photographer_profile/photographer_profile_notifier.dart';
+import 'package:chakak_flutter/ui/pages/profile/photographer/photographer_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../_core/constants/user_type.dart';
@@ -25,9 +27,11 @@ class ProfileMenuList extends ConsumerWidget {
     final menuItems = _buildMenuItems(context, ref);
 
     // Column을 ListView.separated로 변경하여 구분선 추가
-    return ListView.separated(
-      shrinkWrap: true, // Column처럼 동작하도록 설정
-      physics: const NeverScrollableScrollPhysics(), // 스크롤 비활성화
+    return ListView.builder(
+      shrinkWrap: true,
+      // Column처럼 동작하도록 설정
+      physics: const NeverScrollableScrollPhysics(),
+      // 스크롤 비활성화
       itemCount: menuItems.length,
       itemBuilder: (context, index) {
         final item = menuItems[index];
@@ -38,13 +42,20 @@ class ProfileMenuList extends ConsumerWidget {
           onTap: item['onTap'] as VoidCallback,
         );
       },
-      separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[200]),
     );
   }
 
   List<Map<String, dynamic>> _buildMenuItems(
       BuildContext context, WidgetRef ref) {
     return [
+      if (session.isLogin) ...[
+        {
+          'icon': Icons.edit_note,
+          'title': '포토그래퍼 프로필',
+          'subtitle': '내 프로필을 확인하세요',
+          'onTap': () => _handleProfileEdit(context, ref),
+        },
+      ],
       {
         'icon': Icons.history,
         'title': '예약 내역',
@@ -65,12 +76,6 @@ class ProfileMenuList extends ConsumerWidget {
       },
       if (session.isLogin) ...[
         {
-          'icon': Icons.edit_note,
-          'title': '프로필 수정',
-          'subtitle': '닉네임과 자기소개를 수정합니다',
-          'onTap': () => _handleProfileEdit(context, ref),
-        },
-        {
           'icon': Icons.person_off_outlined,
           'title': '회원 탈퇴',
           'subtitle': '계정을 영구적으로 삭제합니다',
@@ -87,12 +92,13 @@ class ProfileMenuList extends ConsumerWidget {
   }
 
   void _handleProfileEdit(BuildContext context, WidgetRef ref) {
-    final userProfile = ref.read(userProfileProvider).profile;
-    if (userProfile != null) {
+    final photographerProfile = ref.read(photographerProfileProvider).profile;
+    if (photographerProfile != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProfileFormPage(userProfile: userProfile),
+          builder: (context) => PhotographerProfilePage(
+              photographerId: int.parse(photographerProfile.id)),
         ),
       );
     } else {
@@ -102,7 +108,6 @@ class ProfileMenuList extends ConsumerWidget {
       );
     }
   }
-
 
   void _handleBookingHistory(BuildContext context) {
     if (!session.isLogin) {
