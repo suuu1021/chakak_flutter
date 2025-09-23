@@ -4,6 +4,7 @@ import 'price_option.dart';
 class PhotoService {
   final int id;
   final int photographerId;
+  final int photographerUserId; // 추가: 포토그래퍼의 사용자 ID
   final String title;
   final String imageUrl;
   final List<String> categories;
@@ -18,6 +19,7 @@ class PhotoService {
   PhotoService({
     required this.id,
     required this.photographerId,
+    required this.photographerUserId, // 추가
     required this.title,
     required this.imageUrl,
     required this.categories,
@@ -34,6 +36,7 @@ class PhotoService {
     return PhotoService(
       id: dto.id,
       photographerId: dto.photographerId,
+      photographerUserId: dto.photographerUserId,
       title: dto.title,
       imageUrl: dto.imageUrl,
       categories: dto.categories,
@@ -51,6 +54,7 @@ class PhotoService {
     return PhotoServiceDto(
       id: id,
       photographerId: photographerId,
+      photographerUserId: photographerUserId, // DTO로 변환 시 포함
       title: title,
       imageUrl: imageUrl,
       categories: categories,
@@ -61,12 +65,14 @@ class PhotoService {
       description: description,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      // PriceOptions와 portfolioImages는 DTO에 없는 필드이므로 제외
     );
   }
 
   PhotoService copyWith({
     int? id,
     int? photographerId,
+    int? photographerUserId, // copyWith에 추가
     String? title,
     String? imageUrl,
     List<String>? categories,
@@ -81,6 +87,8 @@ class PhotoService {
     return PhotoService(
       id: id ?? this.id,
       photographerId: photographerId ?? this.photographerId,
+      photographerUserId:
+          photographerUserId ?? this.photographerUserId, // copyWith 로직에 추가
       title: title ?? this.title,
       imageUrl: imageUrl ?? this.imageUrl,
       categories: categories ?? this.categories,
@@ -96,7 +104,7 @@ class PhotoService {
 
   @override
   String toString() {
-    return 'PhotoService(id: $id, title: $title, images: ${portfolioImages.length}개)';
+    return 'PhotoService(id: $id, title: $title, images: ${portfolioImages.length}개, photographerId: $photographerId, photographerUserId: $photographerUserId)';
   }
 
   // 편의 메서드들

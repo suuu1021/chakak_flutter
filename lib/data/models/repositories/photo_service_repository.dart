@@ -5,6 +5,7 @@ import 'package:chakak_flutter/data/models/review.dart';
 import 'package:dio/dio.dart';
 import '../../../_core/constants/api_config.dart';
 import '../photo_service/photo_service.dart';
+import '../review.dart';
 
 abstract class PhotoServiceRepository {
   Future<List<PhotoService>> getServices();
@@ -92,9 +93,12 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
           final List<PhotoService> services = serviceListFromResponse
               .map((item) {
                 if (item is Map<String, dynamic>) {
+                  // PhotoServiceDto를 사용하여 올바르게 파싱
                   final dto = PhotoServiceDto.fromJson(item);
                   final service = dto.toModel();
                   print('service.photographerId: ${service.photographerId}');
+                  print(
+                      'service.photographerUserId: ${service.photographerUserId}');
                   return service;
                 } else {
                   print('Invalid item format in service list: $item');
@@ -152,21 +156,17 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
                             priceJson as Map<String, dynamic>))
                         .toList();
                   }
+                  // PhotoServiceDto를 사용하여 올바르게 파싱
+                  final dto = PhotoServiceDto.fromJson(item);
+                  final service = dto.toModel();
 
-                  return PhotoService(
-                    id: item['serviceId'] as int? ?? 0,
-                    photographerId: item['photographerId'] as int? ?? 0,
-                    title: item['title'] as String? ?? '',
-                    imageUrl: item['imageData'] as String? ?? '',
-                    categories: [],
-                    price: item['price'] as int? ?? 0,
-                    rating: 0.0,
-                    reviewCount: 0,
-                    isLiked: false,
-                    description: item['description'] as String? ?? '',
-                    priceOptions: priceOptionsList,
-                    portfolioImages: [],
-                  );
+                  print('[PhotoServiceRepository] 변환된 서비스:');
+                  print('  서비스 ID: ${service.id}');
+                  print('  포토그래퍼 프로필 ID: ${service.photographerId}');
+                  print('  포토그래퍼 사용자 ID: ${service.photographerUserId}');
+                  print('  가격 옵션 개수: ${service.priceOptions.length}');
+
+                  return service;
                 } else {
                   print(
                       'Invalid item format in photographer service list: $item');
@@ -176,16 +176,6 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
               .where((service) => service != null)
               .cast<PhotoService>()
               .toList();
-
-          print('[PhotoServiceRepository] 변환된 서비스들:');
-          for (var service in services) {
-            print(
-                '서비스 ID: ${service.id}, 가격 옵션 개수: ${service.priceOptions.length}');
-            for (var option in service.priceOptions) {
-              print(
-                  '  옵션: ${option.name}, ID: ${option.id}, 가격: ${option.price}');
-            }
-          }
 
           return services;
         } else {
