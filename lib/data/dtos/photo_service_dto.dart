@@ -176,7 +176,13 @@ class PriceOptionDto {
   factory PriceOptionDto.fromJson(Map<String, dynamic> json) {
     List<String> constructedFeatures = [];
     if (json['specialEquipment'] != null) {
-      constructedFeatures.add('장비: ${json['specialEquipment']}');
+      String equipment = json['specialEquipment'].toString();
+      if (equipment.startsWith('장비:')) {
+        String cleanEquipment = equipment.split('장비:').last.trim();
+        constructedFeatures.add('장비: $cleanEquipment');
+      } else {
+        constructedFeatures.add('장비: $equipment');
+      }
     }
     if (json['isMakeupService'] == true) {
       constructedFeatures.add('메이크업 서비스 포함');

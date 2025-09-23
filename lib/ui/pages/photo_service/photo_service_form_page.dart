@@ -68,7 +68,7 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
       setState(() {
         _availableCategories = categories.map((categoryData) {
           return PhotoServiceCategory(
-            id: categoryData['categoryId'] ?? 0,
+            id: (categoryData['categoryId'] ?? 0).toString(),
             name: categoryData['categoryName'] ?? '',
             categoryImageData: categoryData['categoryImageData'] ?? '',
           );
@@ -608,15 +608,23 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
   }
 
   Future<void> _saveService() async {
+    print('=== _saveService 시작 ===');
+    print('수정 모드: ${widget.service != null}');
+
     if (!_formKey.currentState!.validate() || _selectedCategoryIds.isEmpty) {
+      print('유효성 검사 실패');
+
       _showValidationError();
       return;
     }
 
     if (_existingImageData.isEmpty && _selectedImages.isEmpty) {
+      print('이미지 없음');
+
       _showErrorDialog('최소 하나의 이미지를 추가하세요');
       return;
     }
+    print('서비스 저장 시작...');
 
     setState(() => _isLoading = true);
 
@@ -647,23 +655,34 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
         'imageData': combinedImageData,
       };
 
+      print('serviceData: $serviceData');
+
       if (widget.service == null) {
+        print('새 서비스 생성 중...');
+
         await ref
             .read(photoServiceProvider.notifier)
             .createService(serviceData);
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('서비스가 성공적으로 등록되었습니다')));
       } else {
+        print('기존 서비스 수정 중... ID: ${widget.service!.id}');
+
         await ref
             .read(photoServiceProvider.notifier)
             .updateService(widget.service!.id, serviceData);
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('서비스가 성공적으로 수정되었습니다')));
+        print('서비스 수정 완료');
       }
+      print('Navigator.pop 호출.');
+
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       }
     } catch (error) {
+      print('서비스 저장 실패: $error');
+
       ErrorHandler.handleError(
         context,
         error,

@@ -18,7 +18,8 @@ abstract class PhotoServiceCategoryRepository {
 
 class PhotoServiceCategoryRepositoryImpl
     implements PhotoServiceCategoryRepository {
-  final Dio _dio = Dio();
+  final Dio _dio;
+  PhotoServiceCategoryRepositoryImpl(this._dio);
 
   // 플랫폼별 서버 주소 설정
   static String get serverUrl {

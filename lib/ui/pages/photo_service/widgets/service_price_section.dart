@@ -231,10 +231,12 @@ class _ServicePriceSectionState extends State<ServicePriceSection> {
         children: [
           const Icon(Icons.check_circle, color: AppColors.primary, size: 20),
           const SizedBox(width: AppSizes.spacing8),
-          Text(
-            feature,
-            style:
-                const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+          Expanded(
+            child: Text(
+              feature,
+              style:
+                  const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+            ),
           ),
         ],
       ),

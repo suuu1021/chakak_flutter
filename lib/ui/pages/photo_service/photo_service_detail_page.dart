@@ -62,12 +62,13 @@ class _PhotoServiceDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    // 에러 상태 감지
-    ref.listen(photoServiceProvider, (previous, next) {
-      if (next.error != null && previous?.error != next.error) {
-        ErrorHandler.handleError(context, next.error);
-      }
-    });
+    final serviceState = ref.watch(photoServiceProvider);
+
+    // provider에서 최신 데이터 찾기
+    final currentService = serviceState.services
+            .where((s) => s.id == widget.service.id)
+            .firstOrNull ??
+        widget.service;
 
     return Scaffold(
       appBar: _buildAppBar(),
@@ -75,24 +76,24 @@ class _PhotoServiceDetailPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ServiceImageSection(service: widget.service),
-            ServiceInfoSection(service: widget.service),
-            ServicePriceSection(service: widget.service),
-            ServiceDescriptionSection(service: widget.service),
+            ServiceImageSection(service: currentService),
+            ServiceInfoSection(service: currentService),
+            ServicePriceSection(service: currentService),
+            ServiceDescriptionSection(service: currentService),
             ServiceGallerySection(
-                photographerId: widget.service.photographerId),
+                photographerId: currentService.photographerId),
             PhotographerInfoSection(
-              service: widget.service,
+              service: currentService,
               onProfileTap: () => _onPhotographerProfileTap(context),
             ),
             OtherServicesSection(
-              service: widget.service,
+              service: currentService,
               otherServices: widget.otherServices,
               onServiceTap: (otherService) =>
                   _onOtherServiceTap(context, otherService),
             ),
             ServiceReviewSection(
-              service: widget.service,
+              service: currentService,
               onViewAllTap: () => _onViewAllReviewsTap(context),
             ),
           ],
@@ -103,12 +104,17 @@ class _PhotoServiceDetailPageState
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final serviceState = ref.watch(photoServiceProvider); // 추가
     final bool isOwner = _isOwner();
+    final currentService = serviceState.services
+            .where((s) => s.id == widget.service.id)
+            .firstOrNull ??
+        widget.service;
 
     return AppBar(
       backgroundColor: AppColors.primaryLight,
       title: Text(
-        widget.service.title,
+        currentService.title,
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -216,7 +222,21 @@ class _PhotoServiceDetailPageState
             photographerId: widget.service.photographerId,
           ),
         ),
-      );
+      ).then((result) async {
+        if (result == true) {
+          // 데이터 새로고침
+          await ref
+              .read(photoServiceProvider.notifier)
+              .loadServicesByPhotographer(widget.service.photographerId);
+
+          // 현재 화면 새로고침을 위해 setState 호출
+          if (mounted) {
+            setState(() {
+              // 화면 리빌드를 트리거
+            });
+          }
+        }
+      });
     } catch (error) {
       ErrorHandler.handleError(
         context,

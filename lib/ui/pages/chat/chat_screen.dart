@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../_core/constants/app_colors.dart';
 import '../../widgets/chat_bubble.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -124,7 +125,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ImageUploadHelper.pickAndUploadImage(
           context,
           onImageSelected: (base64Image, fileName, fileSize) {
-            final chatNotifier = ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
+            final chatNotifier =
+                ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
             chatNotifier.sendImageMessage(
               base64Image: base64Image,
               fileName: fileName,
@@ -171,8 +173,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       int photoServiceInfoId, int priceInfoId) async {
     final chatNotifier =
         ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
-    final userProfileId =
-        chatNotifier.opponentUserId ?? widget.opponentUserId;
+    final userProfileId = chatNotifier.opponentUserId ?? widget.opponentUserId;
 
     if (photographerId == null || userProfileId == null) {
       print('결제 요청에 필요한 사용자 ID가 누락되었습니다.');
@@ -219,7 +220,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface, // white → AppColors.surface
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.all(20),
@@ -230,7 +231,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors
+                    .gray300, // Colors.grey.shade300 → AppColors.gray300
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -238,12 +240,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                if (isPhotographer &&
-                    isPhotographerIdLoaded)
+                if (isPhotographer && isPhotographerIdLoaded)
                   _buildOptionButton(
                     icon: Icons.payment,
                     label: '결제 요청',
-                    color: Colors.blue,
+                    color: AppColors.primary, // Colors.blue → AppColors.primary
                     onTap: () {
                       Navigator.pop(context);
                       PaymentRequestDialog.show(
@@ -260,7 +261,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 _buildOptionButton(
                   icon: Icons.image,
                   label: '이미지',
-                  color: Colors.green,
+                  color:
+                      AppColors.secondary, // Colors.green → AppColors.secondary
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage();
@@ -298,8 +300,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.grey.shade700,
+          style: const TextStyle(
+            color: AppColors
+                .textSecondary, // Colors.grey.shade700 → AppColors.textSecondary
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -319,7 +322,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final imageWidget = CachedNetworkImage(
       imageUrl: imageUrl,
       fit: BoxFit.cover,
-      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+      placeholder: (context, url) =>
+          const Center(child: CircularProgressIndicator()),
       errorWidget: (context, url, error) {
         print('##### CachedNetworkImage Error #####');
         print('Failed to load image from URL: $url');
@@ -333,9 +337,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         padding: const EdgeInsets.all(8.0),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6),
         child: Column(
-          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment:
+              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12.0),
@@ -358,15 +364,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget _buildInputArea() {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      decoration: const BoxDecoration(
+        color: AppColors.surface, // Colors.white → AppColors.surface
+        border: Border(
+            top: BorderSide(
+                color: AppColors
+                    .border)), // Colors.grey.shade200 → AppColors.border
       ),
       child: SafeArea(
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.add_circle, color: Colors.grey.shade500),
+              icon: const Icon(Icons.add_circle,
+                  color: AppColors
+                      .gray500), // Colors.grey.shade500 → AppColors.gray500
               onPressed: _showOptionsBottomSheet,
             ),
             Expanded(
@@ -374,16 +385,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: TextField(
                   controller: _textController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: '메시지를 입력하세요',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Colors.grey.shade200,
+                    fillColor: AppColors
+                        .gray200, // Colors.grey.shade200 → AppColors.gray200
                     contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
                   onSubmitted: _handleSubmitted,
                 ),
@@ -391,7 +403,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             const SizedBox(width: 8),
             Material(
-              color: Colors.blue.shade600,
+              color:
+                  AppColors.primary, // Colors.blue.shade600 → AppColors.primary
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: () {
@@ -408,7 +421,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   child: const Icon(
                     Icons.send,
-                    color: Colors.white,
+                    color: AppColors
+                        .textOnPrimary, // Colors.white → AppColors.textOnPrimary
                     size: 20,
                   ),
                 ),
@@ -449,7 +463,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           final message = chatState.messages[index];
                           final isMe = message.senderId == sessionState.userId;
 
-                          final timestamp = message.createdAt != null ? DateTime.tryParse(message.createdAt!) : null;
+                          final timestamp = message.createdAt != null
+                              ? DateTime.tryParse(message.createdAt!)
+                              : null;
 
                           if (message.isImageMessage) {
                             return _buildImageBubble(

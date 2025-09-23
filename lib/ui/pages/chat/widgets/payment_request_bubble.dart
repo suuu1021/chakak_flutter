@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+
+import '../../../../_core/constants/app_colors.dart';
 import '../../payment/payment_form_screen.dart';
 
 class PaymentRequestBubble extends StatelessWidget {
-  final String title;        // 상품명
-  final int price;           // 가격
-  final String description;  // 설명
-  final bool isMe;           // 내가 보낸 메시지인지
-  final int bookingInfoId;   // ✅ required
+  final String title; // 상품명
+  final int price; // 가격
+  final String description; // 설명
+  final bool isMe; // 내가 보낸 메시지인지
+  final int bookingInfoId; // ✅ required
 
   const PaymentRequestBubble({
     super.key,
@@ -25,19 +27,38 @@ class PaymentRequestBubble extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isMe ? Colors.blue[50] : Colors.grey[200],
+          color: isMe ? AppColors.primaryLight : AppColors.gray100,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.border),
         ),
         width: 240,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text("$price 원", style: const TextStyle(fontSize: 14, color: Colors.black54)),
+            Text(
+              "$price 원",
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(description, style: const TextStyle(fontSize: 13, color: Colors.black87)),
+            Text(
+              description,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+              ),
+            ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
@@ -55,10 +76,12 @@ class PaymentRequestBubble extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textOnPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 child: const Text("결제"),
               ),

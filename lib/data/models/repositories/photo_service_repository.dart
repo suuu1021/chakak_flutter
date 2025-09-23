@@ -1,18 +1,20 @@
 import 'dart:io';
+
 import 'package:chakak_flutter/data/dtos/photo_service_dto.dart';
 import 'package:chakak_flutter/data/models/photo_service/price_option.dart';
 import 'package:chakak_flutter/data/models/review.dart';
 import 'package:dio/dio.dart';
+
 import '../../../_core/constants/api_config.dart';
 import '../photo_service/photo_service.dart';
-import '../review.dart';
 
 abstract class PhotoServiceRepository {
   Future<List<PhotoService>> getServices();
   Future<List<PhotoService>> getServicesByPhotographer(int photographerId);
   Future<int?> getPhotographerIdByUserId(int userId);
   Future<void> updateLikeStatus(int serviceId, bool isLiked);
-  Future<ReviewPage> fetchReviews({required int serviceId, int page = 0, int size = 10});
+  Future<ReviewPage> fetchReviews(
+      {required int serviceId, int page = 0, int size = 10});
 }
 
 class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
@@ -30,8 +32,10 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
   }
 
   @override
-  Future<ReviewPage> fetchReviews({required int serviceId, int page = 0, int size = 10}) async {
-    final String apiUrl = '$serverUrl/api/v1/photo-services/$serviceId/reviews?page=$page&size=$size';
+  Future<ReviewPage> fetchReviews(
+      {required int serviceId, int page = 0, int size = 10}) async {
+    final String apiUrl =
+        '$serverUrl/api/v1/photo-services/$serviceId/reviews?page=$page&size=$size';
     try {
       final response = await _dio.get(apiUrl);
 

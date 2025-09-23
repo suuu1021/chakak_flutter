@@ -1,7 +1,9 @@
 // 창고 데이터
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/repositories/photo_service_category_repository.dart';
+import '../../core/dio_provider.dart';
 
 class PhotoServiceCategoryState {
   final List<PhotoServiceCategory> categories;
@@ -30,12 +32,14 @@ class PhotoServiceCategoryState {
 // 창고 메뉴얼 (확장된 VM 개념)
 class PhotoServiceCategoryNotifier extends Notifier<PhotoServiceCategoryState> {
   late PhotoServiceCategoryRepository _repository;
+  late Dio _dio; // Dio 인스턴스 추가
 
   PhotoServiceCategoryRepository get repository => _repository;
 
   @override
   PhotoServiceCategoryState build() {
-    _repository = PhotoServiceCategoryRepositoryImpl();
+    _dio = ref.watch(dioProvider); // dioProvider에서 공통 Dio 인스턴스 가져오기
+    _repository = PhotoServiceCategoryRepositoryImpl(_dio); // Dio 인스턴스 주입
 
     return PhotoServiceCategoryState();
   }

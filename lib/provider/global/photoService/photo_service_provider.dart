@@ -50,7 +50,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
     _dio = ref.watch(dioProvider); // dioProvider에서 공통 Dio 인스턴스 가져오기
     _repository = PhotoServiceRepositoryImpl(_dio); // Dio 인스턴스 주입
     _categoryRepository =
-        PhotoServiceCategoryRepositoryImpl(); // 카테고리 repository 추가
+        PhotoServiceCategoryRepositoryImpl(_dio); // 카테고리 repository 추가
     return ServiceState();
   }
 
