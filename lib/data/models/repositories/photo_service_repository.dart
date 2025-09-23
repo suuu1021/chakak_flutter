@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:chakak_flutter/data/dtos/photo_service_dto.dart';
 import 'package:chakak_flutter/data/models/photo_service/price_option.dart';
+import 'package:chakak_flutter/data/models/review.dart';
 import 'package:dio/dio.dart';
 import '../../../_core/constants/api_config.dart';
 import '../photo_service/photo_service.dart';
@@ -8,8 +9,9 @@ import '../photo_service/photo_service.dart';
 abstract class PhotoServiceRepository {
   Future<List<PhotoService>> getServices();
   Future<List<PhotoService>> getServicesByPhotographer(int photographerId);
-  Future<int?> getPhotographerIdByUserId(int userId); // 매핑 메서드 추가
+  Future<int?> getPhotographerIdByUserId(int userId);
   Future<void> updateLikeStatus(int serviceId, bool isLiked);
+  Future<ReviewPage> fetchReviews({required int serviceId, int page = 0, int size = 10});
 }
 
 class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
@@ -27,6 +29,26 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
   }
 
   @override
+  Future<ReviewPage> fetchReviews({required int serviceId, int page = 0, int size = 10}) async {
+    final String apiUrl = '$serverUrl/api/v1/photo-services/$serviceId/reviews?page=$page&size=$size';
+    try {
+      final response = await _dio.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        return ReviewPage.fromJson(response.data['body']);
+      } else {
+        throw Exception('Failed to load reviews: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('DioError fetching reviews: ${e.message}, URL: $apiUrl');
+      throw Exception('Failed to load reviews: ${e.message}');
+    } catch (e) {
+      print('Unexpected error fetching reviews: $e, URL: $apiUrl');
+      throw Exception('Failed to load reviews: $e');
+    }
+  }
+
+  @override
   Future<int?> getPhotographerIdByUserId(int userId) async {
     final String apiUrl = '$serverUrl/api/photographers/profile/user/$userId';
     try {
@@ -35,12 +57,10 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
       if (response.statusCode == 200) {
         final data = response.data;
 
-        // ApiUtil 래퍼 구조 처리
         if (data is Map<String, dynamic> && data.containsKey('body')) {
           return data['body']['photographerProfileId'] as int?;
         }
 
-        // 직접 응답인 경우
         return data['photographerProfileId'] as int?;
       }
       return null;
@@ -125,7 +145,6 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
           final List<PhotoService> services = serviceListFromResponse
               .map((item) {
                 if (item is Map<String, dynamic>) {
-                  // 서버 응답에서 priceInfoList를 PriceOption.fromJson으로 처리
                   List<PriceOption> priceOptionsList = [];
                   if (item['priceInfoList'] != null) {
                     priceOptionsList = (item['priceInfoList'] as List)

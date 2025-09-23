@@ -98,13 +98,22 @@ class _PhotographerProfilePageState
   }
 
   Widget _buildTabContent() {
+    final services = ref
+        .read(photoServiceProvider.notifier)
+        .getPhotographerServices(widget.photographerId);
+    final isLoading = ref.watch(photoServiceProvider).isLoading;
+
     return Expanded(
       child: TabBarView(
         controller: _tabController,
         children: [
           _buildServiceTab(),
           PortfolioPage(photographerId: widget.photographerId.toString()),
-          _buildScrollableContent(const PhotographerReviews()),
+          (services.isEmpty && !isLoading)
+              ? _buildScrollableContent(
+                  const Center(child: Text('등록된 서비스가 없어 리뷰를 표시할 수 없습니다.')))
+              : _buildScrollableContent(
+                  PhotographerReviews(serviceId: services.first.id)),
         ],
       ),
     );

@@ -1,132 +1,55 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../_core/constants/app_colors.dart';
+import '../../../../../data/models/repositories/photo_service_repository.dart';
+import '../../../../../data/models/review.dart';
+import '../../../../../provider/chat/chat_provider.dart';
 
-// 리뷰 데이터 모델
-class ReviewData {
-  final String userName;
-  final String userProfileImage;
-  final double rating;
-  final String reviewText;
-  final DateTime reviewDate;
-  final List<String> reviewImages;
-  final String serviceType;
+// 3단계: Provider 생성
+final reviewsProvider =
+    FutureProvider.family<ReviewPage, int>((ref, serviceId) async {
+  final repository = ref.watch(photoServiceRepositoryProvider);
+  return repository.fetchReviews(serviceId: serviceId);
+});
 
-  const ReviewData({
-    required this.userName,
-    required this.userProfileImage,
-    required this.rating,
-    required this.reviewText,
-    required this.reviewDate,
-    this.reviewImages = const [],
-    required this.serviceType,
-  });
-}
+// 4단계: UI 수정
+class PhotographerReviews extends ConsumerWidget {
+  final int serviceId;
 
-class PhotographerReviews extends StatelessWidget {
-  const PhotographerReviews({super.key});
-
-  // 샘플 리뷰 데이터
-  static final List<ReviewData> _sampleReviews = [
-    ReviewData(
-      userName: "김민수",
-      userProfileImage:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
-      rating: 5.0,
-      reviewText:
-          "정말 만족스러운 촬영이었습니다! 포토그래퍼님이 디렉팅도 잘해주시고, 자연스러운 표정을 잘 이끌어내주셨어요. 결과물도 기대 이상으로 만족합니다.",
-      reviewDate: DateTime(2024, 8, 15),
-      reviewImages: [
-        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=150&h=150&fit=crop",
-        "https://images.unsplash.com/photo-1519741497674-611481863552?w=150&h=150&fit=crop",
-      ],
-      serviceType: "프리미엄",
-    ),
-    ReviewData(
-      userName: "박지영",
-      userProfileImage:
-          "https://images.unsplash.com/photo-1494790108755-2616b612b093?w=80&h=80&fit=crop&crop=face",
-      rating: 4.5,
-      reviewText: "세심한 준비와 꼼꼼한 촬영 진행이 인상적이었습니다. 다양한 컨셉으로 촬영해주셔서 선택의 폭이 넓었어요.",
-      reviewDate: DateTime(2024, 8, 10),
-      reviewImages: [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-      ],
-      serviceType: "시그니처",
-    ),
-    ReviewData(
-      userName: "이동훈",
-      userProfileImage:
-          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=face",
-      rating: 5.0,
-      reviewText:
-          "커플 촬영으로 이용했는데 분위기 연출을 정말 잘해주세요. 둘 다 사진 찍는 게 어색했는데 편안하게 촬영할 수 있었습니다.",
-      reviewDate: DateTime(2024, 8, 5),
-      reviewImages: [
-        "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=150&h=150&fit=crop",
-        "https://images.unsplash.com/photo-1516589091380-5d8e87df6999?w=150&h=150&fit=crop",
-      ],
-      serviceType: "에센셜",
-    ),
-    ReviewData(
-      userName: "최수빈",
-      userProfileImage:
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&crop=face",
-      rating: 4.8,
-      reviewText: "프로필 사진 촬영 목적으로 방문했는데 결과가 너무 만족스럽네요. 보정도 자연스럽게 잘해주셨습니다.",
-      reviewDate: DateTime(2024, 7, 28),
-      reviewImages: [
-        "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=150&h=150&fit=crop",
-        "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=150&h=150&fit=crop",
-        "https://images.unsplash.com/photo-1515488764276-beab7607c1e6?w=150&h=150&fit=crop",
-      ],
-      serviceType: "프리미엄",
-    ),
-    ReviewData(
-      userName: "정현우",
-      userProfileImage:
-          "https://images.unsplash.com/photo-1463453091185-61582044d556?w=80&h=80&fit=crop&crop=face",
-      rating: 4.7,
-      reviewText: "졸업사진 촬영으로 갔는데 다양한 각도와 표정으로 찍어주셔서 선택하기 어려울 정도였어요. 만족합니다!",
-      reviewDate: DateTime(2024, 7, 20),
-      reviewImages: [
-        "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=150&h=150&fit=crop",
-      ],
-      serviceType: "에센셜",
-    ),
-    ReviewData(
-      userName: "안소현",
-      userProfileImage:
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=face",
-      rating: 4.9,
-      reviewText:
-          "아이 돌잔치 촬영 정말 잘해주세요! 아기가 울어도 참을성 있게 기다려주시고 자연스러운 순간들을 포착해주셨어요.",
-      reviewDate: DateTime(2024, 7, 15),
-      reviewImages: [
-        "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=150&h=150&fit=crop",
-        "https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=150&h=150&fit=crop",
-      ],
-      serviceType: "시그니처",
-    ),
-  ];
+  const PhotographerReviews({super.key, required this.serviceId});
 
   @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildReviewHeader(),
-        const SizedBox(height: 20),
-        _buildReviewsList(),
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reviewsAsyncValue = ref.watch(reviewsProvider(serviceId));
+
+    return reviewsAsyncValue.when(
+      data: (reviewPage) {
+        if (reviewPage.empty) {
+          return const Center(child: Text("아직 작성된 리뷰가 없습니다."));
+        }
+
+        final double averageRating = reviewPage.content.isNotEmpty
+            ? reviewPage.content.map((r) => r.rating).reduce((a, b) => a + b) /
+                reviewPage.content.length
+            : 0.0;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildReviewHeader(reviewPage, averageRating),
+            const SizedBox(height: 20),
+            _buildReviewsList(reviewPage.content),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) =>
+          Center(child: Text("리뷰를 불러오는 중 오류가 발생했습니다: $error")),
     );
   }
 
-  // 리뷰 헤더 (평점 통계)
-  Widget _buildReviewHeader() {
-    final double averageRating = _calculateAverageRating();
-    final int totalReviews = _sampleReviews.length;
-
+  Widget _buildReviewHeader(ReviewPage reviewPage, double averageRating) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -135,7 +58,6 @@ class PhotographerReviews extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // 평점 표시
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -155,7 +77,7 @@ class PhotographerReviews extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '$totalReviews개의 리뷰',
+                '${reviewPage.totalElements}개의 리뷰',
                 style: const TextStyle(
                   fontSize: 14,
                   color: AppColors.textSecondary,
@@ -164,35 +86,24 @@ class PhotographerReviews extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          // 평점 분포 (간단히)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _buildRatingBar(5, _countRatingsByScore(5), totalReviews),
-              _buildRatingBar(4, _countRatingsByScore(4), totalReviews),
-              _buildRatingBar(3, _countRatingsByScore(3), totalReviews),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  // 리뷰 목록
-  Widget _buildReviewsList() {
+  Widget _buildReviewsList(List<Review2> reviews) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _sampleReviews.length,
+      itemCount: reviews.length,
       separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
-        return _buildReviewCard(_sampleReviews[index]);
+        return _buildReviewCard(reviews[index]);
       },
     );
   }
 
-  // 개별 리뷰 카드
-  Widget _buildReviewCard(ReviewData review) {
+  Widget _buildReviewCard(Review2 review) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -203,77 +114,32 @@ class PhotographerReviews extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 사용자 정보 및 평점
           Row(
             children: [
               CircleAvatar(
                 radius: 20,
                 backgroundColor: AppColors.gray300,
-                child: review.userProfileImage.isNotEmpty
-                    ? ClipOval(
-                        child: Image.network(
-                          review.userProfileImage,
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return const CircularProgressIndicator(
-                                strokeWidth: 2);
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return Text(
-                              review.userName[0],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    : Text(
-                        review.userName[0],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
+                child: Text(
+                  review.author.nickname.isNotEmpty
+                      ? review.author.nickname[0]
+                      : "",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          review.userName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            review.serviceType,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      review.author.nickname,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -281,7 +147,7 @@ class PhotographerReviews extends StatelessWidget {
                         _buildStarRating(review.rating),
                         const SizedBox(width: 8),
                         Text(
-                          _formatDate(review.reviewDate),
+                          _formatDate(DateTime.parse(review.createdAt)),
                           style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
@@ -295,28 +161,23 @@ class PhotographerReviews extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
-          // 리뷰 텍스트
           Text(
-            review.reviewText,
+            review.content,
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textPrimary,
               height: 1.4,
             ),
           ),
-
-          // 리뷰 이미지 (있는 경우)
-          if (review.reviewImages.isNotEmpty) ...[
+          if (review.thumbnailUrl != null) ...[
             const SizedBox(height: 12),
-            _buildReviewImages(review.reviewImages),
+            _buildReviewImages([review.thumbnailUrl!]),
           ],
         ],
       ),
     );
   }
 
-  // 별점 표시 위젯
   Widget _buildStarRating(double rating) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -344,55 +205,6 @@ class PhotographerReviews extends StatelessWidget {
     );
   }
 
-  // 평점 분포 바
-  Widget _buildRatingBar(int starCount, int count, int total) {
-    final double percentage = total > 0 ? count / total : 0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '$starCount',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Container(
-            width: 60,
-            height: 4,
-            decoration: BoxDecoration(
-              color: AppColors.gray200,
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: percentage,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            '$count',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 리뷰 이미지 표시
   Widget _buildReviewImages(List<String> images) {
     return SizedBox(
       height: 80,
@@ -425,20 +237,6 @@ class PhotographerReviews extends StatelessWidget {
         },
       ),
     );
-  }
-
-  // 유틸리티 메서드들
-  double _calculateAverageRating() {
-    if (_sampleReviews.isEmpty) return 0.0;
-    final double sum =
-        _sampleReviews.fold(0.0, (sum, review) => sum + review.rating);
-    return sum / _sampleReviews.length;
-  }
-
-  int _countRatingsByScore(int score) {
-    return _sampleReviews
-        .where((review) => review.rating.floor() == score)
-        .length;
   }
 
   String _formatDate(DateTime date) {

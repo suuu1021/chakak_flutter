@@ -17,7 +17,6 @@ class Review {
     required this.createdAt,
   });
 
-  // 이 Review 모델의 데이터를 복사하면서 일부 필드만 변경하는 copyWith 메소드 (선택 사항이지만 유용함)
   Review copyWith({
     String? id,
     String? reviewerId,
@@ -38,13 +37,98 @@ class Review {
     );
   }
 
-  // 디버깅이나 로깅을 위한 toString 메소드 (선택 사항)
   @override
   String toString() {
     return 'Review(id: $id, reviewerId: $reviewerId, serviceId: $serviceId, bookingId: $bookingId, rating: $rating, reviewContent: $reviewContent, createdAt: $createdAt)';
   }
+}
 
-  // 만약 이 모델을 Map으로 변환하거나 (예: 로컬 DB 저장용),
-  // Map에서 이 모델을 생성하는 로직이 필요하다면 여기에 추가할 수 있습니다.
-  // (서버 API와의 직접적인 변환은 ReviewDto에서 담당할 예정입니다.)
+// --- [새로 추가되는 코드] ---
+
+// 2-2. 리뷰 목록 조회의 "body" 부분
+class ReviewPage {
+  final List<Review2> content;
+  final bool last;
+  final int totalPages;
+  final int totalElements;
+  final int size;
+  final int number; // 현재 페이지 번호 (0부터 시작)
+  final bool first;
+  final int numberOfElements;
+  final bool empty;
+
+  ReviewPage({
+    required this.content,
+    required this.last,
+    required this.totalPages,
+    required this.totalElements,
+    required this.size,
+    required this.number,
+    required this.first,
+    required this.numberOfElements,
+    required this.empty,
+  });
+
+  factory ReviewPage.fromJson(Map<String, dynamic> json) {
+    return ReviewPage(
+      content:
+          (json['content'] as List).map((item) => Review2.fromJson(item)).toList(),
+      last: json['last'],
+      totalPages: json['totalPages'],
+      totalElements: json['totalElements'],
+      size: json['size'],
+      number: json['number'],
+      first: json['first'],
+      numberOfElements: json['numberOfElements'],
+empty: json['empty'],
+    );
+  }
+}
+
+// 2-2. 리뷰 목록 조회의 "content" 배열 내부 객체
+class Review2 {
+  final int reviewId;
+  final double rating;
+  final String content;
+  final String? thumbnailUrl;
+  final AuthorInfo author;
+  final String createdAt;
+
+  Review2({
+    required this.reviewId,
+    required this.rating,
+    required this.content,
+    this.thumbnailUrl,
+    required this.author,
+    required this.createdAt,
+  });
+
+  factory Review2.fromJson(Map<String, dynamic> json) {
+    return Review2(
+      reviewId: json['reviewId'],
+      rating: (json['rating'] as num).toDouble(),
+      content: json['content'],
+      thumbnailUrl: json['thumbnailUrl'],
+      author: AuthorInfo.fromJson(json['author']),
+      createdAt: json['createdAt'],
+    );
+  }
+}
+
+// 2-2. 리뷰 목록 조회의 "author" 객체
+class AuthorInfo {
+  final int userId;
+  final String nickname;
+
+  AuthorInfo({
+    required this.userId,
+    required this.nickname,
+  });
+
+  factory AuthorInfo.fromJson(Map<String, dynamic> json) {
+    return AuthorInfo(
+      userId: json['userId'],
+      nickname: json['nickname'],
+    );
+  }
 }
