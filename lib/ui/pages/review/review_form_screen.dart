@@ -42,24 +42,24 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
             const SizedBox(height: 8),
 
             // ⭐ 별점 선택 위젯
-          GestureDetector(
-            onTapDown: (details) {
-              const starSize = 36.0;
-              const starCount = 5;
+            GestureDetector(
+              onTapDown: (details) {
+                const starSize = 36.0;
+                const starCount = 5;
 
-              final tapX = details.localPosition.dx;
-              final starWidth = starSize; // 별 하나 크기
+                final tapX = details.localPosition.dx;
+                final starWidth = starSize; // 별 하나 크기
 
-              setState(() {
-                _rating = (tapX / starWidth).ceil().clamp(1, starCount);
-              });
-            },
-            child: ReviewStarWidget(
-              rating: _rating,
-              size: 36,
-              color: Colors.orange,
+                setState(() {
+                  _rating = (tapX / starWidth).ceil().clamp(1, starCount);
+                });
+              },
+              child: ReviewStarWidget(
+                rating: _rating,
+                size: 36,
+                color: Colors.orange,
+              ),
             ),
-          ),
 
             const SizedBox(height: 16),
 
@@ -96,4 +96,4 @@ class _ReviewFormScreenState extends State<ReviewFormScreen> {
       ),
     );
   }
-}
+} // 리뷰 작성 페이지

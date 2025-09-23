@@ -6,6 +6,8 @@ import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/utils/error_handler.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../provider/review/review_provider.dart'; // 추가된 import
+
 import '../profile/photographer/photographer_profile_page.dart';
 import '../review/review_list_screen.dart';
 import 'widgets/service_image_section.dart';
@@ -36,8 +38,22 @@ class PhotoServiceDetailPage extends ConsumerWidget {
       }
     });
 
+    Future.microtask(() {
+      final reviewStatusNotifier = ref.read(reviewStatusProvider.notifier);
+      final currentStatus = ref.read(reviewStatusProvider);
+      if (currentStatus.currentServiceId != service.id ||
+          currentStatus.status == ReviewServiceFetchStatus.initial) {
+        print(
+            "[PhotoServiceDetailPage] Fetching review status for service ID: ${service.id}");
+        reviewStatusNotifier.fetchStatus(service.id);
+      } else {
+        print(
+            "[PhotoServiceDetailPage] Review status for service ID: ${service.id} is already up-to-date or loading.");
+      }
+    });
+
     return Scaffold(
-      appBar: _buildAppBar(context),
+      appBar: _buildAppBar(context, ref),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,7 +84,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref) {
     return AppBar(
       backgroundColor: AppColors.primaryLight,
       title: Text(
@@ -82,7 +98,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () => _onShareTap(context),
+          onPressed: () => _onShareTap(context, ref),
           icon: const Icon(Icons.share),
         ),
       ],
@@ -100,7 +116,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.2),
+            color: Colors.grey.withOpacity(0.2),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -141,12 +157,33 @@ class PhotoServiceDetailPage extends ConsumerWidget {
     );
   }
 
-  // 이벤트 핸들러들
-  void _onShareTap(BuildContext context) {
+  void _onShareTap(BuildContext context, WidgetRef ref) {
+    print("[PhotoServiceDetailPage] _onShareTap called.");
     try {
+      final reviewStatusState = ref.read(reviewStatusProvider);
+      print(
+          "[PhotoServiceDetailPage] Current reviewStatusState status: ${reviewStatusState.status}, serviceId: ${reviewStatusState.currentServiceId}, data: ${reviewStatusState.data}");
+
+      final String averageRatingStr =
+          (reviewStatusState.status == ReviewServiceFetchStatus.success &&
+                  reviewStatusState.data != null &&
+                  reviewStatusState.currentServiceId == service.id)
+              ? reviewStatusState.data!.averageRating.toStringAsFixed(1)
+              : service.rating.toStringAsFixed(1);
+
+      final String totalReviewsStr =
+          (reviewStatusState.status == ReviewServiceFetchStatus.success &&
+                  reviewStatusState.data != null &&
+                  reviewStatusState.currentServiceId == service.id)
+              ? reviewStatusState.data!.totalReviews.toString()
+              : service.reviewCount.toString();
+
+      print(
+          "[PhotoServiceDetailPage] Sharing with: ratingStr: $averageRatingStr, reviewsStr: $totalReviewsStr");
+
       final shareText = '${service.title}\n'
-          '평점: ${service.rating.toStringAsFixed(1)}점 (${service.reviewCount}개 리뷰)\n'
-          '가격: ${service.price}원~\n'
+          '평점: ⭐ $averageRatingStr점 ($totalReviewsStr개 리뷰)\n'
+          '가격: ${service.price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},R')}원~\n'
           '카테고리: ${service.categories.join(', ')}\n'
           '\n이 서비스를 확인해보세요!';
 
@@ -177,9 +214,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
 
   void _onBookingTap(BuildContext context) {
     try {
-      // TODO: 예약하기 기능 구현
       print('예약하기 - serviceId: ${service.id}');
-
       ErrorHandler.showWarning(context, '예약 기능을 준비 중입니다');
     } catch (error) {
       ErrorHandler.handleError(
@@ -233,7 +268,7 @@ class PhotoServiceDetailPage extends ConsumerWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const ReviewListScreen(),
+          builder: (_) => ReviewListScreen(serviceId: service.id),
         ),
       );
     } catch (error) {
