@@ -1,28 +1,65 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:chakak_flutter/ui/widgets/custom_text_form_field.dart';
-import 'package:chakak_flutter/ui/widgets/custom_text_area.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'payment_summary_card.dart';
 import 'payment_submit_button.dart';
+import 'package:chakak_flutter/provider/auth/session_provider.dart';
 
-class PaymentFormBody extends StatefulWidget {
+class PaymentFormBody extends ConsumerStatefulWidget {
   final String itemName;
   final int totalAmount;
+  final int bookingInfoId; // ✅ 추가
 
   const PaymentFormBody({
     super.key,
     required this.itemName,
     required this.totalAmount,
+    required this.bookingInfoId,
   });
 
   @override
-  State<PaymentFormBody> createState() => _PaymentFormBodyState();
+  ConsumerState<PaymentFormBody> createState() => _PaymentFormBodyState();
 }
 
-class _PaymentFormBodyState extends State<PaymentFormBody> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _commentController = TextEditingController();
+class _PaymentFormBodyState extends ConsumerState<PaymentFormBody> {
+  Future<void> _startPayment() async {
+    try {
+      final token = ref.read(sessionProvider).jwtToken;
+      if (token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("로그인이 필요합니다.")),
+        );
+        return;
+      }
+
+      final dio = Dio(BaseOptions(baseUrl: "http://10.0.2.2:8080"));
+      final response = await dio.post(
+        "/api/payment/ready",
+        data: {"bookingInfoId": widget.bookingInfoId},
+        options: Options(headers: {"Authorization": "Bearer $token"}),
+      );
+
+      final data = response.data['body'];
+      final redirectUrl = data['nextRedirectMobileUrl'];
+      if (redirectUrl == null || redirectUrl.toString().isEmpty) {
+        throw "카카오페이 리다이렉트 URL이 없습니다.";
+      }
+
+      final uri = Uri.parse(redirectUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw "카카오페이 결제창을 열 수 없습니다.";
+      }
+    } catch (e) {
+      debugPrint("결제 준비 실패: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("결제 요청 실패: $e")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,52 +68,12 @@ class _PaymentFormBodyState extends State<PaymentFormBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 상품 요약 카드
           PaymentSummaryCard(
             itemName: widget.itemName,
             totalAmount: widget.totalAmount,
           ),
           const SizedBox(height: 30),
-
-          // 결제자 정보
-          const Text(
-            "결제자 정보",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          CustomTextFormField(hint: "이름", controller: _nameController),
-          const SizedBox(height: 12),
-          CustomTextFormField(hint: "이메일", controller: _emailController),
-          const SizedBox(height: 12),
-          CustomTextFormField(hint: "전화번호", controller: _phoneController),
-          const SizedBox(height: 20),
-
-          // 요청사항
-          const Text(
-            "추가 요청사항",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          CustomTextArea(hint: "선택 입력", controller: _commentController),
-          const SizedBox(height: 40),
-
-          // 결제 버튼
-          PaymentSubmitButton(
-            onSubmit: () {
-              // TODO: [Backend 연결] 서버 결제 API 호출 후 결제 진행
-              // 1. 서버에 결제 승인 요청 보내기
-              // 2. 성공 시: /payment-success 화면 이동
-              // 3. 실패 시: /payment-fail 화면 이동 (실패 사유 전달)
-
-              // ✅ 현재는 테스트용 (백엔드 연결 전)
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("결제 테스트 성공!"),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-          ),
+          PaymentSubmitButton(onSubmit: _startPayment), // ✅ onSubmit 방식
         ],
       ),
     );

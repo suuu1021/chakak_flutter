@@ -44,8 +44,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       // authProvider의 login 함수를 호출합니다.
       await ref.read(authProvider.notifier).login(
-            LoginRequest(email: email, password: password),
-          );
+        LoginRequest(email: email, password: password),
+      );
 
       print(
           "[LoginScreen] authProvider.login() 호출 성공. 화면 이동은 Session 상태 변경에 따라 자동으로 처리됩니다.");
@@ -122,7 +122,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 context,
                 authState.isProgress ? "로그인 중..." : "로그인",
                 onPressed:
-                    authState.isProgress ? null : _login, // 로그인 중일 때는 버튼 비활성화
+                authState.isProgress ? null : _login, // 로그인 중일 때는 버튼 비활성화
               ),
               const SizedBox(height: 16),
               TextButton(

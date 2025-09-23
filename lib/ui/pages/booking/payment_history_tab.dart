@@ -3,6 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../_core/constants/app_colors.dart';
 import '../../../data/models/payment.dart';
+import '../../../data/dtos/payment/payment_dto.dart';
+import '../../../provider/core/dio_provider.dart'; // ✅ dioProvider import 추가
+
+/// ✅ 사용자 결제 내역 Provider (API 연동)
+final paymentHistoryProvider = FutureProvider<List<Payment>>((ref) async {
+  // ✅ 공통 dioProvider 사용 (JWT 자동 추가됨)
+  final dio = ref.watch(dioProvider);
+
+  final response = await dio.get('/api/payment/user');
+
+  final body = response.data;
+  final dynamic payload =
+  body is Map ? (body['data'] ?? body['response'] ?? body['body'] ?? body) : body;
+
+  List<dynamic> list;
+  if (payload is Map && payload['content'] is List) {
+    list = payload['content'];
+  } else if (payload is List) {
+    list = payload;
+  } else {
+    list = const [];
+  }
+
+  return list
+      .map((e) => PaymentDto.fromJson(e as Map<String, dynamic>).toModel())
+      .toList();
+});
 
 class PaymentHistoryTab extends ConsumerStatefulWidget {
   const PaymentHistoryTab({super.key});
@@ -14,152 +41,6 @@ class PaymentHistoryTab extends ConsumerStatefulWidget {
 class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-
-  // 스냅촬영 플랫폼에 맞는 더미 결제 데이터
-  final List<Payment> dummyPayments = [
-    Payment(
-      paymentId: 1,
-      tid: 'T1234567890',
-      partnerOrderId: 'SNAP_001_20250920',
-      partnerUserId: 'user_001',
-      itemName: '커플 스냅촬영 - 김포토 작가',
-      totalAmount: 250000,
-      vatAmount: 22727,
-      taxFreeAmount: 0,
-      status: PaymentStatus.approved,
-      paymentMethodType: 'CARD',
-      aid: 'A1234567890',
-      createdAt: DateTime(2025, 9, 20, 14, 30),
-      approvedAt: DateTime(2025, 9, 20, 14, 31),
-    ),
-    Payment(
-      paymentId: 2,
-      tid: 'T2345678901',
-      partnerOrderId: 'SNAP_002_20250918',
-      partnerUserId: 'user_002',
-      itemName: '프로필 촬영 - 이스냅 작가',
-      totalAmount: 200000,
-      vatAmount: 18182,
-      taxFreeAmount: 0,
-      status: PaymentStatus.ready,
-      paymentMethodType: 'MONEY',
-      createdAt: DateTime(2025, 9, 18, 10, 0),
-    ),
-    Payment(
-      paymentId: 3,
-      tid: 'T3456789012',
-      partnerOrderId: 'SNAP_003_20250915',
-      partnerUserId: 'user_003',
-      itemName: '웨딩 스냅촬영 - 박셔터 작가',
-      totalAmount: 500000,
-      vatAmount: 45455,
-      taxFreeAmount: 0,
-      status: PaymentStatus.approved,
-      paymentMethodType: 'CARD',
-      aid: 'A3456789012',
-      createdAt: DateTime(2025, 9, 15, 16, 0),
-      approvedAt: DateTime(2025, 9, 15, 16, 2),
-    ),
-    Payment(
-      paymentId: 4,
-      tid: 'T4567890123',
-      partnerOrderId: 'SNAP_004_20250912',
-      partnerUserId: 'user_004',
-      itemName: '가족사진 촬영 - 최프레임 작가',
-      totalAmount: 300000,
-      vatAmount: 27273,
-      taxFreeAmount: 0,
-      status: PaymentStatus.canceled,
-      paymentMethodType: 'BANK',
-      createdAt: DateTime(2025, 9, 12, 13, 30),
-    ),
-    Payment(
-      paymentId: 5,
-      tid: 'T5678901234',
-      partnerOrderId: 'SNAP_005_20250910',
-      partnerUserId: 'user_005',
-      itemName: '졸업사진 촬영 - 정렌즈 작가',
-      totalAmount: 150000,
-      vatAmount: 13636,
-      taxFreeAmount: 0,
-      status: PaymentStatus.failed,
-      paymentMethodType: 'CARD',
-      createdAt: DateTime(2025, 9, 10, 11, 0),
-    ),
-    Payment(
-      paymentId: 6,
-      tid: 'T6789012345',
-      partnerOrderId: 'SNAP_006_20250908',
-      partnerUserId: 'user_006',
-      itemName: '반려동물 촬영 - 한캡처 작가',
-      totalAmount: 180000,
-      vatAmount: 16364,
-      taxFreeAmount: 0,
-      status: PaymentStatus.approved,
-      paymentMethodType: 'MONEY',
-      aid: 'A6789012345',
-      createdAt: DateTime(2025, 9, 8, 15, 30),
-      approvedAt: DateTime(2025, 9, 8, 15, 31),
-    ),
-    Payment(
-      paymentId: 7,
-      tid: 'T7890123456',
-      partnerOrderId: 'SNAP_007_20250905',
-      partnerUserId: 'user_007',
-      itemName: '브랜딩 촬영 - 윤아웃풋 작가',
-      totalAmount: 400000,
-      vatAmount: 36364,
-      taxFreeAmount: 0,
-      status: PaymentStatus.approved,
-      paymentMethodType: 'CARD',
-      aid: 'A7890123456',
-      createdAt: DateTime(2025, 9, 5, 9, 0),
-      approvedAt: DateTime(2025, 9, 5, 9, 1),
-    ),
-    Payment(
-      paymentId: 8,
-      tid: 'T8901234567',
-      partnerOrderId: 'SNAP_008_20250903',
-      partnerUserId: 'user_008',
-      itemName: '임신 기념 촬영 - 송포커스 작가',
-      totalAmount: 250000,
-      vatAmount: 22727,
-      taxFreeAmount: 0,
-      status: PaymentStatus.approved,
-      paymentMethodType: 'BANK',
-      aid: 'A8901234567',
-      createdAt: DateTime(2025, 9, 3, 17, 0),
-      approvedAt: DateTime(2025, 9, 3, 17, 2),
-    ),
-    Payment(
-      paymentId: 9,
-      tid: 'T9012345678',
-      partnerOrderId: 'SNAP_009_20250901',
-      partnerUserId: 'user_009',
-      itemName: '한복 돌잔치 촬영 - 한전통 작가',
-      totalAmount: 450000,
-      vatAmount: 40909,
-      taxFreeAmount: 0,
-      status: PaymentStatus.approved,
-      paymentMethodType: 'CARD',
-      aid: 'A9012345678',
-      createdAt: DateTime(2025, 9, 1, 14, 0),
-      approvedAt: DateTime(2025, 9, 1, 14, 1),
-    ),
-    Payment(
-      paymentId: 10,
-      tid: 'T0123456789',
-      partnerOrderId: 'SNAP_010_20250830',
-      partnerUserId: 'user_010',
-      itemName: '야외 커플 촬영 - 자연스냅 작가',
-      totalAmount: 280000,
-      vatAmount: 25455,
-      taxFreeAmount: 0,
-      status: PaymentStatus.ready,
-      paymentMethodType: 'MONEY',
-      createdAt: DateTime(2025, 8, 30, 11, 30),
-    ),
-  ];
 
   @override
   void dispose() {
@@ -198,7 +79,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
             borderSide: const BorderSide(color: AppColors.primary),
           ),
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           fillColor: AppColors.background,
           filled: true,
         ),
@@ -212,47 +93,52 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
   }
 
   Widget _buildPaymentContent() {
-    final filteredPayments = _getFilteredPayments(dummyPayments);
+    final paymentsAsync = ref.watch(paymentHistoryProvider);
 
-    if (filteredPayments.isEmpty) {
-      if (_searchQuery.isNotEmpty && dummyPayments.isNotEmpty) {
-        return _buildNoSearchResults();
-      }
-      return _buildEmptyState();
-    }
+    return paymentsAsync.when(
+      data: (payments) {
+        final filteredPayments = _getFilteredPayments(payments);
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        // 새로고침 로직
-        await Future.delayed(const Duration(milliseconds: 500));
-      },
-      child: Container(
-        color: AppColors.gray200,
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: filteredPayments.length,
-          itemBuilder: (context, index) {
-            final payment = filteredPayments[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: _buildPaymentCard(payment),
-            );
+        if (filteredPayments.isEmpty) {
+          if (_searchQuery.isNotEmpty && payments.isNotEmpty) {
+            return _buildNoSearchResults();
+          }
+          return _buildEmptyState();
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.refresh(paymentHistoryProvider);
           },
-        ),
-      ),
+          child: Container(
+            color: AppColors.gray200,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filteredPayments.length,
+              itemBuilder: (context, index) {
+                final payment = filteredPayments[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: _buildPaymentCard(payment),
+                );
+              },
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text("에러 발생: $e")),
     );
   }
 
   List<Payment> _getFilteredPayments(List<Payment> payments) {
     if (_searchQuery.isEmpty) return payments;
 
-    return payments.where((payment) {
-      return payment.itemName
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase()) ||
-          payment.partnerOrderId
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase());
+    final q = _searchQuery.toLowerCase();
+    return payments.where((p) {
+      final title = p.itemName.toLowerCase();
+      final orderId = (p.partnerOrderId ?? '').toLowerCase();
+      return title.contains(q) || orderId.contains(q);
     }).toList();
   }
 
@@ -290,7 +176,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
             ),
             const SizedBox(height: 8),
             Text(
-              '주문번호: ${payment.partnerOrderId}',
+              '주문번호: ${payment.partnerOrderId ?? '-'}',
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,
@@ -329,10 +215,8 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
                 ),
                 if (payment.paymentMethodType != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.gray200,
                       borderRadius: BorderRadius.circular(4),
@@ -356,10 +240,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
 
   Widget _buildStatusChip(PaymentStatus status) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: _getStatusColor(status),
         borderRadius: BorderRadius.circular(4),
@@ -393,11 +274,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 64,
-            color: AppColors.gray400,
-          ),
+          Icon(Icons.receipt_long_outlined, size: 64, color: AppColors.gray400),
           const SizedBox(height: 16),
           const Text(
             '결제 내역이 없습니다',
@@ -425,11 +302,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 64,
-            color: AppColors.gray400,
-          ),
+          Icon(Icons.search_off, size: 64, color: AppColors.gray400),
           const SizedBox(height: 16),
           const Text(
             '검색 결과가 없습니다',
@@ -442,10 +315,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
           const SizedBox(height: 8),
           Text(
             '"$_searchQuery"에 대한 결과를 찾을 수 없습니다',
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textTertiary,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 16),
           TextButton(

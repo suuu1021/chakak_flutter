@@ -395,12 +395,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       child: _isSendingVerificationEmail
                           ? const Text("전송중...",
-                              style: TextStyle(color: Colors.white))
+                          style: TextStyle(color: Colors.white))
                           : _isVerificationEmailSent
-                              ? const Text("재전송",
-                                  style: TextStyle(color: Colors.white))
-                              : const Text("인증요청",
-                                  style: TextStyle(color: Colors.white)),
+                          ? const Text("재전송",
+                          style: TextStyle(color: Colors.white))
+                          : const Text("인증요청",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -439,12 +439,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       child: _isVerifyingCode
                           ? const Text("확인중...",
-                              style: TextStyle(color: Colors.white))
+                          style: TextStyle(color: Colors.white))
                           : _isCodeVerified
-                              ? const Text("인증완료",
-                                  style: TextStyle(color: Colors.white))
-                              : const Text("코드 확인",
-                                  style: TextStyle(color: Colors.white)),
+                          ? const Text("인증완료",
+                          style: TextStyle(color: Colors.white))
+                          : const Text("코드 확인",
+                          style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -524,7 +524,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   minimumSize: const Size(double.infinity, 50),
                   disabledBackgroundColor: Colors.black.withOpacity(0.7),
                   disabledForegroundColor: Colors.white.withOpacity(0.7),
@@ -532,7 +532,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 child: isSignupSubmitLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("다음",
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
               ),
               const SizedBox(height: 24),
               TextButton(

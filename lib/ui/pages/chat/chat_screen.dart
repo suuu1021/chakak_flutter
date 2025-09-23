@@ -465,6 +465,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               price: message.paymentAmount ?? 0,
                               description: message.paymentDescription ?? '',
                               isMe: isMe,
+                              bookingInfoId: message.bookingInfoId!,
                             );
                           }
                           return ChatBubble(

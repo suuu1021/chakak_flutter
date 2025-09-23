@@ -90,6 +90,7 @@ class AppRoutes {
           return PaymentFormScreen(
             itemName: args['itemName'],
             totalAmount: args['totalAmount'],
+            bookingInfoId: args['bookingInfoId'],
           );
         },
         paymentSuccess: (context) => const PaymentSuccessScreen(),

@@ -160,6 +160,52 @@ class BookingListNotifier extends Notifier<BookingListState> {
     }
   }
 
+  /// 리뷰 작성 완료 처리 (로컬 상태 업데이트)
+  void markBookingAsReviewed(int bookingInfoId) {
+    print(
+        '[BookingListNotifier] markBookingAsReviewed 호출됨 - bookingInfoId: $bookingInfoId');
+    try {
+      final updatedBookings = state.bookings.map((booking) {
+        if (booking.bookingInfoId == bookingInfoId) {
+          print(
+              '[BookingListNotifier] bookingInfoId: $bookingInfoId의 상태를 REVIEWED로 변경합니다.');
+          return booking.copyWith(status: BookingStatus.REVIEWED);
+        }
+        return booking;
+      }).toList();
+
+      // 상태를 업데이트하기 전에 실제 변경이 있었는지 확인 (선택적이지만, 불필요한 재빌드 방지)
+      bool changed = false;
+      if (state.bookings.length == updatedBookings.length) {
+        // 리스트 길이가 같은지 먼저 확인
+        for (int i = 0; i < state.bookings.length; i++) {
+          // bookingInfoId가 같으면서 status가 다른 경우를 찾아야 함
+          if (state.bookings[i].bookingInfoId ==
+                  updatedBookings[i].bookingInfoId &&
+              state.bookings[i].status != updatedBookings[i].status) {
+            if (updatedBookings[i].bookingInfoId == bookingInfoId &&
+                updatedBookings[i].status == BookingStatus.REVIEWED) {
+              changed = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (changed) {
+        print('[BookingListNotifier] 예약 목록 상태 업데이트: REVIEWED');
+        state = state.copyWith(bookings: updatedBookings);
+      } else {
+        print(
+            '[BookingListNotifier] 해당 bookingInfoId($bookingInfoId)를 찾지 못했거나 이미 REVIEWED 상태이거나, 매핑 로직 오류로 변경사항 감지 못함.');
+      }
+    } catch (e) {
+      // 로컬 상태 변경 중 예외는 드물지만, 발생 시 로그 기록
+      print('[BookingListNotifier] markBookingAsReviewed 중 오류 발생: $e');
+      // 필요하다면 state.copyWith(errorMessage: '리뷰 상태 업데이트 실패: $e') 등으로 에러 상태 관리도 가능
+    }
+  }
+
   /// 새로고침
   Future<void> refresh() async {
     await loadMyBookings();
