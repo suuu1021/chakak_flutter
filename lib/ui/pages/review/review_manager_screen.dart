@@ -17,4 +17,4 @@ class ReviewManagerScreen extends StatelessWidget {
       return const MyReviewScreen();
     }
   }
-}
+} // 포토 그래퍼 입장

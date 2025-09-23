@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../../data/models/review/review_dto.dart';
+
+import '../../../../data/models/review.dart';
 
 class ReviewCardWidget extends StatelessWidget {
-  final ReviewDto dto;
+  final Review review;
   final String mode;
   final VoidCallback? onTap;
 
   const ReviewCardWidget({
     super.key,
-    required this.dto,
+    required this.review,
     required this.mode,
     this.onTap,
   });
@@ -36,7 +37,7 @@ class ReviewCardWidget extends StatelessWidget {
           children: [
             if (mode == "photographer" || mode == "user")
               Text(
-                "작성자: ${dto.reviewerId}",
+                "작성자: ${review.reviewerId}",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
@@ -44,14 +45,14 @@ class ReviewCardWidget extends StatelessWidget {
               ),
             const SizedBox(height: 4),
             Text(
-              dto.comment ?? "코멘트 없음",
+              review.reviewContent ?? "코멘트 없음",
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 8),
-            Text("⭐ ${dto.rating} / 5"),
+            Text("⭐ ${review.rating} / 5"),
             const SizedBox(height: 4),
             Text(
-              "작성일: ${dto.createdAt.toString().substring(0, 10)}",
+              "작성일: ${review.createdAt.toString().substring(0, 10)}",
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],

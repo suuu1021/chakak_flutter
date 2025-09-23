@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../_core/constants/app_colors.dart';
-import '../../widgets/custom_bottom_navigation_bar.dart';
-import 'widgets/review_card_widget.dart';
-import '../../../data/models/review/review_dto.dart';
-import 'package:chakak_flutter/ui/pages/review/review_dummy.dart';
+import '../../../data/models/review.dart'; // Review 모델은 유지
+import '../../widgets/custom_bottom_navigation_bar.dart'; // BottomNavigationBar는 유지
+import 'widgets/review_card_widget.dart'; // ReviewCardWidget은 유지 (나중에 사용될 수 있음)
 
 class PhotographerReviewScreen extends StatelessWidget {
   const PhotographerReviewScreen({super.key});
@@ -17,20 +15,21 @@ class PhotographerReviewScreen extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 0,
       ),
-      body: dummyReviews.isEmpty
-          ? const Center(child: Text("아직 받은 리뷰가 없습니다."))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: dummyReviews.length,
-              itemBuilder: (context, index) {
-                final ReviewDto review = dummyReviews[index];
-                return ReviewCardWidget(
-                  dto: review,
-                  mode: "photographer", // ✅ 포토그래퍼 입장
-                  onTap: () {},
-                );
-              },
+      // dummyReviews 사용 부분을 플레이스홀더로 변경
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.rate_review_outlined, size: 50, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              "받은 리뷰 관리 기능을 준비 중입니다.",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+              textAlign: TextAlign.center,
             ),
+          ],
+        ),
+      ),
       bottomNavigationBar: const CustomBottomNavigationBar(),
     );
   }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../data/dtos/review/reviewCreationRequestDto.dart';
 import '../../../data/models/booking/booking_list_item.dart';
-import '../../../data/models/review/reviewCreationRequestDto.dart';
+
 import 'widgets/review_star_widget.dart';
 
 class ReviewFormScreen extends ConsumerStatefulWidget {
@@ -290,7 +291,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
               if (localPosition.dx >= startX &&
                   localPosition.dx <= startX + starAreaWidth) {
                 int newRating =
-                    ((localPosition.dx - startX) / 50).ceil().clamp(1, 5);
+                ((localPosition.dx - startX) / 50).ceil().clamp(1, 5);
                 setState(() {
                   _rating = newRating;
                   _hoverRating = 0;
@@ -341,6 +342,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
               }),
             ),
           ),
+
 
           const SizedBox(height: 16),
 
