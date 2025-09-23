@@ -48,7 +48,7 @@ class ProfileMenuList extends ConsumerWidget {
   List<Map<String, dynamic>> _buildMenuItems(
       BuildContext context, WidgetRef ref) {
     return [
-      if (session.isLogin) ...[
+      if (session.isLogin && session.userTypeCode == 'photographer') ...[
         {
           'icon': Icons.edit_note,
           'title': '포토그래퍼 프로필',

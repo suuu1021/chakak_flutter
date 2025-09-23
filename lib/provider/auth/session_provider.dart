@@ -48,7 +48,7 @@ class SessionNotifier extends StateNotifier<AppSession> {
 
   SessionNotifier(this._ref) : super(AppSession()) {
     // 앱이 시작될 때 저장소에서 세션 정보를 로드합니다.
-    loadSessionFromStorage();
+    // loadSessionFromStorage();
   }
 
   Future<void> loadSessionFromStorage() async {
@@ -145,6 +145,7 @@ class SessionNotifier extends StateNotifier<AppSession> {
 }
 
 // 앱 전역에서 SessionNotifier를 사용할 수 있도록 하는 프로바이더
-final sessionProvider = StateNotifierProvider<SessionNotifier, AppSession>((ref) {
+final sessionProvider =
+    StateNotifierProvider<SessionNotifier, AppSession>((ref) {
   return SessionNotifier(ref);
 });
