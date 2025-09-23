@@ -28,6 +28,17 @@ class PostState {
       error: error,
     );
   }
+
+  /*
+   * 특정 게시글 찾기 헬퍼 메서드
+   */
+  Post? findPostById(String postId) {
+    try {
+      return posts.firstWhere((p) => p.id == postId);
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 /*
@@ -50,6 +61,10 @@ class PostNotifier extends Notifier<PostState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
       final posts = await _repository.fetchAllPosts();
+      print('받아온 posts 개수: ${posts.length}');
+      if (posts.isNotEmpty) {
+        print('첫 번째 게시글 replyCount: ${posts.first.replyCount}');
+      }
       state = state.copyWith(posts: posts, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -101,58 +116,68 @@ class PostNotifier extends Notifier<PostState> {
   }
 
   /*
+   * 특정 게시글이 상태에 있는지 확인하고, 없으면 서버에서 가져옵니다.
+   * 단일 데이터 소스의 핵심 메서드
+   */
+  Future<Post?> findOrFetchPost(String postId) async {
+    // 이미 게시글이 상태에 있는지 확인
+    final existingPost = state.findPostById(postId);
+    if (existingPost != null) {
+      return existingPost;
+    }
+
+    try {
+      // 개별 게시글 로딩은 전체 로딩 상태에 영향주지 않음
+      final fetchedPost = await _repository.fetchPostById(postId);
+
+      // 기존 목록에 게시글 추가
+      final updatedPosts = [...state.posts, fetchedPost];
+      state = state.copyWith(posts: updatedPosts);
+
+      return fetchedPost;
+    } catch (e) {
+      state = state.copyWith(error: "게시글을 가져오는 데 실패했습니다: $e");
+      return null;
+    }
+  }
+
+  /*
    * 특정 게시글에 좋아요를 토글합니다.
    */
   Future<void> togglePostLike(String postId) async {
-    final currentPost = state.posts.firstWhere((post) => post.id == postId);
-    final isCurrentlyLiked = currentPost.isLiked;
+    // 게시글이 상태에 있는지 확인하고 없으면 가져옵니다.
+    final post = await findOrFetchPost(postId);
+    if (post == null) return;
 
-    // 1. 낙관적 UI 업데이트
-    final updatedList = state.posts.map((post) {
-      if (post.id == postId) {
-        return post.copyWith(
-          isLiked: !isCurrentlyLiked,
-          likeCount: isCurrentlyLiked ? post.likeCount - 1 : post.likeCount + 1,
-        );
-      }
-      return post;
-    }).toList();
+    // 낙관적 UI 업데이트
+    final isLiked = !post.isLiked;
+    final likeCount = isLiked ? post.likeCount + 1 : post.likeCount - 1;
+    _updatePostState(post, isLiked, likeCount);
 
-    state = state.copyWith(posts: updatedList);
-
-    // 2. 서버 요청
     try {
-      if (isCurrentlyLiked) {
-        await _repository.unlikePost(postId);
-      } else {
-        await _repository.likePost(postId);
-      }
+      // 서버에 좋아요 상태를 동기화
+      await _repository.togglePostLike(postId);
     } catch (e) {
-      // 3. 실패 시 상태 복구
-      final revertedList = state.posts.map((post) {
-        if (post.id == postId) {
-          return post.copyWith(
-            isLiked: isCurrentlyLiked,
-            likeCount:
-                isCurrentlyLiked ? post.likeCount + 1 : post.likeCount - 1,
-          );
-        }
-        return post;
-      }).toList();
-      state = state.copyWith(posts: revertedList, error: e.toString());
+      // 실패 시 상태를 원래대로 복구
+      _updatePostState(post, !isLiked, post.likeCount);
+      state = state.copyWith(error: "좋아요 동기화에 실패했습니다: $e");
     }
+  }
+
+  /*
+   * 게시글 상태 업데이트 헬퍼 메서드
+   */
+  void _updatePostState(Post post, bool isLiked, int likeCount) {
+    final updatedPost = post.copyWith(isLiked: isLiked, likeCount: likeCount);
+    final newPosts =
+        state.posts.map((p) => p.id == post.id ? updatedPost : p).toList();
+    state = state.copyWith(posts: newPosts);
   }
 }
 
 // ===================== Provider 정의 =====================
 
-// 게시글 목록 NotifierProvider
+// 게시글 목록 NotifierProvider (단일 데이터 소스)
 final postProvider = NotifierProvider<PostNotifier, PostState>(
   () => PostNotifier(),
 );
-
-// 특정 게시글 상세 FutureProvider
-final postDetailProvider = FutureProvider.family<Post, String>((ref, id) {
-  final repository = ref.watch(communityRepositoryProvider);
-  return repository.fetchPostById(id);
-});

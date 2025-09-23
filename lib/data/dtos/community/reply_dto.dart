@@ -5,6 +5,7 @@ class ReplyDto {
   final String content;
   final String createdAt;
   final String status;
+  final String authorId;
   final UserDto? user;
 
   ReplyDto({
@@ -12,6 +13,7 @@ class ReplyDto {
     required this.content,
     required this.createdAt,
     required this.status,
+    required this.authorId,
     this.user,
   });
 
@@ -27,6 +29,7 @@ class ReplyDto {
       // ReplyDTO에는 status가 없으므로 기본값 'ACTIVE'
       status: 'ACTIVE',
       // 평면적 구조를 UserDto로 변환
+      authorId: json['authorId']?.toString() ?? '',
       user: UserDto(
         username: json['authorNickname'] as String? ?? '알 수 없음',
         userType:
@@ -55,6 +58,7 @@ class ReplyDto {
     return Reply(
       id: replyId,
       author: user?.username ?? '알 수 없음',
+      authorId: authorId,
       authorBadge: isAdmin ? '✅' : '',
       content: content,
       timeAgo: _formatTimeAgo(createdAt),
@@ -72,6 +76,7 @@ class ReplyDto {
       content: reply.content,
       createdAt: reply.timeAgo,
       status: reply.isActive ? 'ACTIVE' : 'INACTIVE',
+      authorId: reply.authorId,
     );
   }
 

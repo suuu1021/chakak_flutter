@@ -1,6 +1,7 @@
 class Reply {
   final String id;
   final String author;
+  final String authorId;
   final String authorBadge;
   final String content;
   final String timeAgo;
@@ -9,6 +10,7 @@ class Reply {
   const Reply({
     required this.id,
     required this.author,
+    required this.authorId,
     this.authorBadge = '',
     required this.content,
     required this.timeAgo,
@@ -27,6 +29,7 @@ class Reply {
     return Reply(
       id: json['replyId'].toString(),
       author: user?['username'] as String? ?? '알 수 없음',
+      authorId: user?['userId']?.toString() ?? '',
       authorBadge: isAdmin ? '✅' : '',
       content: json['content'] as String,
       timeAgo: json['createdAt'] as String,
@@ -51,6 +54,7 @@ class Reply {
   Reply copyWith({
     String? id,
     String? author,
+    String? authorId,
     String? authorBadge,
     String? content,
     String? timeAgo,
@@ -59,6 +63,7 @@ class Reply {
     return Reply(
       id: id ?? this.id,
       author: author ?? this.author,
+      authorId: authorId ?? this.authorId,
       authorBadge: authorBadge ?? this.authorBadge,
       content: content ?? this.content,
       timeAgo: timeAgo ?? this.timeAgo,

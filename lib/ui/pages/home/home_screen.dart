@@ -12,7 +12,7 @@ import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
-import '../community/commmunity_list_page.dart';
+import '../community/community_list_page.dart';
 import '../photo_service/category_service_list_page.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';

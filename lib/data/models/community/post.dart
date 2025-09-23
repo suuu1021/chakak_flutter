@@ -2,6 +2,7 @@ class Post {
   final String id;
   final String title;
   final String author;
+  final String authorId;
   final String authorBadge;
   final String? imageUrl;
   final String content;
@@ -18,6 +19,7 @@ class Post {
     required this.id,
     required this.title,
     required this.author,
+    required this.authorId,
     this.authorBadge = '',
     this.imageUrl,
     required this.content,
@@ -44,6 +46,7 @@ class Post {
       id: json['postId'].toString(),
       title: json['title'] as String,
       author: user?['username'] as String? ?? '알 수 없음',
+      authorId: user?['userId']?.toString() ?? '',
       authorBadge: isAdmin ? '✅' : '',
       imageUrl: json['imageUrl'] as String?,
       content: json['content'] as String,
@@ -78,6 +81,7 @@ class Post {
     String? id,
     String? title,
     String? author,
+    String? authorId,
     String? authorBadge,
     String? imageUrl,
     String? content,
@@ -94,6 +98,7 @@ class Post {
       id: id ?? this.id,
       title: title ?? this.title,
       author: author ?? this.author,
+      authorId: authorId ?? this.authorId,
       authorBadge: authorBadge ?? this.authorBadge,
       imageUrl: imageUrl ?? this.imageUrl,
       content: content ?? this.content,

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/community/reply.dart';
 import '../../../data/models/repositories/community_repository.dart';
 import 'community_repository_provider.dart';
+import 'post_provider.dart';
 
 /*
  * 댓글 상태를 관리하는 State 클래스

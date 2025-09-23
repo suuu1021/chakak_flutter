@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_colors.dart';
 import '../../../provider/global/community/post_provider.dart';
 import 'community_detail_page.dart';
+import 'community_form_page.dart';
 import 'widgets/community_states.dart';
 import 'widgets/post_list_item.dart';
 
@@ -89,11 +90,19 @@ class _CommunityListPageState extends ConsumerState<CommunityListPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: 글쓰기 페이지 구현 후 연결
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('글쓰기 기능은 준비 중입니다')),
+        heroTag: null,
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CommunityFormPage(),
+            ),
           );
+
+          // 글 작성 완료 후 목록 새로고침
+          if (result == true) {
+            ref.read(postProvider.notifier).loadPosts();
+          }
         },
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.edit, color: AppColors.white),

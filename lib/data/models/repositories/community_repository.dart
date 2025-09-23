@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
-import '../../../_core/utils/error_handler.dart';
-import '../../dtos/community/post_dto.dart';
+
+import '../../../_core/constants/api_config.dart';
+import '../../dtos/community/post_list_dto.dart';
+import '../../dtos/community/post_detail_dto.dart';
+import '../../dtos/community/post_create_request_dto.dart'; // PostCreateRequestDto 임포트
+import '../../dtos/community/post_update_request_dto.dart'; // PostUpdateRequestDto 임포트
 import '../../dtos/community/reply_dto.dart';
 import '../community/post.dart';
 import '../community/reply.dart';
-import '../../../_core/constants/api_config.dart';
 
 class CommunityRepository {
   final Dio _dio;
@@ -18,13 +21,29 @@ class CommunityRepository {
    * 모든 게시글 목록을 가져옵니다.
    * API: GET /api/post/list
    */
-  // CommunityRepository에서 로그 개선
   Future<List<Post>> fetchAllPosts() async {
     try {
+      print('=== fetchAllPosts 시작 ===');
       final response = await _dio.get('$_baseUrl/api/post/list');
-      final List<dynamic> jsonList = response.data['body']['content'];
-      return jsonList.map((json) => PostDto.fromJson(json).toModel()).toList();
+      print('요청 URL: $_baseUrl/api/post/list');
+      print('서버 응답 전체: ${response.data}');
+
+      if (response.data['body'] != null &&
+          response.data['body']['content'] != null) {
+        final List<dynamic> jsonList = response.data['body']['content'];
+        final posts = jsonList.map((json) {
+          final post = PostListDto.fromJson(json).toModel();
+          print('변환된 Post - id: ${post.id}, replyCount: ${post.replyCount}');
+          return post;
+        }).toList();
+
+        print('=== 총 ${posts.length}개 게시글 로드 완료 ===');
+        return posts;
+      } else {
+        return [];
+      }
     } catch (e) {
+      print('fetchAllPosts 에러: $e');
       rethrow;
     }
   }
@@ -33,11 +52,17 @@ class CommunityRepository {
    * 특정 게시글의 상세 정보를 가져옵니다.
    * API: GET /api/post/{postId}
    */
+  // lib/data/repositories/community_repository.dart
   Future<Post> fetchPostById(String id) async {
     try {
       final response = await _dio.get('$_baseUrl/api/post/$id');
+
+      // 이 부분에 로그를 추가합니다.
+      print('fetchPostById 응답 데이터: ${response.data}');
+
       final Map<String, dynamic> responseData = response.data['body'];
-      return PostDto.fromJson(responseData).toModel();
+      final post = PostDetailDto.fromJson(responseData).toModel();
+      return post;
     } on DioException catch (e) {
       throw _handleDioError(e, '게시글 상세 정보 조회');
     }
@@ -49,13 +74,18 @@ class CommunityRepository {
    */
   Future<Post> createPost(Post post) async {
     try {
-      final postDto = PostDto.fromModel(post);
+      // Post 모델을 생성 요청 DTO로 변환
+      final requestDto = PostCreateRequestDto(
+        title: post.title,
+        content: post.content,
+        imageData: post.imageUrl,
+      );
       final response = await _dio.post(
         '$_baseUrl/api/post',
-        data: postDto.toJson(),
+        data: requestDto.toJson(),
       );
       final Map<String, dynamic> responseData = response.data['body'];
-      return PostDto.fromJson(responseData).toModel();
+      return PostDetailDto.fromJson(responseData).toModel();
     } on DioException catch (e) {
       throw _handleDioError(e, '게시글 작성');
     }
@@ -67,13 +97,18 @@ class CommunityRepository {
    */
   Future<Post> updatePost(String postId, Post post) async {
     try {
-      final postDto = PostDto.fromModel(post);
+      // Post 모델을 수정 요청 DTO로 변환
+      final requestDto = PostUpdateRequestDto(
+        title: post.title,
+        content: post.content,
+        imageData: post.imageUrl,
+      );
       final response = await _dio.put(
         '$_baseUrl/api/post/$postId',
-        data: postDto.toJson(),
+        data: requestDto.toJson(),
       );
       final Map<String, dynamic> responseData = response.data['body'];
-      return PostDto.fromJson(responseData).toModel();
+      return PostDetailDto.fromJson(responseData).toModel();
     } on DioException catch (e) {
       throw _handleDioError(e, '게시글 수정');
     }
@@ -155,38 +190,20 @@ class CommunityRepository {
     }
   }
 
-  // ===================== 좋아요 관련 =====================
-  // 주의: 백엔드에 좋아요 API가 구현되어 있지 않음
-  // 임시로 예외를 던지는 형태로 구현
-
-  /*
-   * 게시물에 좋아요를 추가합니다.
-   * 주의: 백엔드 API가 아직 구현되지 않음
-   */
-  Future<void> likePost(String postId) async {
+/*
+ * 게시물 좋아요를 토글합니다. (좋아요 추가/취소)
+ * API: POST /api/posts/{postId}/like
+ */
+  Future<Map<String, dynamic>> togglePostLike(String postId) async {
     try {
-      // TODO: 백엔드에 좋아요 API 구현 후 연결
-      // await _dio.post('$_baseUrl/api/posts/$postId/likes');
-      throw UnimplementedError('좋아요 기능은 백엔드 구현 후 사용 가능합니다');
+      final response = await _dio.post('$_baseUrl/api/posts/$postId/like');
+      return response.data['body']; // {postId, isLiked, likeCount} 반환
     } on DioException catch (e) {
-      throw _handleDioError(e, '좋아요 추가');
+      throw _handleDioError(e, '좋아요 처리');
     }
   }
 
-  /*
-   * 게시물의 좋아요를 취소합니다.
-   * 주의: 백엔드 API가 아직 구현되지 않음
-   */
-  Future<void> unlikePost(String postId) async {
-    try {
-      // TODO: 백엔드에 좋아요 취소 API 구현 후 연결
-      // await _dio.delete('$_baseUrl/api/posts/$postId/likes');
-      throw UnimplementedError('좋아요 취소 기능은 백엔드 구현 후 사용 가능합니다');
-    } on DioException catch (e) {
-      throw _handleDioError(e, '좋아요 취소');
-    }
-  }
-
+// 기존 likePost, unlikePost 메서드 제거하고 위 메서드로 대체
   // ===================== 에러 처리 =====================
 
   /*
