@@ -23,14 +23,12 @@ class ChatRepository {
     print("[ChatRepository] 생성됨");
   }
 
-  // 명세서 기준: `body` 래퍼 없이 객체 직접 반환
   Future<ChatRoomResponseDto> createOrGetChatRoom(
       ChatRoomCreateRequestDto requestDto) async {
     final response = await _dio.post('/api/chat/rooms', data: requestDto.toJson());
     return ChatRoomResponseDto.fromJson(response.data);
   }
 
-  // 명세서 기준: `body` 래퍼 없이 리스트 직접 반환
   Future<List<ChatMessageDto>> getMessagesByRoomId(int chatRoomId) async {
     final response = await _dio.get('/api/chat/rooms/$chatRoomId/messages');
     final List<dynamic> responseData = response.data as List<dynamic>;
@@ -41,7 +39,6 @@ class ChatRepository {
     await _dio.post('/api/chat/rooms/$chatRoomId/read');
   }
 
-  // 명세서 기준: `body` 래퍼 없이 리스트 직접 반환
   Future<List<ChatRoomListItemDto>> getMyChatRooms() async {
     final response = await _dio.get('/api/chat/my/rooms');
     final List<dynamic> responseData = response.data as List<dynamic>;
@@ -83,10 +80,14 @@ class ChatRepository {
             },
           );
         },
-        onWebSocketError: (err) => print('[ChatRepository] !!!!! 웹소켓 오류 !!!!!: $err'),
-        onStompError: (frame) => print('[ChatRepository] !!!!! STOMP 프로토콜 오류 !!!!!: ${frame.body}'),
-        onDisconnect: (_) {
-          print('[ChatRepository] STOMP 연결 끊김. Room: $chatRoomId');
+        onWebSocketError: (err) {
+          print('🚨🚨🚨 [ChatRepository] 웹소켓 에러 발생: $err 🚨🚨🚨');
+        },
+        onStompError: (frame) {
+          print('🚨🚨🚨 [ChatRepository] STOMP 프로토콜 에러: ${frame.headers} - ${frame.body} 🚨🚨🚨');
+        },
+        onDisconnect: (frame) {
+          print('🚨🚨🚨 [ChatRepository] STOMP 연결 끊김. Room: $chatRoomId 🚨🚨🚨');
           _currentSubscription?.call();
           _currentSubscription = null;
         },
@@ -103,11 +104,14 @@ class ChatRepository {
       return;
     }
     final destination = '/app/chat/room/${message.chatRoomId}';
+    final jsonBody = jsonEncode(message.toJson());
+
     print('[ChatRepository] 메시지 전송 시도 -> Destination: $destination');
-    print('[ChatRepository] 메시지 내용: ${jsonEncode(message.toJson())}');
+    print('[ChatRepository] 메시지 내용: $jsonBody');
+
     _stompClient!.send(
       destination: destination,
-      body: jsonEncode(message.toJson()),
+      body: jsonBody,
     );
     print('[ChatRepository] 메시지 전송 요청 완료.');
   }

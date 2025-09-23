@@ -1,11 +1,14 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chakak_flutter/provider/auth/session_provider.dart';
 import 'package:chakak_flutter/provider/chat/chat_provider.dart';
 import 'package:chakak_flutter/ui/pages/chat/widgets/image_upload_helper.dart';
 import 'package:chakak_flutter/ui/pages/chat/widgets/payment_request_bubble.dart';
 import 'package:chakak_flutter/ui/pages/chat/widgets/payment_request_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
+import 'package:permission_handler/permission_handler.dart';
 import '../../widgets/chat_bubble.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -28,7 +31,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  int? photographerId; // photographer.id 저장
+  int? photographerId;
   bool isPhotographerIdLoaded = false;
 
   @override
@@ -51,7 +54,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     print('  - session.userId: ${session.userId}');
     print('  - session.userTypeCode: ${session.userTypeCode}');
 
-    // photographer인 경우 photographer.id 로드
     if (session.userTypeCode?.toLowerCase() == 'photographer') {
       await _loadPhotographerId();
     }
@@ -74,7 +76,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final session = ref.read(sessionProvider);
       final photoService = ref.read(photoServiceRepositoryProvider);
 
-      // 1단계: userId로 photographerId 매핑
       photographerId =
           await photoService.getPhotographerIdByUserId(session.userId!);
 
@@ -83,7 +84,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             '[ChatScreen] 매핑 성공: userId(${session.userId}) → photographerId($photographerId)');
       } else {
         print('[ChatScreen] 매핑 실패: 기본값 사용');
-        photographerId = session.userId; // 기본값
+        photographerId = session.userId;
       }
     } catch (e) {
       print('[ERROR] photographerId 매핑 실패: $e');
@@ -92,6 +93,66 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       setState(() {
         isPhotographerIdLoaded = true;
       });
+    }
+  }
+
+  Future<void> _pickImage() async {
+    if (kDebugMode) {
+      print('[DEBUG] _pickImage() 함수 시작');
+    }
+
+    var status = await Permission.photos.status;
+    if (kDebugMode) {
+      print('[DEBUG] 현재 사진 권한 상태: $status');
+    }
+
+    if (status.isDenied) {
+      if (kDebugMode) {
+        print('[DEBUG] 권한이 거부되어 있어 요청합니다.');
+      }
+      status = await Permission.photos.request();
+      if (kDebugMode) {
+        print('[DEBUG] 권한 요청 후 상태: $status');
+      }
+    }
+
+    if (status.isGranted || status.isLimited) {
+      if (kDebugMode) {
+        print('[DEBUG] 권한이 허용 또는 일부 허용되었습니다. 이미지 선택 로직을 실행합니다.');
+      }
+      if (mounted) {
+        ImageUploadHelper.pickAndUploadImage(
+          context,
+          onImageSelected: (base64Image, fileName, fileSize) {
+            final chatNotifier = ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
+            chatNotifier.sendImageMessage(
+              base64Image: base64Image,
+              fileName: fileName,
+              fileSize: fileSize,
+            );
+            _scrollToBottomWithDelay();
+          },
+        );
+      }
+    } else if (status.isPermanentlyDenied) {
+      if (kDebugMode) {
+        print('[DEBUG] 권한이 영구적으로 거부되었습니다. 설정 안내를 표시합니다.');
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('사진 접근 권한이 필요합니다. 앱 설정에서 허용해주세요.'),
+            action: SnackBarAction(
+              label: '설정 열기',
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+      }
+    } else {
+      if (kDebugMode) {
+        print('[DEBUG] 권한이 허용되지 않았습니다 (현재 상태: $status). 아무 동작도 하지 않습니다.');
+      }
     }
   }
 
@@ -111,7 +172,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final chatNotifier =
         ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
     final userProfileId =
-        chatNotifier.opponentUserId ?? widget.opponentUserId; // getter 사용
+        chatNotifier.opponentUserId ?? widget.opponentUserId;
 
     if (photographerId == null || userProfileId == null) {
       print('결제 요청에 필요한 사용자 ID가 누락되었습니다.');
@@ -130,8 +191,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       description: description,
       photoServiceInfoId: photoServiceInfoId,
       priceInfoId: priceInfoId,
-      photographerId: photographerId!, // photographer.id 사용
-      userProfileId: userProfileId, // 상대방 ID 사용
+      photographerId: photographerId!,
+      userProfileId: userProfileId,
     );
     _scrollToBottomWithDelay();
   }
@@ -178,7 +239,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 if (isPhotographer &&
-                    isPhotographerIdLoaded) // photographer.id 로드 완료 후에만 표시
+                    isPhotographerIdLoaded)
                   _buildOptionButton(
                     icon: Icons.payment,
                     label: '결제 요청',
@@ -202,19 +263,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   color: Colors.green,
                   onTap: () {
                     Navigator.pop(context);
-                    ImageUploadHelper.pickAndUploadImage(
-                      context,
-                      onImageSelected: (base64Image, fileName, fileSize) {
-                        final chatNotifier = ref.read(
-                            chatMessagesProvider(widget.chatRoomId).notifier);
-                        chatNotifier.sendImageMessage(
-                          base64Image: base64Image,
-                          fileName: fileName,
-                          fileSize: fileSize,
-                        );
-                        _scrollToBottomWithDelay();
-                      },
-                    );
+                    _pickImage();
                   },
                 ),
               ],
@@ -255,6 +304,54 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildImageBubble({
+    required bool isMe,
+    String? imageUrl,
+    DateTime? timestamp,
+  }) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final imageWidget = CachedNetworkImage(
+      imageUrl: imageUrl,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+      errorWidget: (context, url, error) {
+        print('##### CachedNetworkImage Error #####');
+        print('Failed to load image from URL: $url');
+        print('Error: $error');
+        print('####################################');
+        return const Icon(Icons.error);
+      },
+    );
+
+    return Align(
+      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6),
+        child: Column(
+          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12.0),
+              child: imageWidget,
+            ),
+            if (timestamp != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  '${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(fontSize: 10.0, color: Colors.grey),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -352,13 +449,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           final message = chatState.messages[index];
                           final isMe = message.senderId == sessionState.userId;
 
-                          DateTime timestamp;
-                          try {
-                            timestamp = message.createdAt != null
-                                ? DateTime.parse(message.createdAt!)
-                                : DateTime.now();
-                          } catch (e) {
-                            timestamp = DateTime.now();
+                          final timestamp = message.createdAt != null ? DateTime.tryParse(message.createdAt!) : null;
+
+                          if (message.isImageMessage) {
+                            return _buildImageBubble(
+                              isMe: isMe,
+                              imageUrl: message.imageUrl,
+                              timestamp: timestamp,
+                            );
                           }
 
                           if (message.messageType == 'PAYMENT_REQUEST') {
@@ -372,7 +470,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           return ChatBubble(
                             message: message.message,
                             isMe: isMe,
-                            timestamp: timestamp,
+                            timestamp: timestamp ?? DateTime.now(),
                           );
                         },
                       ),

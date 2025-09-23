@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
@@ -5,7 +6,8 @@ import 'dart:io';
 
 class ImageUploadHelper {
   static Future<void> pickAndUploadImage(
-    BuildContext context, {
+    BuildContext context,
+    {
     required Function(String base64Image, String fileName, int fileSize)
         onImageSelected,
   }) async {
@@ -15,40 +17,21 @@ class ImageUploadHelper {
         source: ImageSource.gallery,
         maxWidth: 1920,
         maxHeight: 1080,
-        imageQuality: 85, // 이미지 품질 조절로 파일 크기 최적화
+        imageQuality: 85,
       );
 
       if (image != null) {
-        // 로딩 표시
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Text('이미지를 업로드하는 중...'),
-              ],
-            ),
-            backgroundColor: Colors.blue,
-            duration: Duration(seconds: 2),
-          ),
-        );
-
+        if (!context.mounted) return;
+        
         await _processImage(context, image, onImageSelected);
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('[ImageUploadHelper] 이미지 선택 오류: $e');
+      }
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('이미지 선택 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('이미지를 가져오는 데 실패했습니다: $e')),
       );
     }
   }
@@ -59,57 +42,34 @@ class ImageUploadHelper {
     Function(String base64Image, String fileName, int fileSize) onImageSelected,
   ) async {
     try {
-      // 이미지 파일을 바이트로 읽기
-      final File imageFile = File(image.path);
-      final List<int> imageBytes = await imageFile.readAsBytes();
+      final List<int> imageBytes = await image.readAsBytes();
+      final String pureBase64 = base64Encode(imageBytes);
 
-      // Base64로 인코딩
-      final String base64Image = base64Encode(imageBytes);
+      final String fileExtension = image.name.split('.').last.toLowerCase();
+      final String mimeType = _getMimeType(fileExtension);
 
-      // 파일 크기 체크 (예: 5MB 제한)
-      if (imageBytes.length > 5 * 1024 * 1024) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('이미지 크기가 너무 큽니다. 5MB 이하의 이미지를 선택해주세요.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
+      // 명세서에 맞는 최종 Base64 문자열 생성
+      final String finalBase64String = "data:$mimeType;base64,$pureBase64";
 
-      // 콜백 호출
-      onImageSelected(base64Image, image.name, imageBytes.length);
+      onImageSelected(finalBase64String, image.name, imageBytes.length);
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('이미지가 전송되었습니다'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 1),
-        ),
-      );
     } catch (e) {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      if (kDebugMode) {
+        print('[ImageUploadHelper] 이미지 처리 오류: $e');
+      }
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('이미지 업로드 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('이미지 처리 중 오류가 발생했습니다: $e')),
       );
     }
   }
 
-  // 파일 크기 포맷 함수
-  static String formatFileSize(int bytes) {
-    const suffixes = ['B', 'KB', 'MB', 'GB'];
-    var size = bytes.toDouble();
-    var suffixIndex = 0;
-
-    while (size >= 1024 && suffixIndex < suffixes.length - 1) {
-      size /= 1024;
-      suffixIndex++;
+  static String _getMimeType(String extension) {
+    switch (extension) {
+      case 'png': return 'image/png';
+      case 'gif': return 'image/gif';
+      case 'webp': return 'image/webp';
+      default: return 'image/jpeg';
     }
-
-    return '${size.toStringAsFixed(1)} ${suffixes[suffixIndex]}';
   }
 }

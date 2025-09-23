@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../_core/constants/sender_type.dart';
@@ -123,12 +124,19 @@ class ChatMessagesNotifier
 
       _messagesSubscription?.cancel();
       _messagesSubscription = _chatRepository.messages.listen((message) {
+        if (kDebugMode) {
+          print('[DEBUG][ChatProvider] 서버로부터 메시지 수신: ${message.toJson()}');
+        }
+
         if (!state.messages.any((m) =>
             m.chatMessageId != null &&
             m.chatMessageId == message.chatMessageId)) {
           state = state.copyWith(messages: [...state.messages, message]);
         }
       }, onError: (error) {
+        if (kDebugMode) {
+          print('[DEBUG][ChatProvider] 메시지 스트림 에러: $error');
+        }
         state = state.copyWith(
             errorMessage: '메시지 수신 오류', isConnected: false, isConnecting: false);
       }, onDone: () {
@@ -199,40 +207,31 @@ class ChatMessagesNotifier
     required String base64Image,
     required String fileName,
     required int fileSize,
+    String? message,
   }) {
-    if (!state.isConnected) {
-      state = state.copyWith(errorMessage: "채팅 서버에 연결되어 있지 않습니다.");
-      return;
-    }
-
-    final senderId = _currentUserId;
-    final senderTypeString = _currentUserType;
-
-    if (senderId == null || senderTypeString == null) {
-      state = state.copyWith(errorMessage: "사용자 정보를 찾을 수 없습니다.");
+    if (!state.isConnected || _currentUserId == null || _currentUserType == null) {
+      print('[ChatProvider] 이미지 전송 불가: 연결되지 않았거나 사용자 정보 없음');
       return;
     }
 
     final messageDto = ChatMessageDto(
       chatRoomId: _chatRoomId,
-      senderId: senderId,
-      senderType: SenderType.fromJson(senderTypeString),
+      senderId: _currentUserId!,
+      senderType: SenderType.fromJson(_currentUserType!),
       messageType: 'IMAGE',
-      message: fileName,
-      isRead: false,
+      message: message ?? '',
+      imageBase64: base64Image,
+      imageOriginalName: fileName,
       createdAt: DateTime.now().toIso8601String(),
-      imageData: base64Image,
-      fileName: fileName,
       fileSize: fileSize,
     );
 
     try {
+      print('[ChatProvider] 이미지 메시지 전송 시도: ${messageDto.toJson()}');
       _chatRepository.sendStompChatMessage(messageDto);
-      print(
-          '[ChatMessagesNotifier] 이미지 메시지 전송 완료: $fileName (${fileSize}bytes)');
     } catch (e) {
+      print('[ChatProvider] 이미지 메시지 전송 실패: $e');
       state = state.copyWith(errorMessage: "이미지 전송에 실패했습니다: ${e.toString()}");
-      print('[ChatMessagesNotifier] 이미지 메시지 전송 실패: $e');
     }
   }
 
@@ -290,15 +289,12 @@ class ChatMessagesNotifier
       print('[ChatMessagesNotifier] 전송할 JSON:');
       print(json.encode(bookingDto.toJson()));
 
-      // 1. 예약 생성 API 호출 및 응답 대기
       final response = await _bookingRepository.createBooking(bookingDto);
       print('[ChatMessagesNotifier] 예약 생성 API 호출 완료');
 
-      // 2. 응답에서 bookingInfoId 추출
       final bookingInfoId = json.decode(response.body)['body']['bookingInfoId'];
       print('[ChatMessagesNotifier] 추출된 bookingInfoId: $bookingInfoId');
 
-      // 3. 추출한 ID를 포함하여 메시지 DTO 생성
       final messageDto = ChatMessageDto(
         chatRoomId: _chatRoomId,
         senderId: senderId,
@@ -314,7 +310,6 @@ class ChatMessagesNotifier
         bookingInfoId: bookingInfoId,
       );
 
-      // 4. 메시지 전송
       _chatRepository.sendStompChatMessage(messageDto);
       print('[ChatMessagesNotifier] 결제 요청 메시지 전송 완료: $title (${amount}원)');
     } catch (e) {
