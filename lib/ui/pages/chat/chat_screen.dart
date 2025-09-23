@@ -11,11 +11,13 @@ import '../../widgets/chat_bubble.dart';
 class ChatScreen extends ConsumerStatefulWidget {
   final int chatRoomId;
   final String opponentNickname;
+  final int? opponentUserId;
 
   const ChatScreen({
     Key? key,
     required this.chatRoomId,
     required this.opponentNickname,
+    this.opponentUserId,
   }) : super(key: key);
 
   @override
@@ -26,6 +28,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  int? photographerId; // photographer.id 저장
+  bool isPhotographerIdLoaded = false;
+
   @override
   void initState() {
     super.initState();
@@ -34,10 +39,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
-  void _initializeChat() {
+  void _initializeChat() async {
     final session = ref.read(sessionProvider);
     final chatNotifier =
         ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
+
+    print('[ChatScreen] 초기화 정보:');
+    print('  - chatRoomId: ${widget.chatRoomId}');
+    print('  - opponentUserId: ${widget.opponentUserId}');
+    print('  - opponentNickname: ${widget.opponentNickname}');
+    print('  - session.userId: ${session.userId}');
+    print('  - session.userTypeCode: ${session.userTypeCode}');
+
+    // photographer인 경우 photographer.id 로드
+    if (session.userTypeCode?.toLowerCase() == 'photographer') {
+      await _loadPhotographerId();
+    }
 
     if (session.isLogin &&
         session.jwtToken != null &&
@@ -47,7 +64,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         jwtToken: session.jwtToken!,
         userId: session.userId!,
         userType: session.userTypeCode!,
+        opponentUserId: widget.opponentUserId,
       );
+    }
+  }
+
+  Future<void> _loadPhotographerId() async {
+    try {
+      final session = ref.read(sessionProvider);
+      final photoService = ref.read(photoServiceRepositoryProvider);
+
+      // 1단계: userId로 photographerId 매핑
+      photographerId =
+          await photoService.getPhotographerIdByUserId(session.userId!);
+
+      if (photographerId != null) {
+        print(
+            '[ChatScreen] 매핑 성공: userId(${session.userId}) → photographerId($photographerId)');
+      } else {
+        print('[ChatScreen] 매핑 실패: 기본값 사용');
+        photographerId = session.userId; // 기본값
+      }
+    } catch (e) {
+      print('[ERROR] photographerId 매핑 실패: $e');
+      photographerId = ref.read(sessionProvider).userId;
+    } finally {
+      setState(() {
+        isPhotographerIdLoaded = true;
+      });
     }
   }
 
@@ -62,15 +106,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     _scrollToBottomWithDelay();
   }
 
-  void _handlePaymentRequest(String title, int amount, String? description) {
+  void _handlePaymentRequest(String title, int amount, String? description,
+      int photoServiceInfoId, int priceInfoId) async {
     final chatNotifier =
         ref.read(chatMessagesProvider(widget.chatRoomId).notifier);
-    chatNotifier.sendPaymentRequest(
+    final userProfileId =
+        chatNotifier.opponentUserId ?? widget.opponentUserId; // getter 사용
+
+    if (photographerId == null || userProfileId == null) {
+      print('결제 요청에 필요한 사용자 ID가 누락되었습니다.');
+      print('  - photographerId: $photographerId');
+      print('  - userProfileId: $userProfileId');
+      return;
+    }
+
+    print('[ChatScreen] 결제 요청 데이터:');
+    print('  - photographerId: $photographerId (photographer.id)');
+    print('  - userProfileId: $userProfileId (상대방 ID)');
+
+    await chatNotifier.sendPaymentRequest(
       title: title,
       amount: amount,
       description: description,
+      photoServiceInfoId: photoServiceInfoId,
+      priceInfoId: priceInfoId,
+      photographerId: photographerId!, // photographer.id 사용
+      userProfileId: userProfileId, // 상대방 ID 사용
     );
     _scrollToBottomWithDelay();
+  }
+
+  void _scrollToBottomWithDelay() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void _showOptionsBottomSheet() {
@@ -90,7 +165,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 핸들 바
             Container(
               width: 40,
               height: 4,
@@ -100,25 +174,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // 옵션 리스트
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // 결제 요청 (포토그래퍼만)
-                if (isPhotographer)
+                if (isPhotographer &&
+                    isPhotographerIdLoaded) // photographer.id 로드 완료 후에만 표시
                   _buildOptionButton(
                     icon: Icons.payment,
                     label: '결제 요청',
                     color: Colors.blue,
                     onTap: () {
                       Navigator.pop(context);
-                      PaymentRequestDialog.show(context,
-                          onPaymentRequest: _handlePaymentRequest, ref: ref);
+                      PaymentRequestDialog.show(
+                        context,
+                        onPaymentRequest: (title, amount, description,
+                            photoServiceInfoId, priceInfoId) {
+                          _handlePaymentRequest(title, amount, description,
+                              photoServiceInfoId, priceInfoId);
+                        },
+                        ref: ref,
+                      );
                     },
                   ),
-
-                // 이미지 업로드
                 _buildOptionButton(
                   icon: Icons.image,
                   label: '이미지',
@@ -140,13 +217,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
                   },
                 ),
-
-                // 포토그래퍼가 아닌 경우 빈 공간 추가
-                if (!isPhotographer) const SizedBox(width: 60),
               ],
             ),
-
-            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -159,148 +231,90 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(40),
+          child: Container(
             width: 60,
             height: 60,
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: color.withOpacity(0.3),
-                width: 1,
-              ),
+              borderRadius: BorderRadius.circular(40),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 28,
-            ),
+            child: Icon(icon, color: color, size: 30),
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey.shade700,
-            ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey.shade700,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // 이미지 버블 위젯 (추가)
-  Widget _buildImageBubble({
-    String? imageData,
-    required String fileName,
-    int? fileSize,
-    required bool isMe,
-    required DateTime timestamp,
-  }) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-        child: Column(
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+  Widget _buildInputArea() {
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: SafeArea(
+        child: Row(
           children: [
-            Container(
-              constraints: const BoxConstraints(maxWidth: 250),
-              decoration: BoxDecoration(
-                color: isMe ? Colors.blue.shade600 : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 이미지 표시
-                  if (imageData != null && imageData.isNotEmpty)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.memory(
-                        base64Decode(imageData),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            height: 100,
-                            width: double.infinity,
-                            color: Colors.grey.shade300,
-                            child: const Icon(
-                              Icons.broken_image,
-                              color: Colors.grey,
-                              size: 40,
-                            ),
-                          );
-                        },
-                      ),
-                    )
-                  else
-                    Container(
-                      height: 100,
-                      width: double.infinity,
-                      color: Colors.grey.shade300,
-                      child: const Icon(
-                        Icons.image,
-                        color: Colors.grey,
-                        size: 40,
-                      ),
+            IconButton(
+              icon: Icon(Icons.add_circle, color: Colors.grey.shade500),
+              onPressed: _showOptionsBottomSheet,
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    hintText: '메시지를 입력하세요',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
                     ),
-
-                  const SizedBox(height: 8),
-
-                  // 파일 정보
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.attachment,
-                        size: 16,
-                        color: isMe ? Colors.white70 : Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          fileName,
-                          style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black87,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                    filled: true,
+                    fillColor: Colors.grey.shade200,
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
-
-                  if (fileSize != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      ImageUploadHelper.formatFileSize(fileSize),
-                      style: TextStyle(
-                        color: isMe ? Colors.white70 : Colors.grey.shade600,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ],
+                  onSubmitted: _handleSubmitted,
+                ),
               ),
             ),
-
-            const SizedBox(height: 2),
-
-            // 타임스탬프
-            Text(
-              '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 10,
+            const SizedBox(width: 8),
+            Material(
+              color: Colors.blue.shade600,
+              borderRadius: BorderRadius.circular(20),
+              child: InkWell(
+                onTap: () {
+                  if (_textController.text.trim().isNotEmpty) {
+                    _handleSubmitted(_textController.text);
+                  }
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.send,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
               ),
             ),
           ],
@@ -309,192 +323,61 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
-  void _scrollToBottomWithDelay() {
-    Future.delayed(const Duration(milliseconds: 100), () => _scrollToBottom());
-  }
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final opponentName = widget.opponentNickname;
     final chatState = ref.watch(chatMessagesProvider(widget.chatRoomId));
-    final session = ref.watch(sessionProvider);
-    final myUserId = session.userId;
-
-    ref.listen(chatMessagesProvider(widget.chatRoomId), (prev, next) {
-      if (prev?.messages.length != next.messages.length) {
-        _scrollToBottomWithDelay();
-      }
-    });
+    final sessionState = ref.watch(sessionProvider);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: Text(
-          opponentName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
-        centerTitle: false,
+        title: Text(widget.opponentNickname),
       ),
       body: Column(
         children: [
-          if (chatState.isLoading) const LinearProgressIndicator(),
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16.0),
-              itemCount: chatState.messages.length,
-              itemBuilder: (context, index) {
-                final message = chatState.messages[index];
-                final isMe = message.senderId == myUserId;
-                final timestamp = DateTime.tryParse(message.createdAt ?? '') ??
-                    DateTime.now();
+            child: chatState.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : chatState.errorMessage != null
+                    ? Center(
+                        child: Text(
+                          '${chatState.errorMessage}',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        reverse: false,
+                        itemCount: chatState.messages.length,
+                        itemBuilder: (context, index) {
+                          final message = chatState.messages[index];
+                          final isMe = message.senderId == sessionState.userId;
 
-                // 결제 요청 메시지
-                if (message.messageType == 'PAYMENT_REQUEST') {
-                  return PaymentRequestBubble(
-                    title: message.message,
-                    price: message.paymentAmount ?? 0,
-                    description: message.paymentDescription ?? "결제 요청 메시지",
-                    isMe: isMe,
-                  );
-                }
+                          DateTime timestamp;
+                          try {
+                            timestamp = message.createdAt != null
+                                ? DateTime.parse(message.createdAt!)
+                                : DateTime.now();
+                          } catch (e) {
+                            timestamp = DateTime.now();
+                          }
 
-                // 이미지 메시지
-                if (message.messageType == 'IMAGE') {
-                  return _buildImageBubble(
-                    imageData: message.imageData,
-                    fileName: message.fileName ?? message.message,
-                    fileSize: message.fileSize,
-                    isMe: isMe,
-                    timestamp: timestamp,
-                  );
-                }
-
-                // 일반 텍스트 메시지
-                return ChatBubble(
-                  message: message.message,
-                  isMe: isMe,
-                  timestamp: timestamp,
-                );
-              },
-            ),
+                          if (message.messageType == 'PAYMENT_REQUEST') {
+                            return PaymentRequestBubble(
+                              title: message.message,
+                              price: message.paymentAmount ?? 0,
+                              description: message.paymentDescription ?? '',
+                              isMe: isMe,
+                            );
+                          }
+                          return ChatBubble(
+                            message: message.message,
+                            isMe: isMe,
+                            timestamp: timestamp,
+                          );
+                        },
+                      ),
           ),
-
-          // 수정된 입력 영역
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            child: Row(
-              children: [
-                // + 버튼 (결제 요청/이미지)
-                Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  child: Material(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(20),
-                    child: InkWell(
-                      onTap: _showOptionsBottomSheet,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Icon(
-                          Icons.add,
-                          color: Colors.grey.shade600,
-                          size: 24,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 메시지 입력 필드
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: TextField(
-                      controller: _textController,
-                      decoration: const InputDecoration(
-                        hintText: '메시지를 입력하세요...',
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                      ),
-                      maxLines: null,
-                      onSubmitted: (text) {
-                        if (text.trim().isNotEmpty) {
-                          _handleSubmitted(text);
-                        }
-                      },
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-
-                // 전송 버튼
-                Material(
-                  color: Colors.blue.shade600,
-                  borderRadius: BorderRadius.circular(20),
-                  child: InkWell(
-                    onTap: () {
-                      if (_textController.text.trim().isNotEmpty) {
-                        _handleSubmitted(_textController.text);
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.send,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
+          _buildInputArea(),
           if (chatState.errorMessage != null)
             Container(
               color: Colors.red,

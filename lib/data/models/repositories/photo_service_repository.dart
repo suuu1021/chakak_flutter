@@ -1,14 +1,14 @@
 import 'dart:io';
-
 import 'package:chakak_flutter/data/dtos/photo_service_dto.dart';
+import 'package:chakak_flutter/data/models/photo_service/price_option.dart';
 import 'package:dio/dio.dart';
-
 import '../../../_core/constants/api_config.dart';
 import '../photo_service/photo_service.dart';
 
 abstract class PhotoServiceRepository {
   Future<List<PhotoService>> getServices();
   Future<List<PhotoService>> getServicesByPhotographer(int photographerId);
+  Future<int?> getPhotographerIdByUserId(int userId); // 매핑 메서드 추가
   Future<void> updateLikeStatus(int serviceId, bool isLiked);
 }
 
@@ -27,8 +27,32 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
   }
 
   @override
+  Future<int?> getPhotographerIdByUserId(int userId) async {
+    final String apiUrl = '$serverUrl/api/photographers/profile/user/$userId';
+    try {
+      final response = await _dio.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        // ApiUtil 래퍼 구조 처리
+        if (data is Map<String, dynamic> && data.containsKey('body')) {
+          return data['body']['photographerProfileId'] as int?;
+        }
+
+        // 직접 응답인 경우
+        return data['photographerProfileId'] as int?;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting photographer ID by userId: $e');
+      return null;
+    }
+  }
+
+  @override
   Future<List<PhotoService>> getServices() async {
-    final String apiUrl = '$serverUrl/api/photo/services/list?size=30'; //
+    final String apiUrl = '$serverUrl/api/photo/services/list?size=30';
     try {
       final response = await _dio.get(apiUrl);
 
@@ -39,37 +63,18 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
           final List<dynamic> serviceListFromResponse =
               responseData['body'] as List<dynamic>;
 
-          // print('=== PhotoService API 응답 디버깅 ===');
           print('총 서비스 개수: ${serviceListFromResponse.length}');
 
           if (serviceListFromResponse.isNotEmpty) {
-            // print('첫 번째 서비스 데이터:');
             print(serviceListFromResponse[0]);
           }
-          // print('===================================');
 
           final List<PhotoService> services = serviceListFromResponse
               .map((item) {
                 if (item is Map<String, dynamic>) {
-                  // print('=== PhotoService Item 디버깅 ===');
-                  // print('Item JSON: $item');
-
-                  // photographerId 관련 필드들 체크
-                  // print('photographerId: ${item['photographerId']}');
-                  // print('userId: ${item['userId']}');
-                  // print('ownerId: ${item['ownerId']}');
-                  // print('user: ${item['user']}');
-                  // print('photographer: ${item['photographer']}');
-                  // print('createdBy: ${item['createdBy']}');
-                  // print('============================');
-
                   final dto = PhotoServiceDto.fromJson(item);
                   final service = dto.toModel();
-
-                  // print('=== 최종 PhotoService ===');
                   print('service.photographerId: ${service.photographerId}');
-                  // print('========================');
-
                   return service;
                 } else {
                   print('Invalid item format in service list: $item');
@@ -111,11 +116,38 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
         if (responseData.containsKey('body') && responseData['body'] is List) {
           final List<dynamic> serviceListFromResponse =
               responseData['body'] as List<dynamic>;
+
+          print('[PhotoServiceRepository] 서버 응답 데이터:');
+          for (int i = 0; i < serviceListFromResponse.length; i++) {
+            print('서비스 $i: ${serviceListFromResponse[i]}');
+          }
+
           final List<PhotoService> services = serviceListFromResponse
               .map((item) {
                 if (item is Map<String, dynamic>) {
-                  final dto = PhotoServiceDto.fromJson(item);
-                  return dto.toModel();
+                  // 서버 응답에서 priceInfoList를 PriceOption.fromJson으로 처리
+                  List<PriceOption> priceOptionsList = [];
+                  if (item['priceInfoList'] != null) {
+                    priceOptionsList = (item['priceInfoList'] as List)
+                        .map((priceJson) => PriceOption.fromJson(
+                            priceJson as Map<String, dynamic>))
+                        .toList();
+                  }
+
+                  return PhotoService(
+                    id: item['serviceId'] as int? ?? 0,
+                    photographerId: item['photographerId'] as int? ?? 0,
+                    title: item['title'] as String? ?? '',
+                    imageUrl: item['imageData'] as String? ?? '',
+                    categories: [],
+                    price: item['price'] as int? ?? 0,
+                    rating: 0.0,
+                    reviewCount: 0,
+                    isLiked: false,
+                    description: item['description'] as String? ?? '',
+                    priceOptions: priceOptionsList,
+                    portfolioImages: [],
+                  );
                 } else {
                   print(
                       'Invalid item format in photographer service list: $item');
@@ -125,6 +157,17 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
               .where((service) => service != null)
               .cast<PhotoService>()
               .toList();
+
+          print('[PhotoServiceRepository] 변환된 서비스들:');
+          for (var service in services) {
+            print(
+                '서비스 ID: ${service.id}, 가격 옵션 개수: ${service.priceOptions.length}');
+            for (var option in service.priceOptions) {
+              print(
+                  '  옵션: ${option.name}, ID: ${option.id}, 가격: ${option.price}');
+            }
+          }
+
           return services;
         } else {
           print(
