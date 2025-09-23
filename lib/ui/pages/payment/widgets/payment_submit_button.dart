@@ -20,10 +20,7 @@ class PaymentSubmitButton extends StatelessWidget {
         icon: const Icon(Icons.credit_card),
         label: const Text(
           "결제하기",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
