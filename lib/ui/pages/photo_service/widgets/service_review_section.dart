@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
+import '../../../../../../data/models/review.dart';
+import '../../../../../../provider/review/review_provider.dart';
+import '../../review/widgets/review_card_widget.dart';
 
-class ServiceReviewSection extends StatelessWidget {
+class ServiceReviewSection extends ConsumerWidget {
   final PhotoService service;
   final VoidCallback? onViewAllTap;
 
@@ -13,7 +18,9 @@ class ServiceReviewSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recentReviews = ref.watch(recentReviewsProvider(service.id));
+
     return Padding(
       padding: const EdgeInsets.all(AppSizes.spacing16),
       child: Column(
@@ -21,7 +28,32 @@ class ServiceReviewSection extends StatelessWidget {
         children: [
           _buildHeader(),
           const SizedBox(height: AppSizes.spacing12),
-          _buildReviewContent(),
+          recentReviews.when(
+            data: (reviews) {
+              if (reviews.isEmpty) {
+                return _buildNoReviews();
+              }
+              return Column(
+                children: reviews.take(5).map((reviewDto) {
+                  final reviewModel = Review(
+                    id: reviewDto.id,
+                    reviewerId: reviewDto.reviewerId,
+                    serviceId: reviewDto.serviceId,
+                    bookingId: reviewDto.bookingId,
+                    rating: reviewDto.rating,
+                    reviewContent: reviewDto.reviewContent,
+                    createdAt: reviewDto.createdAt,
+                  );
+                  return ReviewCardWidget(
+                    review: reviewModel,
+                    mode: "user",
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, _) => Text("리뷰 불러오기 실패: $err"),
+          ),
         ],
       ),
     );
@@ -46,28 +78,9 @@ class ServiceReviewSection extends StatelessWidget {
     );
   }
 
-  Widget _buildReviewContent() {
-    // TODO: 실제 리뷰 데이터가 있을 때 리뷰 목록 표시
-    if (service.reviewCount == 0) {
-      return _buildNoReviews();
-    }
-
-    return _buildReviewPlaceholder();
-  }
-
   Widget _buildNoReviews() {
     return const Text(
       '아직 리뷰가 없습니다.',
-      style: TextStyle(
-        fontSize: 14,
-        color: Colors.grey,
-      ),
-    );
-  }
-
-  Widget _buildReviewPlaceholder() {
-    return const Text(
-      '리뷰가 여기에 표시됩니다.',
       style: TextStyle(
         fontSize: 14,
         color: Colors.grey,
