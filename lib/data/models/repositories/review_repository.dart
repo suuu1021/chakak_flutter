@@ -11,7 +11,8 @@ class ReviewRepository {
 
   ReviewRepository(this._dio);
 
-  static const String _createReviewEndpoint = '/api/v1/photo-services/reviews';
+  static const String _createReviewEndpoint =
+      '/api/v1/photo-services/reviews';
   static const String _photoServicesBaseEndpoint = '/api/v1/photo-services';
 
   /// 리뷰 생성
@@ -77,12 +78,12 @@ class ReviewRepository {
 
     try {
       final response = await _dio.get(endpoint, queryParameters: queryParams);
-
+      // 실제 응답 구조에 따라 'body'를 사용하도록 수정
       if (response.statusCode == 200 &&
           response.data != null &&
-          response.data['body'] != null) {
+          response.data['body'] != null) { // 'data'에서 'body'로 변경
         return PagedResponseDto.fromJson(
-          response.data['body'] as Map<String, dynamic>,
+          response.data['body'] as Map<String, dynamic>, // 'data'에서 'body'로 변경
               (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
         );
       } else {
@@ -102,7 +103,6 @@ class ReviewRepository {
 
     try {
       final response = await _dio.get(endpoint);
-
       if (response.statusCode == 200 &&
           response.data != null &&
           response.data['body'] != null) {
@@ -149,7 +149,13 @@ class ReviewRepository {
               (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
         );
       } else {
-        throw Exception('포토그래퍼 리뷰 조회 실패');
+        String errorMessage = '포토그래퍼 리뷰 조회 실패';
+        if (response.data != null && response.data['msg'] != null) {
+          errorMessage += ': ${response.data['msg']}';
+        } else if (response.statusMessage != null && response.statusMessage!.isNotEmpty) {
+           errorMessage += ': ${response.statusMessage}';
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -172,12 +178,12 @@ class ReviewRepository {
 
     try {
       final response = await _dio.get(endpoint, queryParameters: queryParams);
-
+      // 실제 응답 구조에 따라 'body'를 사용하도록 수정
       if (response.statusCode == 200 &&
           response.data != null &&
-          response.data['body'] != null) {
+          response.data['body'] != null) { // 'data'에서 'body'로 변경
         return PagedResponseDto.fromJson(
-          response.data['body'] as Map<String, dynamic>,
+          response.data['body'] as Map<String, dynamic>, // 'data'에서 'body'로 변경
               (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
         );
       } else {
