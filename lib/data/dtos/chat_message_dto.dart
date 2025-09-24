@@ -64,15 +64,24 @@ class ChatMessageDto {
 
   Map<String, dynamic> toJson() {
     return {
+      'chatMessageId': chatMessageId,
       'chatRoomId': chatRoomId,
       'senderType': senderType.toJson,
       'senderId': senderId,
       'messageType': messageType,
       'message': message,
+      'createdAt': createdAt,
       'imageBase64': imageBase64,
       'imageOriginalName': imageOriginalName,
+      'imageUrl': imageUrl,
+      'fileSize': fileSize,
       'paymentAmount': paymentAmount,
       'paymentOrderId': paymentOrderId,
+      'isRead': isRead,
+      'paymentDescription': paymentDescription,
+      'photoServiceInfoId': photoServiceInfoId,
+      'priceInfoId': priceInfoId,
+      'bookingInfoId': bookingInfoId, // ✅ 추가됨
     };
   }
 

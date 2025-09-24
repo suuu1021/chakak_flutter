@@ -476,6 +476,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           }
 
                           if (message.messageType == 'PAYMENT_REQUEST') {
+                            if (message.bookingInfoId == null) {
+                              return Text(
+                                '⚠️ 결제 요청 데이터가 올바르지 않습니다.',
+                                style: const TextStyle(color: Colors.red),
+                              );
+                            }
+
                             return PaymentRequestBubble(
                               title: message.message,
                               price: message.paymentAmount ?? 0,
