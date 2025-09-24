@@ -30,14 +30,29 @@ class _PhotographerProfilePageState
     extends ConsumerState<PhotographerProfilePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _hasLoadedServices = false; // 플래그 추가
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    ref
-        .read(photoServiceProvider.notifier)
-        .loadServicesByPhotographer(widget.photographerId);
+
+    // 한 번만 호출되도록 플래그로 제어
+    if (!_hasLoadedServices) {
+      _hasLoadedServices = true;
+      Future.microtask(() {
+        final serviceState = ref.read(photoServiceProvider);
+        // 이미 해당 photographer의 서비스가 로드되었는지 확인
+        final hasPhotographerServices = serviceState.services
+            .any((service) => service.photographerId == widget.photographerId);
+
+        if (!hasPhotographerServices && !serviceState.isLoading) {
+          ref
+              .read(photoServiceProvider.notifier)
+              .loadServicesByPhotographer(widget.photographerId);
+        }
+      });
+    }
   }
 
   @override
@@ -51,13 +66,11 @@ class _PhotographerProfilePageState
     final serviceState = ref.watch(photoServiceProvider);
     final session = ref.watch(sessionProvider);
 
-    // 포트폴리오와 동일한 패턴으로 서비스 필터링
     final services = serviceState.services
         .where((service) => service.photographerId == widget.photographerId)
         .cast<PhotoService>()
         .toList();
 
-    // 포트폴리오와 동일한 디버깅 로그
     print("=== PhotoServicePage 디버깅 ===");
     print("session.isLogin: ${session.isLogin}");
     print("session.userId: ${session.userId}");
@@ -65,14 +78,13 @@ class _PhotographerProfilePageState
     print("widget.photographerId: ${widget.photographerId}");
     print("services.length: ${services.length}");
 
-    // 서비스가 있을 때 첫 번째 서비스의 소유자 ID 확인 (포트폴리오와 동일)
+    // 서비스가 있을 때 첫 번째 서비스의 소유자 ID 확인
     String? serviceOwnerUserId;
     if (services.isNotEmpty) {
       serviceOwnerUserId = services.first.photographerUserId.toString();
       print("serviceOwnerUserId: $serviceOwnerUserId");
     }
 
-    // 포트폴리오와 완전히 동일한 로직
     final isMyProfile = session.isLogin &&
         session.userTypeCode?.toLowerCase() == 'photographer' &&
         serviceOwnerUserId != null &&
