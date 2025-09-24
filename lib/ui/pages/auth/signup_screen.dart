@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -346,8 +347,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       appBar: AppBar(
         title: const Text("회원가입"),
         centerTitle: true,
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
+        foregroundColor: AppColors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -355,7 +356,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           key: _formKey,
           child: Column(
             children: [
-              const CustomLogo(AppStrings.appNameUpper),
+              //const CustomLogo(AppStrings.appNameUpper),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -386,8 +387,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ? null
                           : _sendVerificationEmail,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 16),
                         disabledBackgroundColor: Colors.black.withOpacity(0.7),
@@ -395,12 +396,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       child: _isSendingVerificationEmail
                           ? const Text("전송중...",
-                          style: TextStyle(color: Colors.white))
+                              style: TextStyle(color: Colors.white))
                           : _isVerificationEmailSent
-                          ? const Text("재전송",
-                          style: TextStyle(color: Colors.white))
-                          : const Text("인증요청",
-                          style: TextStyle(color: Colors.white)),
+                              ? const Text("재전송",
+                                  style: TextStyle(color: Colors.white))
+                              : const Text("인증요청",
+                                  style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -430,8 +431,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ? null
                           : _verifyCode,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 16),
                         disabledBackgroundColor: Colors.black.withOpacity(0.7),
@@ -439,12 +440,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                       child: _isVerifyingCode
                           ? const Text("확인중...",
-                          style: TextStyle(color: Colors.white))
+                              style: TextStyle(color: Colors.white))
                           : _isCodeVerified
-                          ? const Text("인증완료",
-                          style: TextStyle(color: Colors.white))
-                          : const Text("코드 확인",
-                          style: TextStyle(color: Colors.white)),
+                              ? const Text("인증완료",
+                                  style: TextStyle(color: Colors.white))
+                              : const Text("코드 확인",
+                                  style: TextStyle(color: Colors.white)),
                     ),
                   ),
                 ],
@@ -487,6 +488,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Radio<String>(
+                    activeColor: AppColors.primary,
                     value: "user",
                     groupValue: userType,
                     onChanged: (value) {
@@ -501,6 +503,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   const Text("개인 회원"),
                   const SizedBox(width: 20),
                   Radio<String>(
+                    activeColor: AppColors.primary,
                     value: "photographer",
                     groupValue: userType,
                     onChanged: (value) {
@@ -521,10 +524,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     ? null
                     : _submitSignupViaProvider,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   minimumSize: const Size(double.infinity, 50),
                   disabledBackgroundColor: Colors.black.withOpacity(0.7),
                   disabledForegroundColor: Colors.white.withOpacity(0.7),
@@ -532,7 +535,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 child: isSignupSubmitLoading
                     ? const CircularProgressIndicator(color: Colors.white)
                     : const Text("다음",
-                    style: TextStyle(color: Colors.white, fontSize: 16)),
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
               ),
               const SizedBox(height: 24),
               TextButton(
@@ -542,7 +545,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 style: TextButton.styleFrom(
                   disabledForegroundColor: Colors.grey.withOpacity(0.7),
                 ),
-                child: const Text("로그인으로 돌아가기"),
+                child: const Text(
+                  "로그인으로 돌아가기",
+                  style: TextStyle(color: AppColors.primaryDark),
+                ),
               ),
             ],
           ),

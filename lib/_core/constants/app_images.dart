@@ -7,7 +7,7 @@ class AppImages {
   static const String onboarding2 = '${_basePath}onboarding2.jpg';
 
   // Icons & Logos
-  static const String logo = '${_basePath}logo.svg';
+  static const String logo = '${_basePath}camera.svg';
   static const String logoWhite = '${_basePath}logo_white.png';
 
   // Placeholders

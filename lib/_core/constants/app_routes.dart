@@ -14,7 +14,7 @@ import '../../ui/pages/notification/notification_screen.dart';
 import '../../ui/pages/profile/photographer/photographer_profile_form_page.dart';
 import '../../ui/pages/profile/profile_edit_page.dart';
 import '../../ui/pages/review/my_review_screen.dart';
-import '../../ui/pages/review/photographer_review_screen.dart';
+// import '../../ui/pages/review/photographer_review_screen.dart'; // ReviewManagerScreen을 통해 접근하므로 직접 import 불필요
 import '../../ui/pages/review/review_manager_screen.dart';
 import '../../ui/pages/portfolio/portfolio_detail_page.dart';
 import '../../ui/pages/search/search_screen.dart';
@@ -65,9 +65,10 @@ class AppRoutes {
         photographerProfileForm: (context) =>
             const PhotographerProfileFormPage(),
         profileEdit: (context) => const ProfileEditPage(),
-        photographerReviews: (context) => const PhotographerReviewScreen(),
+        photographerReviews: (context) => 
+            const ReviewManagerScreen(userType: UserType.photographer), // 수정된 부분
         reviewManager: (context) =>
-            const ReviewManagerScreen(userType: UserType.user),
+            const ReviewManagerScreen(userType: UserType.user), // 기본값은 일반 유저
         portfolioDetail: (context) {
           final portfolio =
               ModalRoute.of(context)!.settings.arguments as Portfolio;
