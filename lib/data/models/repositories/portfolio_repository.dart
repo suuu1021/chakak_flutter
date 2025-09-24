@@ -63,7 +63,8 @@ abstract class PortfolioRepository {
     required String title,
     required String description,
     required List<String> categories,
-    required List<String> imagePaths,
+    required List<String> existingImageUrls,
+    required List<String> newImagePaths,
   });
 
   /// 포트폴리오 수정
@@ -302,20 +303,23 @@ class PortfolioRepositoryImpl implements PortfolioRepository {
     required String title,
     required String description,
     required List<String> categories,
-    required List<String> imagePaths,
+    required List<String> existingImageUrls,
+    required List<String> newImagePaths,
   }) async {
     try {
       print('=== Repository: Base64 파일 업로드 포트폴리오 수정 ===');
       print('포트폴리오 ID: $portfolioId');
       print('제목: $title');
-      print('이미지 파일 개수: ${imagePaths.length}');
+      print('기존 이미지 개수: ${existingImageUrls.length}');
+      print('새 이미지 파일 개수: ${newImagePaths.length}');
 
       final response = await _apiService.updatePortfolioWithFiles(
         portfolioId: portfolioId,
         title: title,
         description: description,
         categories: categories,
-        imagePaths: imagePaths,
+        existingImageUrls: existingImageUrls,
+        newImagePaths: newImagePaths,
       );
 
       print('=== Repository: Base64 파일 업로드 포트폴리오 수정 완료 ===');

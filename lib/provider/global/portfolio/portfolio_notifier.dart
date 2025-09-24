@@ -470,12 +470,16 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     required String title,
     required String description,
     required List<String> categories,
-    required List<String> imagePaths,
+    required List<String> existingImageUrls,
+    required List<String> newImagePaths,
   }) async {
     if (kDebugMode) {
-      print('파일 업로드 포트폴리오 수정 시작: $portfolioId');
+      print('=== [Provider] 포트폴리오 수정 시작 ===');
+      print('포트폴리오 ID: $portfolioId');
       print('제목: $title');
-      print('이미지 파일 개수: ${imagePaths.length}');
+      print('설명 길이: ${description.length}');
+      print('카테고리 개수: ${categories.length}');
+      print('이미지 경로 개수: ${newImagePaths.length}');
     }
 
     try {
@@ -485,7 +489,8 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
         title: title,
         description: description,
         categories: categories,
-        imagePaths: imagePaths,
+        existingImageUrls: existingImageUrls,
+        newImagePaths: newImagePaths,
       );
 
       if (kDebugMode) {
@@ -511,7 +516,10 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
       return true;
     } catch (e) {
       if (kDebugMode) {
-        print('파일 업로드 포트폴리오 수정 실패: $e');
+        print('=== [Provider] 포트폴리오 수정 실패 ===');
+        print('에러 타입: ${e.runtimeType}');
+        print('에러 메시지: $e');
+        print('스택 트레이스: ${StackTrace.current}');
       }
 
       state = state.copyWith(errorMessage: e.toString());
