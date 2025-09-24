@@ -132,20 +132,29 @@ class PhotographerProfileRepositoryImpl implements PhotographerProfileRepository
       }
       if (response == null) return null;
 
-      dynamic respData = response.data;
-      if (respData is Map<String, dynamic>) {
-        if (respData.containsKey('body') && respData['body'] is Map<String, dynamic>) {
-          respData = respData['body'];
-        } else if (respData.containsKey('response') && respData['response'] is Map<String, dynamic>) {
-          respData = respData['response'];
+      dynamic responseBody = response.data; // 전체 응답 데이터
+      Map<String, dynamic>? profileData;
+
+      if (responseBody is Map<String, dynamic>) {
+        if (responseBody.containsKey('data') && responseBody['data'] is Map<String, dynamic>) {
+          profileData = responseBody['data'] as Map<String, dynamic>;
+        } else if (responseBody.containsKey('body') && responseBody['body'] is Map<String, dynamic>) { // 기존 로직 유지 (하위 호환성)
+          profileData = responseBody['body'] as Map<String, dynamic>;
+        } else if (responseBody.containsKey('response') && responseBody['response'] is Map<String, dynamic>) { // 기존 로직 유지
+          profileData = responseBody['response'] as Map<String, dynamic>;
+        } else {
+          // 'data', 'body', 'response' 키가 없고, responseBody 자체가 프로필 데이터일 경우
+          profileData = responseBody;
         }
       }
-      if (respData == null || !(respData is Map<String, dynamic>)) {
-        print('[DEBUG] 파싱할 프로필 데이터가 없거나 형식이 맞지 않습니다: $respData');
+
+      if (profileData == null) {
+        print('[DEBUG] 파싱할 프로필 데이터(data, body, response)를 찾을 수 없거나 형식이 맞지 않습니다: $responseBody');
         return null;
       }
-      print('[DEBUG] 파싱할 프로필 데이터: $respData');
-      return PhotographerProfile.fromJson(respData);
+      
+      print('[DEBUG] 파싱할 프로필 데이터: $profileData');
+      return PhotographerProfile.fromJson(profileData);
     } on DioException catch (e) {
       print('[DEBUG] getMyProfile DioException: ${e.response?.statusCode} ${e.message}');
       if (e.response?.statusCode == 404) {

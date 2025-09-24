@@ -91,33 +91,46 @@ class ProfileMenuList extends ConsumerWidget {
     ];
   }
 
-  void _handleProfileEdit(BuildContext context, WidgetRef ref) {
-    final session = ref.read(sessionProvider);
-    final photographerProfile = ref.read(photographerProfileProvider).profile;
+  Future<void> _handleProfileEdit(BuildContext context, WidgetRef ref) async {
+    print('=== 포토그래퍼 프로필 메뉴 선택 ===');
+    try {
+      // 1. 내 프로필 정보 로드 또는 갱신
+      await ref.read(photographerProfileProvider.notifier).loadMyProfile();
 
-    // 디버깅 로그 추가
-    print('=== 프로필 편집 버튼 클릭 ===');
-    print('session.userId: ${session.userId}');
-    print('photographerProfile: $photographerProfile');
-    if (photographerProfile != null) {
-      print('photographerProfile.id: ${photographerProfile.id}');
-      print('photographerProfile.photographerId: ${photographerProfile.id}');
-      print('photographerProfile.userId: ${photographerProfile.userId}');
+      // 2. 갱신된 프로필 정보 가져오기
+      final photographerProfile = ref.read(photographerProfileProvider).profile;
+      final errorMessage = ref.read(photographerProfileProvider).errorMessage;
+
+      if (errorMessage != null && errorMessage.isNotEmpty) {
+        print('[ERROR] 프로필 로드 실패: $errorMessage');
+        // TODO: 사용자에게 오류 메시지 표시 (예: ScaffoldMessenger)
+        return;
+      }
+
+      if (photographerProfile != null) {
+        print('프로필 로드 성공: photographerProfile.id: ${photographerProfile.id}');
+        final photographerId = int.tryParse(photographerProfile.id);
+        if (photographerId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  PhotographerProfilePage(photographerId: photographerId),
+            ),
+          );
+        } else {
+          print('[ERROR] photographerProfile.id를 int로 파싱 실패: ${photographerProfile.id}');
+          // TODO: 사용자에게 오류 알림
+        }
+      } else {
+        print('[ERROR] 로드된 photographerProfile이 null입니다.');
+        // TODO: 사용자에게 프로필 정보를 찾을 수 없다는 알림
+      }
+    } catch (e) {
+      print('[ERROR] _handleProfileEdit 중 예외 발생: $e');
+      // TODO: 사용자에게 일반 오류 알림
     }
     print('=================================');
-
-    if (photographerProfile != null) {
-      final photographerId = int.tryParse(photographerProfile.id);
-      if (photographerId != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                PhotographerProfilePage(photographerId: photographerId),
-          ),
-        );
-      }
-    }
   }
 
   void _handleBookingHistory(BuildContext context) {
