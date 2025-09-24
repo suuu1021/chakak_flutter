@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
+import '../../../../data/models/photo_service/photo_service.dart';
 import '../../../../provider/global/photoService/photo_service_provider.dart';
 import '../../photo_service/widgets/photo_service_list_widget.dart';
 import '../../photo_service/photo_service_detail_page.dart';
@@ -26,29 +27,44 @@ class PhotographerProfilePage extends ConsumerStatefulWidget {
 class _PhotographerProfilePageState
     extends ConsumerState<PhotographerProfilePage>
     with SingleTickerProviderStateMixin {
-  TabController? _tabController;
+  // SingleTickerProviderStateMixin 추가
+  late TabController _tabController; // late 키워드 사용
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-
-    // 포토그래퍼의 서비스 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(photoServiceProvider.notifier)
-          .loadServicesByPhotographer(widget.photographerId);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    // 즉시 로딩 시작
+    ref
+        .read(photoServiceProvider.notifier)
+        .loadServicesByPhotographer(widget.photographerId);
+    // });
   }
 
   @override
   void dispose() {
-    _tabController?.dispose();
+    _tabController.dispose();
+    // 페이지를 떠날 때 photoServiceProvider의 상태를 초기화하는 로직 추가
+    ref.read(photoServiceProvider.notifier).clearData();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final serviceState = ref.watch(photoServiceProvider);
+
+    // 로딩 중이고 데이터가 비어있을 때만 로딩 표시
+    if (serviceState.isLoading && serviceState.services.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryLight,
+          title: const Text('포토그래퍼 프로필'),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primaryLight,
@@ -98,54 +114,63 @@ class _PhotographerProfilePageState
   }
 
   Widget _buildTabContent() {
-    final services = ref
-        .read(photoServiceProvider.notifier)
-        .getPhotographerServices(widget.photographerId);
-    final isLoading = ref.watch(photoServiceProvider).isLoading;
+    final serviceState = ref.watch(photoServiceProvider);
+    final services = serviceState.services
+        .where((service) => service.photographerId == widget.photographerId)
+        .cast<PhotoService>()
+        .toList();
+    final isLoading = serviceState.isLoading;
 
     return Expanded(
       child: TabBarView(
         controller: _tabController,
         children: [
-          _buildServiceTab(),
+          _buildServiceTab(services, isLoading),
           PortfolioPage(photographerId: widget.photographerId.toString()),
-          (services.isEmpty && !isLoading)
-              ? _buildScrollableContent(
-                  const Center(child: Text('등록된 서비스가 없어 리뷰를 표시할 수 없습니다.')))
-              : _buildScrollableContent(
-                  PhotographerReviews(serviceId: services.first.id)),
+          _buildReviewTab(services, isLoading),
         ],
       ),
     );
   }
 
-  Widget _buildServiceTab() {
-    // 포토그래퍼의 서비스 가져오기
-    final services = ref
-        .read(photoServiceProvider.notifier)
-        .getPhotographerServices(widget.photographerId);
+  Widget _buildServiceTab(List<PhotoService> services, bool isLoading) {
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     if (services.isEmpty) {
-      // 로딩 상태 확인
-      final isLoading = ref.watch(photoServiceProvider).isLoading;
-
-      if (isLoading) {
-        return const Center(child: CircularProgressIndicator());
-      } else {
-        return const Center(child: Text('등록된 서비스가 없습니다.'));
-      }
+      return const Center(child: Text('등록된 서비스가 없습니다.'));
     }
 
     return PhotoServiceListWidget(
       services: services,
       onServiceTap: (service) {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                    PhotoServiceDetailPage(service: service)));
+          context,
+          MaterialPageRoute(
+            builder: (context) => PhotoServiceDetailPage(
+              service: service,
+              otherServices: services.where((s) => s.id != service.id).toList(),
+            ),
+          ),
+        );
       },
     );
+  }
+
+  Widget _buildReviewTab(List<PhotoService> services, bool isLoading) {
+    if (isLoading) {
+      return _buildScrollableContent(
+          const Center(child: CircularProgressIndicator()));
+    }
+
+    if (services.isEmpty) {
+      return _buildScrollableContent(
+          const Center(child: Text('등록된 서비스가 없어 리뷰를 표시할 수 없습니다.')));
+    }
+
+    return _buildScrollableContent(
+        PhotographerReviews(serviceId: services.first.id));
   }
 
   Widget _buildScrollableContent(Widget child) {

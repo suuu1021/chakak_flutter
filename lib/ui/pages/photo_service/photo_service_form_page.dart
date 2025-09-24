@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../../_core/utils/error_handler.dart';
+import '../../../_core/utils/image_utils.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service/price_option.dart';
 import '../../../data/models/photo_service_category.dart';
@@ -58,7 +59,67 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     _existingImageData = service.imageUrl ?? '';
     _priceOptions = List.from(service.priceOptions ?? []);
 
+    // 디버깅용 로그 추가
+    print('=== 기존 데이터 로드 ===');
+    print('이미지 데이터 길이: ${_existingImageData.length}');
+    if (_existingImageData.isNotEmpty) {
+      print(
+          '이미지 데이터 시작: ${_existingImageData.length > 100 ? _existingImageData.substring(0, 100) + "..." : _existingImageData}');
+
+      // 쉼표로 분리된 각 이미지 데이터 확인
+      final images = _existingImageData.split(',');
+      for (int i = 0; i < images.length; i++) {
+        final img = images[i].trim();
+        if (img.isNotEmpty) {
+          print(
+              '이미지 $i: 길이=${img.length}, 타입=${_getImageType(img)}, 시작=${img.length > 50 ? img.substring(0, 50) + "..." : img}');
+        }
+      }
+    }
+
     _selectedCategoryIds = [];
+  }
+
+  String _getImageType(String data) {
+    if (data.startsWith('http')) return 'URL';
+    if (data.startsWith('assets/')) return 'Asset';
+    if (_isBase64Data(data)) return 'Base64';
+    return 'Unknown';
+  }
+
+  // Base64 데이터인지 확인하는 메서드
+  bool _isBase64Data(String data) {
+    if (data.isEmpty) return false;
+
+    // URL이나 Asset 경로가 아니면서 Base64 패턴인 경우
+    if (data.startsWith('http://') ||
+        data.startsWith('https://') ||
+        data.startsWith('assets/') ||
+        data.startsWith('images/')) {
+      return false;
+    }
+
+    // Base64 이미지 데이터는 보통 이런 패턴으로 시작
+    if (data.startsWith('/9j/') || // JPEG
+        data.startsWith('iVBORw0KGgo') || // PNG
+        data.startsWith('R0lGOD') || // GIF
+        data.startsWith('UklGR') || // WebP
+        data.startsWith('data:image/')) {
+      // Data URL
+      return true;
+    }
+
+    // 길이가 충분히 길고 Base64 문자만 포함하는 경우
+    if (data.length > 50) {
+      try {
+        base64Decode(data);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    return false;
   }
 
   Future<void> _loadCategories() async {
@@ -167,75 +228,15 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     );
   }
 
-  Widget _buildImageSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '서비스 이미지',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: AppSizes.spacing8),
-        SizedBox(
-          height: 120,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              if (_existingImageData.isNotEmpty)
-                ..._existingImageData
-                    .split(',')
-                    .where((data) => data.isNotEmpty)
-                    .map((imageData) {
-                  return _buildExistingImageItem(imageData);
-                }),
-              ..._selectedImages.map((file) => _buildNewImageItem(file)),
-              _buildAddImageButton(),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildExistingImageItem(String imageData) {
-    bool isUrl = imageData.startsWith('http');
-
     return Container(
       margin: const EdgeInsets.only(right: 8),
       child: Stack(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: isUrl
-                ? Image.network(
-                    imageData,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Icon(Icons.error_outline,
-                            color: Colors.red, size: 50),
-                      );
-                    },
-                  )
-                : Image.memory(
-                    base64Decode(imageData),
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
+            child:
+                ImageUtils.buildSafeImage(imageData, width: 120, height: 120),
           ),
           Positioned(
             top: 4,
@@ -253,6 +254,55 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '서비스 이미지',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: AppSizes.spacing8),
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              if (_existingImageData.isNotEmpty)
+                ..._existingImageData
+                    .split(',')
+                    .where((data) => data.trim().isNotEmpty)
+                    .map((imageData) {
+                  return _buildExistingImageItem(imageData.trim());
+                }),
+              ..._selectedImages.map((file) => _buildNewImageItem(file)),
+              _buildAddImageButton(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 에러 위젯 생성 메서드
+  Widget _buildErrorWidget(double size) {
+    return Container(
+      width: size,
+      height: size,
+      color: Colors.grey[200],
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image, color: Colors.red, size: 30),
+            SizedBox(height: 4),
+            Text('이미지 오류', style: TextStyle(fontSize: 10, color: Colors.red)),
+          ],
+        ),
       ),
     );
   }
@@ -596,8 +646,9 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
   void _removeExistingImage(String imageData) {
     setState(() {
       final imageList = _existingImageData.split(',');
-      imageList.remove(imageData);
-      _existingImageData = imageList.where((data) => data.isNotEmpty).join(',');
+      imageList.removeWhere((data) => data.trim() == imageData.trim());
+      _existingImageData =
+          imageList.where((data) => data.trim().isNotEmpty).join(',');
     });
   }
 
@@ -645,6 +696,16 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
         }
         combinedImageData += newImageDataList.join(',');
       }
+
+      print('=== 이미지 데이터 디버깅 ===');
+      print('_existingImageData.length: ${_existingImageData.length}');
+      print(
+          '_existingImageData: ${_existingImageData.length > 100 ? _existingImageData.substring(0, 100) + "..." : _existingImageData}');
+      print('_selectedImages.length: ${_selectedImages.length}');
+      print('newImageDataList.length: ${newImageDataList.length}');
+      print('combinedImageData.length: ${combinedImageData.length}');
+      print(
+          'combinedImageData preview: ${combinedImageData.length > 100 ? combinedImageData.substring(0, 100) + "..." : combinedImageData}');
 
       final serviceData = {
         'title': _titleController.text.trim(),

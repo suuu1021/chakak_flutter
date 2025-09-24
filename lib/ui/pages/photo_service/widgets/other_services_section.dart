@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
 import '../../../../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../../_core/utils/image_utils.dart';
 
 class OtherServicesSection extends ConsumerWidget {
   final PhotoService service;
@@ -144,40 +145,10 @@ class OtherServicesSection extends ConsumerWidget {
       return _buildImagePlaceholder();
     }
 
-    // HTTP URL인 경우 네트워크 이미지
-    if (otherService.imageUrl.startsWith('http')) {
-      return Image.network(
-        otherService.imageUrl,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildImagePlaceholder();
-        },
-      );
-    }
-
-    // 로컬 asset 이미지인 경우
-    return Image.asset(
+    return ImageUtils.buildSafeImage(
       otherService.imageUrl,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return _buildImagePlaceholder();
-      },
+      width: double.infinity,
+      height: 60,
     );
   }
 

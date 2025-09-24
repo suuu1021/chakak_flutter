@@ -19,25 +19,21 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final session = ref.read(sessionProvider);
-      print('[DEBUG] 세션 정보:');
-      print('[DEBUG] isLogin: ${session.isLogin}');
-      print('[DEBUG] userTypeCode: ${session.userTypeCode}');
-
-      if (session.isLogin) {
-        final userType = session.userTypeCode?.toUpperCase();
-        if (userType == null) {
-          print('[DEBUG] userTypeCode 아직 없음 - 프로필 로드 건너뜀');
-        } else if (userType == 'PHOTOGRAPHER') {
-          print('[DEBUG] 포토그래퍼로 인식됨');
-          ref.read(photographerProfileProvider.notifier).loadMyProfile();
-        } else {
-          print('[DEBUG] 일반 사용자로 인식됨');
-          ref.read(userProfileProvider.notifier).loadMyProfile();
-        }
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    // 마이페이지 진입 시 바로 프로필 로드
+    // 포토그래퍼인 경우, photographerProfileProvider를 사용
+    final session = ref.read(sessionProvider);
+    if (session.isLogin) {
+      final userType = session.userTypeCode?.toUpperCase();
+      if (userType == 'PHOTOGRAPHER') {
+        print('[DEBUG] 포토그래퍼로 인식됨, 내 프로필 로드');
+        ref.read(photographerProfileProvider.notifier).loadMyProfile();
+      } else {
+        print('[DEBUG] 일반 사용자로 인식됨, 내 프로필 로드');
+        ref.read(userProfileProvider.notifier).loadMyProfile();
       }
-    });
+    }
+    // });
   }
 
   @override
@@ -52,6 +48,7 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
             if (userType == null) {
               return Future.value();
             } else if (userType == 'PHOTOGRAPHER') {
+              // 새로고침 시에도 동일한 프로바이더 사용
               return ref
                   .read(photographerProfileProvider.notifier)
                   .loadMyProfile();

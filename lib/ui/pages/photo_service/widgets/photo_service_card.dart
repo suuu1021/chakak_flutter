@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../_core/utils/image_utils.dart';
 import '../../../../data/models/photo_service/photo_service.dart';
 
 class PhotoServiceCard extends StatelessWidget {
@@ -143,44 +144,10 @@ class PhotoServiceCard extends StatelessWidget {
       return _buildPlaceholder();
     }
 
-    // HTTP URL인 경우 네트워크 이미지
-    if (service.imageUrl.startsWith('http')) {
-      return Image.network(
-        service.imageUrl,
-        width: double.infinity,
-        height: double.infinity,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder();
-        },
-      );
-    }
-
-    // 로컬 asset 이미지인 경우
-    return Image.asset(
+    return ImageUtils.buildSafeImage(
       service.imageUrl,
       width: double.infinity,
       height: double.infinity,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return _buildPlaceholder();
-      },
     );
   }
 
