@@ -45,7 +45,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
           ),
         ),
         SizedBox(
-          height: 320,
+          height: 280,
           child: _buildContent(serviceState),
         ),
       ],
