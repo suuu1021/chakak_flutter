@@ -26,7 +26,7 @@ class AppStrings {
 
   // Home Screen
   static const String getStarted = '시작하기';
-  static const String onboardingMessage = '당신의 소중한 순간을 완벽하게 담아줄 사진작가를 만나보세요';
+  static const String onboardingMessage = '당신의 소중한 순간을 \n완벽하게 담아줄 사진작가를 만나보세요';
 
   // Categories
   static const String categoryPersonal = '개인';
