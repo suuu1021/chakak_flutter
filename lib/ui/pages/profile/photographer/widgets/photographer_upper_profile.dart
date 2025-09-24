@@ -6,10 +6,12 @@ import '../../../../../_core/constants/app_images.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../../data/dtos/chat_room_create_request_dto.dart';
+import '../../../../../data/models/photographer_profile.dart';
+import '../../../../../data/models/repositories/photographer_profile_repository.dart';
 import '../../../../../provider/auth/session_provider.dart';
 import '../../../../../provider/chat/chat_provider.dart';
+import '../../../../../provider/core/dio_provider.dart';
 import '../../../../../provider/global/photographer/photographer_provider.dart';
-import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 import '../../../chat/chat_screen.dart';
 
 class PhotographerUpperProfile extends ConsumerStatefulWidget {
@@ -27,53 +29,89 @@ class PhotographerUpperProfile extends ConsumerStatefulWidget {
 
 class _PhotographerUpperProfileState
     extends ConsumerState<PhotographerUpperProfile> {
+  // 로컬 상태 변수들 - 전역 상태와 완전히 분리
+  PhotographerProfile? _profile;
+  bool _isLoading = true;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(photographerProfileProvider.notifier)
-          .loadProfileById(widget.photographerId.toString());
+    _loadPhotographerProfile();
+  }
+
+  // API를 직접 호출하여 로컬 변수에만 저장
+  Future<void> _loadPhotographerProfile() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final dio = ref.read(dioProvider);
+      final repository = PhotographerProfileRepositoryImpl(dio);
+      final session = ref.read(sessionProvider);
+
+      // 마이페이지인지 정확히 판단: photographerId가 정확히 일치해야 함
+      // (단순히 photographer 타입인지가 아니라, 실제 같은 사람인지 확인)
+
+      // 현재 로그인한 사용자의 photographer 정보가 필요
+      // 일단 ID로 조회하고, 나중에 userId 비교로 마이페이지 여부 확인
+      final profile =
+          await repository.getProfile(widget.photographerId.toString());
+
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileState = ref.watch(photographerProfileProvider);
-
     return Column(
       children: [
-        _buildProfileSection(context, profileState),
+        _buildProfileSection(context),
         const SizedBox(height: AppSizes.spacing12),
-        _buildStatsCard(profileState),
+        _buildStatsCard(),
       ],
     );
   }
 
-  Widget _buildProfileSection(
-      BuildContext context, PhotographerProfileState profileState) {
-    final session = ref.watch(sessionProvider); // 세션 정보 가져오기
+  Widget _buildProfileSection(BuildContext context) {
+    final session = ref.watch(sessionProvider);
 
     // 현재 로그인한 포토그래퍼가 자신의 프로필을 보고 있는지 확인
     final isOwner = session.isLogin &&
         session.userTypeCode == 'photographer' &&
-        profileState.profile != null &&
-        session.userId.toString() == profileState.profile!.userId;
+        _profile != null &&
+        session.userId.toString() == _profile!.userId.toString();
 
     return Row(
       children: [
-        _buildProfileImage(profileState),
+        _buildProfileImage(),
         const SizedBox(width: AppSizes.spacing16),
-        Expanded(child: _buildProfileInfo(profileState)),
+        Expanded(child: _buildProfileInfo()),
         const SizedBox(width: AppSizes.spacing16),
-        if (isOwner) // 조건부 렌더링으로 설정 아이콘 표시
+        if (isOwner)
           IconButton(
             onPressed: () {
               Navigator.pushNamed(context, AppRoutes.photographerProfileForm);
             },
             icon: const Icon(Icons.edit),
           )
-        else if (session.isLogin) // 로그인했고 본인이 아닐 때 채팅 아이콘
+        else if (session.isLogin)
           IconButton(
             onPressed: () => _onChatTap(context),
             icon: const Icon(Icons.chat),
@@ -86,8 +124,8 @@ class _PhotographerUpperProfileState
     );
   }
 
-  Widget _buildProfileImage(PhotographerProfileState profileState) {
-    final imageUrl = profileState.profile?.profileImageUrl;
+  Widget _buildProfileImage() {
+    final imageUrl = _profile?.profileImageUrl;
 
     return CircleAvatar(
       backgroundImage: imageUrl != null && imageUrl.isNotEmpty
@@ -103,8 +141,8 @@ class _PhotographerUpperProfileState
     );
   }
 
-  Widget _buildProfileInfo(PhotographerProfileState profileState) {
-    if (profileState.isLoading) {
+  Widget _buildProfileInfo() {
+    if (_isLoading) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -119,12 +157,12 @@ class _PhotographerUpperProfileState
       );
     }
 
-    if (profileState.profile == null) {
+    if (_profile == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            profileState.errorMessage ?? '프로필 정보 없음',
+            _errorMessage ?? '프로필 정보 없음',
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.error,
@@ -137,11 +175,10 @@ class _PhotographerUpperProfileState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildUsername(profileState.profile!.businessName),
+        _buildUsername(_profile!.businessName),
         _buildRatingSection(),
-        _buildLocation(profileState.profile!.location),
-        // _buildExperience(profileState.profile!.experienceYears),
-        _buildHashTags(profileState.profile!.categories),
+        _buildLocation(_profile!.location),
+        _buildHashTags(_profile!.categories),
       ],
     );
   }
@@ -207,16 +244,6 @@ class _PhotographerUpperProfileState
     );
   }
 
-  // Widget _buildExperience(int? experienceYears) {
-  //   return Text(
-  //     '경력: ${experienceYears ?? 0}년',
-  //     style: const TextStyle(
-  //       fontSize: 12,
-  //       color: AppColors.textSecondary,
-  //     ),
-  //   );
-  // }
-
   Widget _buildHashTags(List<dynamic>? categories) {
     if (categories == null || categories.isEmpty) {
       return const Text(
@@ -230,7 +257,7 @@ class _PhotographerUpperProfileState
     }
 
     final categoryNames = categories
-        .take(3) // 최대 3개만 표시
+        .take(3)
         .map((category) => '#${category.name ?? category.toString()}')
         .join(', ');
 
@@ -244,7 +271,7 @@ class _PhotographerUpperProfileState
     );
   }
 
-  Widget _buildStatsCard(PhotographerProfileState profileState) {
+  Widget _buildStatsCard() {
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacing6),
       decoration: BoxDecoration(
@@ -258,8 +285,7 @@ class _PhotographerUpperProfileState
           _buildVerticalDivider(),
           _buildStatItem('만족도', '98%'),
           _buildVerticalDivider(),
-          _buildStatItem(
-              '경력', '${profileState.profile?.experienceYears ?? 0}년'),
+          _buildStatItem('경력', '${_profile?.experienceYears ?? 0}년'),
         ],
       ),
     );

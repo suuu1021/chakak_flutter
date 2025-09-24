@@ -11,7 +11,7 @@ import '../../photo_service/photo_service_form_page.dart';
 import '../../photo_service/widgets/photo_service_list_widget.dart';
 import '../../photo_service/photo_service_detail_page.dart';
 import 'widgets/photographer_upper_profile.dart';
-import 'widgets/photographer_reviews_section.dart'; // ✅ 추가한 리뷰 섹션 임포트
+import 'widgets/photographer_reviews_section.dart'; // ✅ 리뷰 섹션 임포트
 
 class PhotographerProfilePage extends ConsumerStatefulWidget {
   final int photographerId;
@@ -30,15 +30,30 @@ class _PhotographerProfilePageState
     extends ConsumerState<PhotographerProfilePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _hasLoadedServices = false; // 중복 호출 방지 플래그
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    // 즉시 로딩 시작
-    ref
-        .read(photoServiceProvider.notifier)
-        .loadServicesByPhotographer(widget.photographerId);
+
+    // 한 번만 호출되도록 플래그로 제어
+    if (!_hasLoadedServices) {
+      _hasLoadedServices = true;
+      Future.microtask(() {
+        final serviceState = ref.read(photoServiceProvider);
+
+        // 이미 해당 photographer의 서비스가 로드되었는지 확인
+        final hasPhotographerServices = serviceState.services
+            .any((service) => service.photographerId == widget.photographerId);
+
+        if (!hasPhotographerServices && !serviceState.isLoading) {
+          ref
+              .read(photoServiceProvider.notifier)
+              .loadServicesByPhotographer(widget.photographerId);
+        }
+      });
+    }
   }
 
   @override
@@ -135,7 +150,7 @@ class _PhotographerProfilePageState
         children: [
           _buildServiceTab(services, isLoading, isMyProfile),
           PortfolioPage(photographerId: widget.photographerId.toString()),
-          _buildReviewTab(services, isLoading),
+          _buildReviewTab(services, isLoading), // ✅ 리뷰 탭
         ],
       ),
     );

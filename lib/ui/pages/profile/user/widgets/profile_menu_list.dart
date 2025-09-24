@@ -92,20 +92,31 @@ class ProfileMenuList extends ConsumerWidget {
   }
 
   void _handleProfileEdit(BuildContext context, WidgetRef ref) {
+    final session = ref.read(sessionProvider);
     final photographerProfile = ref.read(photographerProfileProvider).profile;
+
+    // 디버깅 로그 추가
+    print('=== 프로필 편집 버튼 클릭 ===');
+    print('session.userId: ${session.userId}');
+    print('photographerProfile: $photographerProfile');
     if (photographerProfile != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PhotographerProfilePage(
-              photographerId: int.parse(photographerProfile.id)),
-        ),
-      );
-    } else {
-      // 프로필 정보가 아직 로드되지 않았을 경우의 예외 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('프로필 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')),
-      );
+      print('photographerProfile.id: ${photographerProfile.id}');
+      print('photographerProfile.photographerId: ${photographerProfile.id}');
+      print('photographerProfile.userId: ${photographerProfile.userId}');
+    }
+    print('=================================');
+
+    if (photographerProfile != null) {
+      final photographerId = int.tryParse(photographerProfile.id);
+      if (photographerId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                PhotographerProfilePage(photographerId: photographerId),
+          ),
+        );
+      }
     }
   }
 
