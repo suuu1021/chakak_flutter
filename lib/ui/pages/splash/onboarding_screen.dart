@@ -1,6 +1,7 @@
 import 'package:chakak_flutter/ui/widgets/custom_logo.dart';
 import 'package:flutter/material.dart';
 
+import '../../../_core/constants/app_colors.dart';
 import '../../../_core/constants/app_strings.dart';
 import '../../../_core/constants/app_images.dart';
 
@@ -13,12 +14,12 @@ class OnboardingScreen extends StatelessWidget {
       body: Stack(
         children: [
           // 배경 이미지
-          SizedBox.expand(
-            child: Image.asset(
-              AppImages.onboarding2,
-              fit: BoxFit.cover,
-            ),
-          ),
+          // SizedBox.expand(
+          //   child: Image.asset(
+          //     AppImages.onboarding2,
+          //     fit: BoxFit.cover,
+          //   ),
+          // ),
 
           // 반투명 오버레이
           Container(
@@ -68,7 +69,7 @@ class OnboardingScreen extends StatelessWidget {
                       Navigator.pushReplacementNamed(context, '/login-choice');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
