@@ -70,6 +70,10 @@ class _PhotoServiceDetailPageState
             .firstOrNull ??
         widget.service;
 
+    print('=== 이미지 디버깅 ===');
+    print('currentService.imageUrl: ${currentService.imageUrl}');
+    print('imageUrl length: ${currentService.imageUrl.length}');
+
     return Scaffold(
       appBar: _buildAppBar(),
       body: SingleChildScrollView(

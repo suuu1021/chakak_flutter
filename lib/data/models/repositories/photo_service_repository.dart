@@ -15,6 +15,10 @@ abstract class PhotoServiceRepository {
   Future<void> updateLikeStatus(int serviceId, bool isLiked);
   Future<ReviewPage> fetchReviews(
       {required int serviceId, int page = 0, int size = 10});
+  Future<void> updateService(int serviceId, Map<String, dynamic> serviceData);
+  Future<void> createService(Map<String, dynamic> serviceData);
+  Future<void> deleteService(int serviceId);
+  Future<List<Map<String, dynamic>>> loadCategories();
 }
 
 class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
@@ -221,6 +225,128 @@ class PhotoServiceRepositoryImpl implements PhotoServiceRepository {
     } catch (e) {
       print('Unexpected error updating like status: $e, URL: $apiUrl');
       throw Exception('Failed to update like status: $e');
+    }
+  }
+
+  @override
+  Future<void> updateService(
+      int serviceId, Map<String, dynamic> serviceData) async {
+    print('=== Repository updateService 시작 ===');
+    print('serviceId: $serviceId');
+    print(
+        '받은 데이터의 imageData 길이: ${serviceData['imageData']?.toString().length ?? 0}');
+
+    final String apiUrl = '$serverUrl/api/photo/services/$serviceId';
+
+    try {
+      // 데이터 복사 및 최종 확인
+      final requestData = Map<String, dynamic>.from(serviceData);
+      print(
+          '요청 직전 imageData 길이: ${requestData['imageData']?.toString().length ?? 0}');
+      print(
+          '요청 직전 imageData 미리보기: ${requestData['imageData']!.toString().length > 100 ? requestData['imageData'].toString().substring(0, 100) + "..." : requestData['imageData']}');
+
+      final response = await _dio.patch(
+        apiUrl,
+        data: requestData,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+          sendTimeout: const Duration(minutes: 5), // 큰 데이터 전송을 위한 타임아웃 연장
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
+
+      print('=== Repository updateService 완료 ===');
+      print('서버 응답: ${response.statusCode}');
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update service: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('DioError updating service: ${e.message}');
+      print('Error type: ${e.type}');
+      if (e.response != null) {
+        print('Response status: ${e.response?.statusCode}');
+        print('Response data: ${e.response?.data}');
+      }
+      throw Exception('Failed to update service: ${e.message}');
+    } catch (e) {
+      print('Unexpected error updating service: $e');
+      throw Exception('Failed to update service: $e');
+    }
+  }
+
+  @override
+  Future<void> createService(Map<String, dynamic> serviceData) async {
+    print('=== Repository createService 시작 ===');
+    print(
+        '받은 데이터의 imageData 길이: ${serviceData['imageData']?.toString().length ?? 0}');
+
+    final String apiUrl = '$serverUrl/api/photo/services';
+
+    try {
+      final response = await _dio.post(
+        apiUrl,
+        data: serviceData,
+        options: Options(
+          headers: {'Content-Type': 'application/json'},
+          sendTimeout: const Duration(minutes: 5),
+          receiveTimeout: const Duration(minutes: 5),
+        ),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to create service: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('DioError creating service: ${e.message}');
+      throw Exception('Failed to create service: ${e.message}');
+    } catch (e) {
+      print('Unexpected error creating service: $e');
+      throw Exception('Failed to create service: $e');
+    }
+  }
+
+  @override
+  Future<void> deleteService(int serviceId) async {
+    final String apiUrl = '$serverUrl/api/photo/services/$serviceId';
+
+    try {
+      final response = await _dio.delete(apiUrl);
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete service: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print('DioError deleting service: ${e.message}');
+      throw Exception('Failed to delete service: ${e.message}');
+    } catch (e) {
+      print('Unexpected error deleting service: $e');
+      throw Exception('Failed to delete service: $e');
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> loadCategories() async {
+    final String apiUrl = '$serverUrl/api/photo/categories/list';
+
+    try {
+      final response = await _dio.get(apiUrl);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = response.data;
+        if (responseData.containsKey('body') && responseData['body'] is List) {
+          return List<Map<String, dynamic>>.from(responseData['body']);
+        }
+      }
+
+      throw Exception('Failed to load categories: ${response.statusCode}');
+    } on DioException catch (e) {
+      print('DioError loading categories: ${e.message}');
+      throw Exception('Failed to load categories: ${e.message}');
+    } catch (e) {
+      print('Unexpected error loading categories: $e');
+      throw Exception('Failed to load categories: $e');
     }
   }
 }

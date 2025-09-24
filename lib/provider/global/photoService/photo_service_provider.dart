@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service/price_option.dart';
 import '../../../data/models/repositories/photo_service_category_repository.dart';
 import '../../../data/models/repositories/photo_service_repository.dart';
+import '../../auth/session_provider.dart';
 import '../../core/dio_provider.dart';
 
 class ServiceState {
@@ -21,6 +21,10 @@ class ServiceState {
     this.isLoading = false,
     this.error,
   });
+
+  factory ServiceState.initial() {
+    return ServiceState();
+  }
 
   ServiceState copyWith({
     List<PhotoService>? services,
@@ -38,26 +42,27 @@ class ServiceState {
 }
 
 // 창고 메뉴얼 (확장된 VM 개념)
+
 class ServiceNotifier extends Notifier<ServiceState> {
   late PhotoServiceRepository _repository;
+
   late PhotoServiceCategoryRepository _categoryRepository;
+
   late Dio _dio; // Dio 인스턴스 추가
 
   PhotoServiceRepository get repository => _repository;
 
   @override
   ServiceState build() {
-    _dio = ref.watch(dioProvider); // dioProvider에서 공통 Dio 인스턴스 가져오기
-    _repository = PhotoServiceRepositoryImpl(_dio); // Dio 인스턴스 주입
-    _categoryRepository =
-        PhotoServiceCategoryRepositoryImpl(_dio); // 카테고리 repository 추가
+    _dio = ref.watch(dioProvider);
+    _repository = PhotoServiceRepositoryImpl(_dio);
+    _categoryRepository = PhotoServiceCategoryRepositoryImpl(_dio);
     return ServiceState();
   }
 
   Future<void> loadServices() async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-
       final services = await _repository.getServices();
       state = state.copyWith(services: services, isLoading: false);
     } catch (e) {
@@ -70,20 +75,20 @@ class ServiceNotifier extends Notifier<ServiceState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      // 이미지 데이터 처리 (Base64 인코딩)
+// 이미지 데이터 처리 (Base64 인코딩)
       String imageData = '';
       if (serviceData['newImages'] != null) {
         final List<File> newImages = serviceData['newImages'];
         imageData = await _encodeImagesToBase64(newImages);
       }
 
-      // 가격 정보 구성
+// 가격 정보 구성
       List<Map<String, dynamic>> priceInfoList = [];
       if (serviceData['priceInfoList'] != null) {
         priceInfoList = serviceData['priceInfoList'];
       }
 
-      // 백엔드 API 요청 데이터 구성
+// 백엔드 API 요청 데이터 구성
       final requestData = {
         'title': serviceData['title'],
         'description': serviceData['description'],
@@ -92,7 +97,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
         'categoryIdList': serviceData['categoryIdList'] ?? [],
       };
 
-      // API 호출 - POST /api/photo/services
+// API 호출 - POST /api/photo/services
       final response = await _dio.post(
         '/api/photo/services',
         data: requestData,
@@ -105,7 +110,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
       );
 
       if (response.statusCode == 200) {
-        // 서비스 목록 새로고침
+// 서비스 목록 새로고침
         await loadServicesByPhotographer(serviceData['photographerId']);
       } else {
         throw Exception('서비스 생성 실패');
@@ -122,37 +127,37 @@ class ServiceNotifier extends Notifier<ServiceState> {
   /// 포토 서비스 수정
   Future<void> updateService(
       int serviceId, Map<String, dynamic> serviceData) async {
+    print('=== Provider updateService 시작 ===');
+    print('serviceId: $serviceId');
+    print('serviceData keys: ${serviceData.keys.toList()}');
+    print('imageData 길이: ${serviceData['imageData']?.toString().length ?? 0}');
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      // 이미지 데이터 처리
-      String imageData = '';
-      if (serviceData['existingImageData'] != null) {
-        imageData = serviceData['existingImageData'];
-      }
-      if (serviceData['newImages'] != null) {
-        final List<File> newImages = serviceData['newImages'];
-        final newImageData = await _encodeImagesToBase64(newImages);
-        imageData =
-            imageData.isEmpty ? newImageData : '$imageData,$newImageData';
-      }
+// 수정된 이미지 데이터 처리
+      String imageData = serviceData['imageData']?.toString() ?? '';
+      print('최종 imageData 길이: ${imageData.length}');
+      print(
+          '최종 imageData 미리보기: ${imageData.length > 100 ? imageData.substring(0, 100) + "..." : imageData}');
 
-      // 가격 정보 구성
+// 가격 정보 구성
       List<Map<String, dynamic>> priceInfoList = [];
       if (serviceData['priceInfoList'] != null) {
         priceInfoList = serviceData['priceInfoList'];
       }
 
-      // 백엔드 API 요청 데이터 구성
+// 백엔드 API 요청 데이터 구성
       final requestData = {
         'title': serviceData['title'],
         'description': serviceData['description'],
-        'imageData': imageData,
+        'imageData': imageData, // 원본 imageData 직접 사용
         'priceInfoList': priceInfoList,
         'categoryIdList': serviceData['categoryIdList'] ?? [],
       };
+      print(
+          '요청 데이터 imageData 길이: ${requestData['imageData']?.toString().length ?? 0}');
 
-      // API 호출 - PATCH /api/photo/services/{id}
+// API 호출 - PATCH /api/photo/services/{id}
       final response = await _dio.patch(
         '/api/photo/services/$serviceId',
         data: requestData,
@@ -161,21 +166,27 @@ class ServiceNotifier extends Notifier<ServiceState> {
             'Authorization': 'Bearer ${await _getAccessToken()}',
             'Content-Type': 'application/json',
           },
+          sendTimeout: const Duration(minutes: 5), // 큰 데이터 전송을 위한 타임아웃
+          receiveTimeout: const Duration(minutes: 5),
         ),
       );
 
       if (response.statusCode == 200) {
-        // 서비스 목록 새로고침
+// 서비스 목록 새로고침
+
         await loadServicesByPhotographer(serviceData['photographerId']);
       } else {
         throw Exception('서비스 수정 실패');
       }
     } catch (error) {
+      print('Provider updateService 에러: $error');
       state = state.copyWith(
         isLoading: false,
         error: error.toString(),
       );
       rethrow;
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -184,7 +195,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      // API 호출 - DELETE /api/photo/services/{id}
+// API 호출 - DELETE /api/photo/services/{id}
       final response = await _dio.delete(
         '/api/photo/services/$serviceId',
         options: Options(
@@ -195,11 +206,11 @@ class ServiceNotifier extends Notifier<ServiceState> {
       );
 
       if (response.statusCode == 200) {
-        // 로컬 상태에서 서비스 제거
+// 로컬 상태에서 서비스 제거
         final updatedServices =
             state.services.where((service) => service.id != serviceId).toList();
 
-        // 포토그래퍼별 캐시에서도 제거
+// 포토그래퍼별 캐시에서도 제거
         final updatedCache =
             Map<int, List<PhotoService>>.from(state.photographerServices);
         for (final photographerId in updatedCache.keys) {
@@ -229,16 +240,15 @@ class ServiceNotifier extends Notifier<ServiceState> {
   Future<void> loadServicesByPhotographer(int photographerId) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
-
       final services =
           await _repository.getServicesByPhotographer(photographerId);
 
-      // 포토그래퍼별 캐시에 저장
+// 포토그래퍼별 캐시에 저장
       final updatedCache =
           Map<int, List<PhotoService>>.from(state.photographerServices);
       updatedCache[photographerId] = services;
 
-      // 전체 서비스 목록에서도 업데이트 (중복 제거)
+// 전체 서비스 목록에서도 업데이트 (중복 제거)
       final Map<int, PhotoService> serviceMap = {
         for (var service in state.services) service.id: service
       };
@@ -275,13 +285,13 @@ class ServiceNotifier extends Notifier<ServiceState> {
       final services = await _repository.getServices();
 
       if (page == 0) {
-        // 첫 페이지인 경우 새로 설정
+// 첫 페이지인 경우 새로 설정
         state = state.copyWith(
           services: services,
           isLoading: false,
         );
       } else {
-        // 추가 페이지인 경우 기존 목록에 추가
+// 추가 페이지인 경우 기존 목록에 추가
         final updatedServices = [...state.services, ...services];
         state = state.copyWith(
           services: updatedServices,
@@ -300,13 +310,13 @@ class ServiceNotifier extends Notifier<ServiceState> {
   /// 포토 서비스 상세 조회
   Future<PhotoService?> loadServiceDetail(int serviceId) async {
     try {
-      // 먼저 로컬 상태에서 찾기
+// 먼저 로컬 상태에서 찾기
       PhotoService? service;
       try {
         service = state.services.firstWhere((s) => s.id == serviceId);
         return service;
       } catch (e) {
-        // 로컬에 없으면 전체 목록 다시 로드
+// 로컬에 없으면 전체 목록 다시 로드
         await loadServices();
         try {
           service = state.services.firstWhere((s) => s.id == serviceId);
@@ -325,7 +335,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
     try {
       final categories = await _categoryRepository.getCategories();
 
-      // PhotoServiceCategory를 Map<String, dynamic> 형태로 변환
+// PhotoServiceCategory를 Map<String, dynamic> 형태로 변환
       return categories
           .map((category) => {
                 'categoryId': category.id,
@@ -335,7 +345,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
           .toList();
     } catch (error) {
       print('카테고리 로딩 실패: $error');
-      // API 실패 시 기본 카테고리 목록 반환
+// API 실패 시 기본 카테고리 목록 반환
       return [
         {'categoryId': 1, 'categoryName': '웨딩', 'categoryImageData': ''},
         {'categoryId': 2, 'categoryName': '가족사진', 'categoryImageData': ''},
@@ -349,7 +359,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
     }
   }
 
-  // 카테고리별 서비스 로드 메서드
+// 카테고리별 서비스 로드 메서드
   Future<void> loadServicesByCategory(String categoryId) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
@@ -360,7 +370,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
       state = state.copyWith(services: services, isLoading: false);
     } catch (e) {
       print('카테고리별 서비스 로딩 실패: $e');
-      // 실패 시 전체 서비스 로드
+// 실패 시 전체 서비스 로드
       try {
         final allServices = await _repository.getServices();
         state = state.copyWith(services: allServices, isLoading: false);
@@ -373,15 +383,15 @@ class ServiceNotifier extends Notifier<ServiceState> {
 
   Future<void> toggleLike(int serviceId) async {
     try {
-      // 현재 좋아요 상태 찾기
+// 현재 좋아요 상태 찾기
       final currentService =
           state.services.firstWhere((service) => service.id == serviceId);
       final newLikeStatus = !currentService.isLiked;
 
-      // API 호출
+// API 호출
       await _repository.updateLikeStatus(serviceId, newLikeStatus);
 
-      // 전체 서비스 목록에서 업데이트
+// 전체 서비스 목록에서 업데이트
       final services = state.services.map((service) {
         if (service.id == serviceId) {
           return service.copyWith(isLiked: newLikeStatus);
@@ -389,7 +399,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
         return service;
       }).toList();
 
-      // 포토그래퍼별 캐시에서도 업데이트
+// 포토그래퍼별 캐시에서도 업데이트
       final updatedCache =
           Map<int, List<PhotoService>>.from(state.photographerServices);
       for (final photographerId in updatedCache.keys) {
@@ -408,7 +418,7 @@ class ServiceNotifier extends Notifier<ServiceState> {
       );
     } catch (e) {
       print('서비스 좋아요 상태 변경 실패: $e');
-      // 에러 발생 시 상태 복원 로직 추가 가능
+// 에러 발생 시 상태 복원 로직 추가 가능
     }
   }
 
@@ -431,16 +441,22 @@ class ServiceNotifier extends Notifier<ServiceState> {
 
   /// Access Token 가져오기
   Future<String> _getAccessToken() async {
-    // SharedPreferences 또는 다른 저장소에서 토큰 가져오기
-    // 실제 구현에서는 AuthProvider나 SessionProvider에서 가져와야 함
-    // 예시: final session = ref.read(sessionProvider);
-    // return session.accessToken;
-    return 'your_access_token_here';
+    final session = ref.read(sessionProvider);
+    if (session.isLogin) {
+      return session.jwtToken!;
+    }
+    // 로그인 상태가 아닐 경우, 에러를 던지거나 빈 문자열 반환
+    throw Exception('사용자가 로그인되지 않았습니다.');
   }
 
-  // 에러 초기화
+// 에러 초기화
   void clearError() {
     state = state.copyWith(error: null);
+  }
+
+  /// 서비스 데이터 초기화
+  void clearData() {
+    state = ServiceState.initial();
   }
 }
 
@@ -450,6 +466,7 @@ Future<List<PhotoService>> parseServicesFromJson(List<dynamic> jsonList) async {
       .map((item) {
         if (item is Map<String, dynamic>) {
           List<PriceOption> priceOptionsList = [];
+
           if (item['priceInfoList'] != null) {
             priceOptionsList = (item['priceInfoList'] as List)
                 .map((priceJson) =>
@@ -473,6 +490,7 @@ Future<List<PhotoService>> parseServicesFromJson(List<dynamic> jsonList) async {
             portfolioImages: [],
           );
         }
+
         return null;
       })
       .where((service) => service != null)
@@ -481,6 +499,7 @@ Future<List<PhotoService>> parseServicesFromJson(List<dynamic> jsonList) async {
 }
 
 // 실제 창고 개설
+
 final photoServiceProvider = NotifierProvider<ServiceNotifier, ServiceState>(
   () => ServiceNotifier(),
 );

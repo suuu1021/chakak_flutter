@@ -53,6 +53,7 @@ class PhotoServiceDto {
           .map((item) => PriceOptionDto.fromJson(item as Map<String, dynamic>))
           .toList();
     }
+    print('JSON에서 받은 이미지 데이터: ${json['imageUrl'] ?? json['imageData']}');
 
     return PhotoServiceDto(
       id: json['serviceId'] ?? 0,
