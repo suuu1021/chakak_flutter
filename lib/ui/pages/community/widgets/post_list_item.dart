@@ -9,13 +9,11 @@ import '../../../../data/models/community/post.dart';
 class PostListItem extends StatelessWidget {
   final Post post;
   final VoidCallback onTap;
-  final VoidCallback onLikeTap;
 
   const PostListItem({
     super.key,
     required this.post,
     required this.onTap,
-    required this.onLikeTap,
   });
 
   /*
@@ -101,33 +99,6 @@ class PostListItem extends StatelessWidget {
                           // 메타 정보
                           Row(
                             children: [
-                              // 좋아요 수
-                              GestureDetector(
-                                onTap: onLikeTap,
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      post.isLiked
-                                          ? Icons.thumb_up
-                                          : Icons.thumb_up_outlined,
-                                      color: post.isLiked
-                                          ? AppColors.primary
-                                          : AppColors.primary,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      post.likeCount.toString(),
-                                      style: const TextStyle(
-                                        color: AppColors.primary,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
                               // 댓글수
                               Row(
                                 children: [

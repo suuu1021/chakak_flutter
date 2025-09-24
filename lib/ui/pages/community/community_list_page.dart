@@ -167,8 +167,6 @@ class _CommunityListPageState extends ConsumerState<CommunityListPage> {
                 return PostListItem(
                   post: post,
                   onTap: () => _navigateToDetail(post.id),
-                  onLikeTap: () =>
-                      ref.read(postProvider.notifier).togglePostLike(post.id),
                 );
               },
             ),

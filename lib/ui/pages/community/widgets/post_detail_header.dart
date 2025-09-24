@@ -38,7 +38,7 @@ class PostDetailHeader extends ConsumerWidget {
       children: [
         _buildPostHeader(currentPost),
         _buildPostContent(currentPost),
-        _buildActionButtons(ref, currentPost),
+        const Divider(color: AppColors.gray200),
       ],
     );
   }
@@ -114,56 +114,6 @@ class PostDetailHeader extends ConsumerWidget {
           fontSize: 15,
           height: 1.6,
         ),
-      ),
-    );
-  }
-
-  /*
-  * 좋아요 액션 버튼
-  */
-  Widget _buildActionButtons(WidgetRef ref, Post post) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(color: AppColors.divider),
-          bottom: BorderSide(color: AppColors.divider),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              ref.read(postProvider.notifier).togglePostLike(post.id);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: post.isLiked ? AppColors.primary : AppColors.gray100,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    post.isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                    color: post.isLiked ? AppColors.white : AppColors.gray600,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    post.likeCount.toString(),
-                    style: TextStyle(
-                      color: post.isLiked ? AppColors.white : AppColors.gray600,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

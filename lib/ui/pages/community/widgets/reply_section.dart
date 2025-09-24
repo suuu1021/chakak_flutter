@@ -83,13 +83,9 @@ class ReplyItem extends StatefulWidget {
 }
 
 class _ReplyItemState extends State<ReplyItem> {
-  bool isLiked = false; // TODO: 댓글 좋아요 상태 관리 추가 예정
-  late int likeCount;
-
   @override
   void initState() {
     super.initState();
-    likeCount = 0; // TODO: Reply 모델에 좋아요 수 필드 추가 예정
   }
 
   @override
@@ -153,46 +149,6 @@ class _ReplyItemState extends State<ReplyItem> {
                 ),
               ),
               const SizedBox(height: 8),
-              // 좋아요 버튼
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isLiked = !isLiked;
-                    if (isLiked) {
-                      likeCount++;
-                    } else {
-                      likeCount--;
-                    }
-                  });
-                  // TODO: 댓글 좋아요 API 연동
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isLiked ? Icons.thumb_up : Icons.thumb_up_outlined,
-                      color: isLiked ? AppColors.primary : AppColors.gray500,
-                      size: 14,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      likeCount.toString(),
-                      style: TextStyle(
-                        color: isLiked ? AppColors.primary : AppColors.gray500,
-                        fontSize: 12,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      '답글',
-                      style: TextStyle(
-                        color: AppColors.gray500,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
