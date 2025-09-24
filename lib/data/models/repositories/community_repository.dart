@@ -49,22 +49,36 @@ class CommunityRepository {
   }
 
   /*
-   * 특정 게시글의 상세 정보를 가져옵니다.
+   * 특정 게시글 단일 조회 (리스트 등에서 사용)
    * API: GET /api/post/{postId}
    */
-  // lib/data/repositories/community_repository.dart
   Future<Post> fetchPostById(String id) async {
     try {
       final response = await _dio.get('$_baseUrl/api/post/$id');
-
-      // 이 부분에 로그를 추가합니다.
       print('fetchPostById 응답 데이터: ${response.data}');
 
       final Map<String, dynamic> responseData = response.data['body'];
       final post = PostDetailDto.fromJson(responseData).toModel();
       return post;
     } on DioException catch (e) {
-      throw _handleDioError(e, '게시글 상세 정보 조회');
+      throw _handleDioError(e, '게시글 단일 조회');
+    }
+  }
+
+  /*
+   * 특정 게시글 상세 조회 (로그인 필요 전용)
+   * API: GET /api/post/{postId}
+   */
+  Future<Post> fetchPostDetailById(String id) async {
+    try {
+      final response = await _dio.get('$_baseUrl/api/post/$id');
+      print('fetchPostDetailById 응답 데이터: ${response.data}');
+
+      final Map<String, dynamic> responseData = response.data['body'];
+      final post = PostDetailDto.fromJson(responseData).toModel();
+      return post;
+    } on DioException catch (e) {
+      throw _handleDioError(e, '게시글 상세 조회(로그인 필요)');
     }
   }
 

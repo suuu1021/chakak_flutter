@@ -36,23 +36,25 @@ class PostDetailDto {
   });
 
   factory PostDetailDto.fromJson(Map<String, dynamic> json) {
-    print('PostDetailDto.fromJson 실행, 받은 JSON: $json'); // 여기도 로그를 찍어봅니다.
+    print('PostDetailDto.fromJson 실행, 받은 JSON: $json');
 
     return PostDetailDto(
-      postId: json['postId'].toString(),
-      title: json['title'] as String,
+      postId: json['postId']?.toString() ?? '',
+      title: json['title'] as String? ?? '',
       content: json['content'] as String? ?? '',
       imageData: json['imageData'] as String?,
       authorNickname: json['authorNickname'] as String? ?? '알 수 없음',
       authorType: json['authorType'] as String? ?? 'user',
-      viewCount: json['viewCount'] as int,
-      likeCount: json['likeCount'] as int,
-      status: json['status'] as String,
-      createdAt: json['createdAt'] as String,
-      updatedAt: json['updatedAt'] as String,
-      isLiked: json['isLiked'] as bool,
-      isOwner: json['isOwner'] as bool,
-      hasImage: json['hasImage'] as bool,
+      viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
+      likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
+      status: json['status'] as String? ?? 'INACTIVE',
+
+      // 서버에서 내려오지 않을 수도 있는 필드 → 안전 기본값
+      createdAt: json['createdAt'] as String? ?? '',
+      updatedAt: json['updatedAt'] as String? ?? '',
+      isLiked: json['isLiked'] as bool? ?? false,
+      isOwner: json['isOwner'] as bool? ?? false,
+      hasImage: json['hasImage'] as bool? ?? (json['imageData'] != null),
       replies: json['replies'] as List<dynamic>? ?? [],
     );
   }

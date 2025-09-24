@@ -141,6 +141,26 @@ class PostNotifier extends Notifier<PostState> {
     }
   }
 
+  Future<Post?> getDetailPost(String postId) async {
+    try {
+      final detailPost =
+          await _repository.fetchPostDetailById(postId); // 로그인 필요 전용 ✅
+      final updatedPosts = [
+        for (final p in state.posts)
+          if (p.id == postId) detailPost else p
+      ];
+      if (!state.posts.any((p) => p.id == postId)) {
+        updatedPosts.add(detailPost);
+      }
+
+      state = state.copyWith(posts: updatedPosts);
+      return detailPost;
+    } catch (e) {
+      state = state.copyWith(error: "상세 불러오기 실패: $e");
+      return null;
+    }
+  }
+
   /*
    * 특정 게시글에 좋아요를 토글합니다.
    */
