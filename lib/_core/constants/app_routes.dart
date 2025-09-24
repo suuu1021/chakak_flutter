@@ -71,13 +71,13 @@ class AppRoutes {
         portfolioDetail: (context) {
           final portfolio =
               ModalRoute.of(context)!.settings.arguments as Portfolio;
-          return PortfolioDetailPage(portfolio: portfolio);
+          return PortfolioDetailPage(portfolioId: portfolio.id);
         },
         userBookingList: (context) => const BookingManagementScreen(),
         search: (context) => const SearchScreen(),
         chat: (context) {
-          final args =
-              ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          final args = ModalRoute.of(context)!.settings.arguments
+              as Map<String, dynamic>;
           final chatRoomId = args['chatRoomId'] as int;
           final opponentNickname = args['opponentNickname'] as String;
           return ChatScreen(

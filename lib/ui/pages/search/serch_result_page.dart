@@ -182,7 +182,7 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
               context,
               MaterialPageRoute(
                 builder: (context) => PortfolioDetailPage(
-                  portfolio: filteredPortfolios[index],
+                  portfolioId: filteredPortfolios[index].id,
                 ),
               ),
             );
