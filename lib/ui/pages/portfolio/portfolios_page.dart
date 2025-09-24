@@ -305,7 +305,7 @@ class _PortfolioPageState extends ConsumerState<PortfolioPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PortfolioDetailPage(portfolio: portfolio),
+        builder: (context) => PortfolioDetailPage(portfolioId: portfolio.id),
       ),
     );
   }
