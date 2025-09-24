@@ -174,7 +174,8 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
                 title: _titleController.text.trim(),
                 description: _descriptionController.text.trim(),
                 categories: _selectedCategories,
-                imagePaths: newImagePaths,
+                existingImageUrls: existingImageUrls,
+                newImagePaths: newImagePaths,
               );
         } else {
           // 생성 모드: 파일 업로드로 생성

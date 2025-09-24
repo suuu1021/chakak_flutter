@@ -39,7 +39,7 @@ class PortfolioImageGallery extends StatelessWidget {
           child: const Icon(
             Icons.photo_camera_outlined,
             size: 80,
-            color: AppColors.gray400,
+            color: AppColors.gray400, //
           ),
         ),
         loadingBuilder: (context, child, loadingProgress) {

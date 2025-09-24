@@ -56,35 +56,117 @@ class Portfolio {
   }
 
   // 서버 응답을 위한 factory (JSON 파싱용) - 서버 구조에 맞게 수정
+  // 서버 응답을 위한 factory (JSON 파싱용) - 서버 구조에 맞게 수정
   factory Portfolio.fromJson(Map<String, dynamic> json) {
-    // 이미지 URL 처리: mainImageUrl이 있으면 사용, 없으면 thumbnailUrl 사용
+    print('=== Portfolio.fromJson 디버깅 ===');
+    print('입력 JSON 키들: ${json.keys.toList()}');
+
+    // 이미지 URL 처리: images 배열에서 imageUrl 추출
     final List<String> imageUrls = [];
-    if (json['mainImageUrl'] != null &&
-        json['mainImageUrl'].toString().isNotEmpty) {
-      imageUrls.add(json['mainImageUrl'].toString());
-    }
-    if (json['thumbnailUrl'] != null &&
-        json['thumbnailUrl'].toString().isNotEmpty) {
-      if (imageUrls.isEmpty ||
-          imageUrls.first != json['thumbnailUrl'].toString()) {
-        imageUrls.add(json['thumbnailUrl'].toString());
+
+    // 서버 응답의 images 배열 처리
+    if (json['images'] != null && json['images'] is List) {
+      final imagesList = json['images'] as List;
+      print('images 배열 길이: ${imagesList.length}');
+
+      for (var image in imagesList) {
+        if (image is Map<String, dynamic> && image['imageUrl'] != null) {
+          final imageUrl = image['imageUrl'].toString();
+          if (imageUrl.isNotEmpty) {
+            imageUrls.add(imageUrl);
+            print('이미지 URL 추가: $imageUrl');
+          }
+        }
       }
     }
 
+    // 썸네일 중복 체크 부분 수정
+    if (json['thumbnailUrl'] != null &&
+        json['thumbnailUrl'].toString().isNotEmpty) {
+      final thumbnailUrl = json['thumbnailUrl'].toString();
+      print('썸네일 URL 체크: $thumbnailUrl');
+      print('기존 이미지 URLs: $imageUrls');
+      print('중복 여부: ${imageUrls.contains(thumbnailUrl)}');
+
+      if (!imageUrls.contains(thumbnailUrl)) {
+        // imageUrls.insert(0, thumbnailUrl);
+        print('썸네일 URL 추가됨');
+      } else {
+        print('썸네일 URL 이미 존재하여 추가하지 않음');
+      }
+    }
+    print('최종 imageUrls 개수: ${imageUrls.length}');
+
+    // 안전한 필드 추출
+    final portfolioId = json['portfolioId']?.toString() ?? '';
+    final title = json['title']?.toString() ?? '';
+    final description = json['description']?.toString() ?? '';
+    final thumbnailUrl = json['thumbnailUrl']?.toString() ?? '';
+    final photographerId = json['photographerId']?.toString() ?? '';
+    final photographerName = json['photographerName']?.toString();
+    final photographerUserId = json['photographerUserId']?.toString() ?? '';
+    final likes = json['likeCount'] ?? json['likes'] ?? 0;
+
+    print('파싱된 데이터:');
+    print('- portfolioId: $portfolioId');
+    print('- title: $title');
+    print('- photographerId: $photographerId');
+    print('- photographerUserId: $photographerUserId');
+    print('- likes: $likes');
+
+    // 날짜 처리 (안전하게)
+    DateTime createdAt;
+    DateTime? updatedAt;
+
+    try {
+      createdAt = json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'].toString())
+          : DateTime.now();
+    } catch (e) {
+      print('createdAt 파싱 실패: ${json['createdAt']}, 기본값 사용');
+      createdAt = DateTime.now();
+    }
+
+    try {
+      updatedAt = json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'].toString())
+          : null;
+    } catch (e) {
+      print('updatedAt 파싱 실패: ${json['updatedAt']}, null 사용');
+      updatedAt = null;
+    }
+
+    // 카테고리 처리 (현재 서버 응답에 없으므로 빈 배열)
+    final List<String> categories = [];
+
+    // portfolioMaps가 있다면 처리 (향후 확장 대비)
+    if (json['portfolioMaps'] != null && json['portfolioMaps'] is List) {
+      final mapsList = json['portfolioMaps'] as List;
+      for (var map in mapsList) {
+        if (map is Map<String, dynamic> &&
+            map['category'] != null &&
+            map['category']['name'] != null) {
+          categories.add(map['category']['name'].toString());
+        }
+      }
+    }
+
+    print('카테고리 개수: ${categories.length}');
+    print('=== Portfolio.fromJson 완료 ===');
+
     return Portfolio(
-      id: json['portfolioId'].toString(),
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      thumbnailUrl: json['thumbnailUrl'] ?? '',
+      id: portfolioId,
+      title: title,
+      description: description,
+      thumbnailUrl: thumbnailUrl,
       imageUrls: imageUrls,
-      categories: const [], // 서버 응답에 카테고리 정보가 없음
-      likes: json['likeCount'] ?? 0,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt:
-          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
-      photographerProfileId: json['photographerId'].toString(),
-      photographerName: json['photographerName'],
-      photographerUserId: json['photographerUserId']?.toString() ?? '',
+      categories: categories,
+      likes: likes,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      photographerProfileId: photographerId,
+      photographerName: photographerName,
+      photographerUserId: photographerUserId,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:chakak_flutter/_core/constants/api_config.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import '../../../../../_core/constants/app_colors.dart';
@@ -29,7 +30,7 @@ class _FormCategorySelectorState extends State<FormCategorySelector> {
     super.initState();
     // Dio 인스턴스 생성 및 PortfolioApiService 초기화
     final dio = Dio(BaseOptions(
-      baseUrl: 'http://your-server-url', // 실제 서버 URL로 변경 필요
+      baseUrl: ApiConfig.baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
     ));

@@ -10,9 +10,9 @@ import 'widgets/portfolio_image_gallery.dart';
 import 'widgets/portfolio_content_section.dart';
 
 class PortfolioDetailPage extends ConsumerStatefulWidget {
-  final Portfolio portfolio;
+  Portfolio portfolio;
 
-  const PortfolioDetailPage({
+  PortfolioDetailPage({
     super.key,
     required this.portfolio,
   });
@@ -93,10 +93,17 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
     // 수정 완료 후 true를 반환받으면 포트폴리오 목록을 새로고침합니다.
     if (result == true) {
       debugPrint('포트폴리오 수정 완료');
-      // 개별 포트폴리오 다시 로드 (디테일 페이지용)
       await ref
           .read(portfolioProvider.notifier)
           .selectPortfolio(widget.portfolio.id);
+
+      final updatedPortfolio = ref.read(portfolioProvider).selectedPortfolio;
+      if (updatedPortfolio != null) {
+        setState(() {
+          // 현재 위젯의 portfolio를 업데이트된 것으로 교체
+          widget.portfolio = updatedPortfolio;
+        });
+      }
     }
   }
 

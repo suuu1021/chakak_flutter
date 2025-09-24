@@ -162,9 +162,51 @@ class PortfolioApiService {
   /// GET /api/portfolios/{id}
   Future<Map<String, dynamic>> fetchPortfolioById(String id) async {
     try {
+      print('=== 포트폴리오 상세 조회 API 호출 ===');
+      print('요청 URL: $_baseUrl/$id');
+      print('포트폴리오 ID: $id');
+
       final response = await _dio.get('$_baseUrl/$id');
-      return response.data as Map<String, dynamic>;
+
+      print('=== 포트폴리오 상세 조회 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터 타입: ${response.data.runtimeType}');
+      print(
+          '응답 데이터 키들: ${response.data is Map ? (response.data as Map).keys.toList() : "배열 또는 기타"}');
+      print(
+          '응답 데이터 (첫 500자): ${response.data.toString().substring(0, response.data.toString().length > 500 ? 500 : response.data.toString().length)}');
+
+      // 서버 응답 구조 확인 및 처리
+      final responseData = response.data;
+      if (responseData is Map<String, dynamic> &&
+          responseData.containsKey('body')) {
+        print('서버 응답 구조: CommonResponse 형태 (body 포함)');
+        final body = responseData['body'] as Map<String, dynamic>;
+        print('body 내용 키들: ${body.keys.toList()}');
+
+        // images 필드 특별 확인
+        if (body.containsKey('images')) {
+          final images = body['images'];
+          print('images 필드 타입: ${images.runtimeType}');
+          if (images is List) {
+            print('images 배열 길이: ${images.length}');
+            if (images.isNotEmpty) {
+              print(
+                  '첫 번째 이미지 키들: ${images[0] is Map ? (images[0] as Map).keys.toList() : "Map이 아님"}');
+            }
+          }
+        }
+
+        return body;
+      } else {
+        print('서버 응답 구조: 직접 포트폴리오 데이터');
+        return responseData as Map<String, dynamic>;
+      }
     } on DioException catch (e) {
+      print('=== 포트폴리오 상세 조회 에러 ===');
+      print('에러 타입: ${e.type}');
+      print('상태 코드: ${e.response?.statusCode}');
+      print('에러 메시지: ${e.message}');
       throw _handleDioError(e, '포트폴리오 조회');
     }
   }
@@ -570,58 +612,90 @@ class PortfolioApiService {
     required String title,
     required String description,
     required List<String> categories,
-    required List<String> imagePaths,
+    required List<String> existingImageUrls,
+    required List<String> newImagePaths,
   }) async {
     try {
       print('=== 포트폴리오 서버 맞춤 수정 요청 ===');
       print('포트폴리오 ID: $portfolioId');
       print('제목: $title');
-      print('이미지 파일 개수: ${imagePaths.length}');
+      print('이미지 파일 개수: ${newImagePaths.length}');
 
       // 입력값 검증
       if (portfolioId.isEmpty) {
         throw Exception('포트폴리오 ID가 필요합니다.');
       }
 
-      if (imagePaths.isEmpty) {
-        throw Exception('최소 1개의 이미지를 선택해주세요.');
-      }
-
-      if (imagePaths.length > 10) {
+      if (newImagePaths.length > 10) {
         throw Exception('이미지는 최대 10개까지 업로드할 수 있습니다.');
       }
 
       // 카테고리 String을 실제 ID로 변환
       List<int> categoryIds = await _convertCategoriesToIds(categories);
 
-      // Base64 이미지를 AddImageDTO 형태로 변환
+      // 전체 이미지 리스트 구성
       List<Map<String, dynamic>> imageInfoList = [];
-      for (String imagePath in imagePaths) {
-        final file = File(imagePath);
-        if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-          final base64String = base64Encode(bytes);
-          final fileName = imagePath.split('/').last;
 
-          // 서버 AddImageDTO 구조에 맞게 변환
-          imageInfoList.add({
-            'portfolioId': int.parse(portfolioId), // 수정 시에는 실제 ID 사용
-            'imageData': 'data:image/jpeg;base64,$base64String',
-            'originalFileName': fileName,
-            'isMain': imageInfoList.isEmpty, // 첫 번째를 메인으로
-          });
-
-          print('파일 변환 완료: $fileName (${bytes.length} bytes)');
-        }
+      // 1. 기존 이미지들 추가 (URL 형태로)
+      for (int i = 0; i < existingImageUrls.length; i++) {
+        imageInfoList.add({
+          'portfolioId': int.parse(portfolioId),
+          'imageData': existingImageUrls[i], // 기존 URL을 그대로 전송
+          'originalFileName': 'existing_image_${i + 1}',
+          'isMain': i == 0, // 첫 번째를 메인으로
+        });
+        print('기존 이미지 추가: ${existingImageUrls[i]}');
       }
 
+      // Base64 이미지를 AddImageDTO 형태로 변환
+      if (newImagePaths.isNotEmpty) {
+        print('=== 새 이미지 처리 시작 ===');
+        for (int i = 0; i < newImagePaths.length; i++) {
+          final imagePath = newImagePaths[i];
+          final file = File(imagePath);
+
+          if (await file.exists()) {
+            try {
+              // 파일 크기 체크
+              final fileSize = await file.length();
+              if (fileSize > 10 * 1024 * 1024) {
+                throw Exception(
+                    '이미지 파일 크기는 10MB 이하여야 합니다: ${imagePath.split('/').last}');
+              }
+
+              final bytes = await file.readAsBytes();
+              final base64String = base64Encode(bytes);
+              final fileName = imagePath.split('/').last;
+
+              imageInfoList.add({
+                'portfolioId': int.parse(portfolioId),
+                'imageData': 'data:image/jpeg;base64,$base64String',
+                'originalFileName': fileName,
+                'isMain': i == 0,
+              });
+
+              print(
+                  '파일 변환 완료: $fileName (${(fileSize / 1024).toStringAsFixed(1)}KB)');
+            } catch (e) {
+              print('파일 처리 실패: $imagePath - $e');
+              throw Exception(
+                  '이미지 처리 중 오류가 발생했습니다: ${imagePath.split('/').last}');
+            }
+          } else {
+            print('경고: 파일이 존재하지 않음 - $imagePath');
+            throw Exception('파일을 찾을 수 없습니다: ${imagePath.split('/').last}');
+          }
+        }
+        print('=== 새 이미지 처리 완료: ${imageInfoList.length}개 ===');
+      } else {
+        print('=== 새 이미지 없음 - 기존 이미지 유지 ===');
+      }
       // 서버 DTO 구조에 맞춘 JSON 데이터
       final requestData = {
-        'title': title,
-        'description': description,
-        // 'thumbnailUrl': null, // 서버에서 자동 설정
+        'title': title.trim(),
+        'description': description.trim(),
         'categoryIds': categoryIds,
-        'imageInfoList': imageInfoList,
+        'imageInfoList': imageInfoList, // 빈 배열이면 기존 이미지 유지
       };
 
       print('=== 서버 전송 데이터 ===');
