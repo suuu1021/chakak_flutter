@@ -444,11 +444,12 @@ class ServiceReviewSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // recentReviewsProvider는 List<ReviewDto>를 반환합니다.
     final asyncReviews = ref.watch(recentReviewsProvider(service.id));
 
     return asyncReviews.when(
-      data: (reviews) {
-        if (reviews.isEmpty) {
+      data: (reviewDtoList) { // 변수명을 reviewDtoList로 변경하여 명확화
+        if (reviewDtoList.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text("아직 리뷰가 없습니다."),
@@ -476,24 +477,18 @@ class ServiceReviewSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            ...reviews.take(5).map(
-              (r) {
-                final reviewModel = Review(
-                  id: r.id,
-                  reviewerId: r.reviewerId,
-                  serviceId: r.serviceId,
-                  bookingId: r.bookingId,
-                  rating: r.rating,
-                  reviewContent: r.reviewContent,
-                  createdAt: r.createdAt,
-                );
+            // reviewDtoList (List<ReviewDto>)를 사용
+            ...reviewDtoList.take(5).map(
+              (reviewDto) { // 변수명을 reviewDto로 변경
+                // ReviewDto를 Review 모델로 변환
+                final Review reviewModel = reviewDto.toModel();
 
                 return Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
                   child: ReviewCardWidget(
-                    review: reviewModel,
-                    mode: "user",
+                    review: reviewModel, // 변환된 Review 모델 전달
+                    mode: "user", // 또는 "service_detail" 등 적절한 모드
                   ),
                 );
               },

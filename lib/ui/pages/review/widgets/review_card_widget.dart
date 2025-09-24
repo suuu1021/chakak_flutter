@@ -4,7 +4,7 @@ import '../../../../data/models/review.dart';
 
 class ReviewCardWidget extends StatelessWidget {
   final Review review;
-  final String mode;
+  final String mode; // "photographer", "user", 또는 "service_detail" 등
   final VoidCallback? onTap;
 
   const ReviewCardWidget({
@@ -16,6 +16,11 @@ class ReviewCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 날짜 포맷팅 (YYYY-MM-DD)
+    String formattedDate = review.createdAt.length >= 10
+        ? review.createdAt.substring(0, 10)
+        : review.createdAt;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -35,24 +40,28 @@ class ReviewCardWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (mode == "photographer" || mode == "user")
-              Text(
-                "작성자: ${review.reviewerId}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            const SizedBox(height: 4),
+            // 사용자 정보 (닉네임)
+            // 'mode'에 따라 다르게 표시할 수도 있지만, 우선은 닉네임으로 통일
             Text(
-              review.reviewContent ?? "코멘트 없음",
+              "작성자: ${review.author.nickname}", // reviewerId -> author.nickname
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 4),
+            // 리뷰 내용
+            Text(
+              review.content.isNotEmpty ? review.content : "코멘트 없음", // reviewContent -> content
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 8),
-            Text("⭐ ${review.rating} / 5"),
+            // 별점
+            Text("⭐ ${review.rating.toStringAsFixed(1)} / 5"), // 평점은 .toStringAsFixed(1)로 소수점 한자리 표시
             const SizedBox(height: 4),
+            // 작성일
             Text(
-              "작성일: ${review.createdAt.toString().substring(0, 10)}",
+              "작성일: $formattedDate", // createdAt (String) 직접 사용 또는 파싱 후 포매팅
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],

@@ -50,7 +50,6 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
     final reviewState = ref.watch(reviewsListProvider);
     final reviewStatusState = ref.watch(reviewStatusProvider);
 
-    // 현재 화면의 serviceId와 Provider의 serviceId가 일치하는지 확인
     final bool isDataForThisService =
         reviewState.currentServiceId == widget.serviceId;
     final bool isStatusForThisService =
@@ -62,9 +61,7 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
       ),
       body: Column(
         children: [
-          // 리뷰 통계 섹션
           _buildReviewStatusSection(reviewStatusState, isStatusForThisService),
-          // 리뷰 리스트 섹션
           Expanded(
             child: _buildReviewListSection(reviewState, isDataForThisService),
           ),
@@ -98,15 +95,13 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
     }
     if (reviewStatusState.status == ReviewServiceFetchStatus.error &&
         isDataForThisService) {
-      // 현재 서비스에 대한 에러일 때만 표시
       return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text("통계 로딩 실패: ${reviewStatusState.errorMessage}",
             style: const TextStyle(color: Colors.red)),
       );
     }
-    // 기본적으로 빈 위젯 반환 (데이터가 없거나 다른 서비스 ID의 초기 상태 등)
-    return const SizedBox(height: 50); // 로딩 표시 공간 확보 또는 빈 공간
+    return const SizedBox(height: 50);
   }
 
   Widget _buildReviewListSection(
@@ -120,7 +115,6 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
     if (reviewsListState.status == ReviewsListFetchStatus.error &&
         reviewsListState.reviews.isEmpty &&
         isDataForThisService) {
-      // 현재 서비스에 대한 에러일 때
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -144,7 +138,6 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
       return const Center(child: Text("작성된 리뷰가 없습니다."));
     }
 
-    // 데이터가 있지만 현재 화면의 serviceId와 Provider의 serviceId가 다른 경우 (화면 전환 중) 로딩 표시
     if (!isDataForThisService &&
         reviewsListState.status != ReviewsListFetchStatus.initial &&
         reviewsListState.status != ReviewsListFetchStatus.error) {
@@ -179,15 +172,8 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
         }
 
         final ReviewDto reviewDto = reviewsListState.reviews[index];
-        final Review reviewModel = Review(
-          id: reviewDto.id,
-          reviewerId: reviewDto.reviewerId,
-          serviceId: reviewDto.serviceId,
-          bookingId: reviewDto.bookingId,
-          rating: reviewDto.rating,
-          reviewContent: reviewDto.reviewContent,
-          createdAt: reviewDto.createdAt,
-        );
+        // ReviewDto를 Review 모델로 변환 (toModel 사용)
+        final Review reviewModel = reviewDto.toModel();
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -196,16 +182,19 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
             mode: "user",
             onTap: () {
               // 서비스 상세 페이지로 이동
+              // PhotoService 객체 생성 시 필요한 정보들은 현재 컨텍스트에서 가져올 수 있는 값으로 채워야 합니다.
+              // 예를 들어, title, photographerId 등은 reviewDto 또는 다른 Provider에서 가져올 수 있습니다.
+              // 여기서는 임시 값으로 설정하며, 실제 프로젝트에서는 정확한 데이터로 채워야 합니다.
               final dummyService = PhotoService(
-                id: int.tryParse(reviewModel.serviceId ?? '') ?? 0,
-                photographerId: 1,
-                photographerUserId: 0,
-                title: "서비스 상세",
-                imageUrl: "https://via.placeholder.com/150",
-                categories: [],
-                price: 0,
-                rating: 0,
-                reviewCount: 0,
+                id: widget.serviceId, // 현재 화면의 serviceId 사용
+                photographerId: 1, // TODO: 실제 사진작가 ID로 교체 필요
+                photographerUserId: int.tryParse(reviewDto.reviewerId) ?? 0, // DTO의 reviewerId를 사용 (userId로 간주)
+                title: "서비스 상세", // TODO: 실제 서비스 제목으로 교체 필요
+                imageUrl: reviewModel.thumbnailUrl ?? "https://via.placeholder.com/150",
+                categories: [], // TODO: 실제 카테고리 정보로 교체 필요
+                price: 0, // TODO: 실제 가격 정보로 교체 필요
+                rating: reviewModel.rating,
+                reviewCount: reviewsListState.reviews.length, // TODO: 더 정확한 리뷰 카운트 로직 필요 (전체 카운트 등)
               );
               Navigator.push(
                 context,

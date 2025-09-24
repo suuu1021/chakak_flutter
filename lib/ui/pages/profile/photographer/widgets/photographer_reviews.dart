@@ -91,7 +91,7 @@ class PhotographerReviews extends ConsumerWidget {
     );
   }
 
-  Widget _buildReviewsList(List<Review2> reviews) {
+  Widget _buildReviewsList(List<Review> reviews) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -103,7 +103,7 @@ class PhotographerReviews extends ConsumerWidget {
     );
   }
 
-  Widget _buildReviewCard(Review2 review) {
+  Widget _buildReviewCard(Review review) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -162,7 +162,7 @@ class PhotographerReviews extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            review.content,
+            review.content, // reviewContent에서 content로 변경 (Review 모델 따름)
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textPrimary,
