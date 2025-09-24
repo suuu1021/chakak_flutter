@@ -106,9 +106,9 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
               indicatorColor: Colors.orange,
               indicatorWeight: 3,
               tabs: [
+                Tab(text: '포토서비스 (${filteredPhotoServices.length})'),
                 Tab(text: '포토그래퍼 (${filteredPhotographers.length})'),
                 Tab(text: '포트폴리오 (${filteredPortfolios.length})'),
-                Tab(text: '포토서비스 (${filteredPhotoServices.length})'),
               ],
             ),
           ),
@@ -116,9 +116,9 @@ class _SearchResultsPageState extends ConsumerState<SearchResultsPage>
             child: TabBarView(
               controller: _tabController,
               children: [
+                _buildPhotoServiceTab(),
                 _buildPhotographerTab(),
                 _buildPortfolioTab(),
-                _buildPhotoServiceTab(),
               ],
             ),
           ),
