@@ -8,7 +8,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../../_core/utils/error_handler.dart';
-import '../../../_core/utils/image_utils.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service/price_option.dart';
 import '../../../data/models/photo_service_category.dart';
@@ -37,8 +36,9 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
   List<PriceOption> _priceOptions = [];
   List<String> _selectedCategoryIds = [];
   List<PhotoServiceCategory> _availableCategories = [];
-  List<File> _selectedImages = [];
-  String _existingImageData = '';
+
+  // 포트폴리오 패턴을 따라 Object 타입으로 변경 (File과 String을 모두 처리)
+  List<Object> _selectedImages = [];
   bool _isLoading = false;
 
   @override
@@ -56,70 +56,14 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     final service = widget.service!;
     _titleController.text = service.title;
     _descriptionController.text = service.description;
-    _existingImageData = service.imageUrl ?? '';
+
+    // 기존 이미지 URL을 _selectedImages에 추가 (포트폴리오 패턴과 동일)
+    if (service.imageUrl != null && service.imageUrl!.isNotEmpty) {
+      _selectedImages = [service.imageUrl!];
+    }
+
     _priceOptions = List.from(service.priceOptions ?? []);
-
-    // 디버깅용 로그 추가
-    print('=== 기존 데이터 로드 ===');
-    print('이미지 데이터 길이: ${_existingImageData.length}');
-    if (_existingImageData.isNotEmpty) {
-      print(
-          '이미지 데이터 시작: ${_existingImageData.length > 100 ? _existingImageData.substring(0, 100) + "..." : _existingImageData}');
-
-      // 쉼표로 분리된 각 이미지 데이터 확인
-      final images = _existingImageData.split(',');
-      for (int i = 0; i < images.length; i++) {
-        final img = images[i].trim();
-        if (img.isNotEmpty) {
-          print(
-              '이미지 $i: 길이=${img.length}, 타입=${_getImageType(img)}, 시작=${img.length > 50 ? img.substring(0, 50) + "..." : img}');
-        }
-      }
-    }
-
     _selectedCategoryIds = [];
-  }
-
-  String _getImageType(String data) {
-    if (data.startsWith('http')) return 'URL';
-    if (data.startsWith('assets/')) return 'Asset';
-    if (_isBase64Data(data)) return 'Base64';
-    return 'Unknown';
-  }
-
-  // Base64 데이터인지 확인하는 메서드
-  bool _isBase64Data(String data) {
-    if (data.isEmpty) return false;
-
-    // URL이나 Asset 경로가 아니면서 Base64 패턴인 경우
-    if (data.startsWith('http://') ||
-        data.startsWith('https://') ||
-        data.startsWith('assets/') ||
-        data.startsWith('images/')) {
-      return false;
-    }
-
-    // Base64 이미지 데이터는 보통 이런 패턴으로 시작
-    if (data.startsWith('/9j/') || // JPEG
-        data.startsWith('iVBORw0KGgo') || // PNG
-        data.startsWith('R0lGOD') || // GIF
-        data.startsWith('UklGR') || // WebP
-        data.startsWith('data:image/')) {
-      // Data URL
-      return true;
-    }
-
-    // 길이가 충분히 길고 Base64 문자만 포함하는 경우
-    if (data.length > 50) {
-      try {
-        base64Decode(data);
-        return true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    return false;
   }
 
   Future<void> _loadCategories() async {
@@ -228,21 +172,74 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     );
   }
 
-  Widget _buildExistingImageItem(String imageData) {
+  Widget _buildImageSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          '서비스 이미지',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: AppSizes.spacing8),
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // 선택된 이미지들 표시 (File과 String 모두 처리)
+              ..._selectedImages.asMap().entries.map((entry) {
+                final index = entry.key;
+                final image = entry.value;
+
+                if (image is File) {
+                  return _buildNewImageItem(image, index);
+                } else if (image is String) {
+                  return _buildExistingImageItem(image, index);
+                }
+                return const SizedBox.shrink();
+              }),
+              _buildAddImageButton(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExistingImageItem(String imageData, int index) {
+    bool isUrl = imageData.startsWith('http');
+
     return Container(
       margin: const EdgeInsets.only(right: 8),
       child: Stack(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child:
-                ImageUtils.buildSafeImage(imageData, width: 120, height: 120),
+            child: isUrl
+                ? Image.network(
+                    imageData,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 120,
+                        height: 120,
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(Icons.broken_image,
+                              color: Colors.grey, size: 40),
+                        ),
+                      );
+                    },
+                  )
+                : _buildBase64Image(imageData),
           ),
           Positioned(
             top: 4,
             right: 4,
             child: GestureDetector(
-              onTap: () => _removeExistingImage(imageData),
+              onTap: () => _removeImage(index),
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
@@ -258,56 +255,43 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     );
   }
 
-  Widget _buildImageSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          '서비스 이미지',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  Widget _buildBase64Image(String imageData) {
+    try {
+      String base64String = imageData;
+      if (imageData.startsWith('data:image')) {
+        base64String = imageData.split(',').last;
+      }
+
+      final bytes = base64Decode(base64String);
+      return Image.memory(
+        bytes,
+        width: 120,
+        height: 120,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            width: 120,
+            height: 120,
+            color: Colors.grey[200],
+            child: const Center(
+              child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      return Container(
+        width: 120,
+        height: 120,
+        color: Colors.grey[200],
+        child: const Center(
+          child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
         ),
-        const SizedBox(height: AppSizes.spacing8),
-        SizedBox(
-          height: 120,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              if (_existingImageData.isNotEmpty)
-                ..._existingImageData
-                    .split(',')
-                    .where((data) => data.trim().isNotEmpty)
-                    .map((imageData) {
-                  return _buildExistingImageItem(imageData.trim());
-                }),
-              ..._selectedImages.map((file) => _buildNewImageItem(file)),
-              _buildAddImageButton(),
-            ],
-          ),
-        ),
-      ],
-    );
+      );
+    }
   }
 
-  // 에러 위젯 생성 메서드
-  Widget _buildErrorWidget(double size) {
-    return Container(
-      width: size,
-      height: size,
-      color: Colors.grey[200],
-      child: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.broken_image, color: Colors.red, size: 30),
-            SizedBox(height: 4),
-            Text('이미지 오류', style: TextStyle(fontSize: 10, color: Colors.red)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewImageItem(File imageFile) {
+  Widget _buildNewImageItem(File imageFile, int index) {
     return Container(
       margin: const EdgeInsets.only(right: 8),
       child: Stack(
@@ -321,7 +305,7 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
             top: 4,
             right: 4,
             child: GestureDetector(
-              onTap: () => _removeNewImage(imageFile),
+              onTap: () => _removeImage(index),
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
@@ -634,6 +618,7 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     try {
       final ImagePicker picker = ImagePicker();
       final List<XFile> images = await picker.pickMultiImage();
+
       setState(() {
         _selectedImages.addAll(images.map((xfile) => File(xfile.path)));
       });
@@ -643,69 +628,52 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     }
   }
 
-  void _removeExistingImage(String imageData) {
+  void _removeImage(int index) {
     setState(() {
-      final imageList = _existingImageData.split(',');
-      imageList.removeWhere((data) => data.trim() == imageData.trim());
-      _existingImageData =
-          imageList.where((data) => data.trim().isNotEmpty).join(',');
-    });
-  }
-
-  void _removeNewImage(File imageFile) {
-    setState(() {
-      _selectedImages.remove(imageFile);
+      _selectedImages.removeAt(index);
     });
   }
 
   Future<void> _saveService() async {
-    print('=== _saveService 시작 ===');
-    print('수정 모드: ${widget.service != null}');
-
     if (!_formKey.currentState!.validate() || _selectedCategoryIds.isEmpty) {
-      print('유효성 검사 실패');
-
       _showValidationError();
       return;
     }
 
-    if (_existingImageData.isEmpty && _selectedImages.isEmpty) {
-      print('이미지 없음');
-
+    if (_selectedImages.isEmpty) {
       _showErrorDialog('최소 하나의 이미지를 추가하세요');
       return;
     }
-    print('서비스 저장 시작...');
 
     setState(() => _isLoading = true);
 
     try {
-      final List<String> newImageDataList = [];
-      for (var imageFile in _selectedImages) {
+      String? imageDataToSend;
+
+      // 새 이미지가 있으면 압축하여 Base64 인코딩
+      if (_selectedImages.any((image) => image is File)) {
+        final newFiles = _selectedImages.whereType<File>().toList();
+        final imageFile = newFiles.first;
+
+        // 이미지 크기 줄이기
         final bytes = await imageFile.readAsBytes();
-        newImageDataList.add(base64Encode(bytes));
-      }
 
-      String combinedImageData = '';
-      if (_existingImageData.isNotEmpty) {
-        combinedImageData = _existingImageData;
-      }
-      if (newImageDataList.isNotEmpty) {
-        if (combinedImageData.isNotEmpty) {
-          combinedImageData += ',';
+        // 크기가 크면 품질 낮춰서 다시 인코딩
+        if (bytes.length > 500000) {
+          // 500KB 이상이면
+          print('이미지가 커서 압축 필요: ${bytes.length} bytes');
+
+          // Flutter의 image 패키지를 사용한 압축 (별도 구현 필요)
+          // 또는 단순히 품질을 낮춰서 다시 선택하도록 안내
+          _showErrorDialog('이미지 크기가 너무 큽니다. 더 작은 이미지를 선택해주세요.');
+          return;
         }
-        combinedImageData += newImageDataList.join(',');
-      }
 
-      print('=== 이미지 데이터 디버깅 ===');
-      print('_existingImageData.length: ${_existingImageData.length}');
-      print(
-          '_existingImageData: ${_existingImageData.length > 100 ? _existingImageData.substring(0, 100) + "..." : _existingImageData}');
-      print('_selectedImages.length: ${_selectedImages.length}');
-      print('newImageDataList.length: ${newImageDataList.length}');
-      print('combinedImageData.length: ${combinedImageData.length}');
-      print(
-          'combinedImageData preview: ${combinedImageData.length > 100 ? combinedImageData.substring(0, 100) + "..." : combinedImageData}');
+        imageDataToSend = base64Encode(bytes);
+      } else if (_selectedImages.any((image) => image is String)) {
+        // 기존 이미지 URL 사용
+        imageDataToSend = _selectedImages.whereType<String>().first;
+      }
 
       final serviceData = {
         'title': _titleController.text.trim(),
@@ -713,44 +681,41 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
         'photographerId': widget.photographerId,
         'priceInfoList': _priceOptions.map((p) => p.toJson()).toList(),
         'categoryIdList': _selectedCategoryIds,
-        'imageData': combinedImageData,
+        'imageData': imageDataToSend,
       };
 
-      print('serviceData: $serviceData');
+      print('=== 전송 전 최종 확인 ===');
+      print(
+          '이미지 데이터 타입: ${imageDataToSend?.startsWith('http') == true ? 'URL' : 'Base64'}');
+      print('이미지 데이터 길이: ${imageDataToSend?.length ?? 0}');
 
       if (widget.service == null) {
-        print('새 서비스 생성 중...');
-
         await ref
             .read(photoServiceProvider.notifier)
             .createService(serviceData);
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('서비스가 성공적으로 등록되었습니다')));
       } else {
-        print('기존 서비스 수정 중... ID: ${widget.service!.id}');
-
         await ref
             .read(photoServiceProvider.notifier)
             .updateService(widget.service!.id, serviceData);
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('서비스가 성공적으로 수정되었습니다')));
-        print('서비스 수정 완료');
       }
-      print('Navigator.pop 호출.');
 
       if (mounted) {
         Navigator.pop(context, true);
       }
     } catch (error) {
-      print('서비스 저장 실패: $error');
-
-      ErrorHandler.handleError(
-        context,
-        error,
-        customMessage: widget.service == null
-            ? '서비스 등록 중 오류가 발생했습니다'
-            : '서비스 수정 중 오류가 발생했습니다',
-      );
+      if (mounted) {
+        ErrorHandler.handleError(
+          context,
+          error,
+          customMessage: widget.service == null
+              ? '서비스 등록 중 오류가 발생했습니다'
+              : '서비스 수정 중 오류가 발생했습니다',
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
