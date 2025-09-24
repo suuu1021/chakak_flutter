@@ -2,6 +2,7 @@ import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../_core/constants/app_colors.dart';
 import '../../../_core/utils/validator_util.dart';
 import '../../../data/dtos/auth_dto.dart';
 import '../../../provider/auth/session_provider.dart'; // ✅ SessionProvider import
@@ -44,8 +45,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       // authProvider의 login 함수를 호출합니다.
       await ref.read(authProvider.notifier).login(
-        LoginRequest(email: email, password: password),
-      );
+            LoginRequest(email: email, password: password),
+          );
 
       print(
           "[LoginScreen] authProvider.login() 호출 성공. 화면 이동은 Session 상태 변경에 따라 자동으로 처리됩니다.");
@@ -85,14 +86,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(
         title: const Text("로그인"),
         centerTitle: true,
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
+        foregroundColor: Colors.black,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
+              const SizedBox(height: 80),
               const CustomLogo(AppStrings.appNameUpper),
               const SizedBox(height: 24),
               CustomAuthTextFormField(
@@ -116,13 +118,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 }),
               ),
               const SizedBox(height: 32),
-
-              // ✅ 5. [수정] isProgress 상태에 따라 버튼의 텍스트와 동작을 제어합니다.
               CustomAuthButtonWidgets.button(
                 context,
                 authState.isProgress ? "로그인 중..." : "로그인",
                 onPressed:
-                authState.isProgress ? null : _login, // 로그인 중일 때는 버튼 비활성화
+                    authState.isProgress ? null : _login, // 로그인 중일 때는 버튼 비활성화
               ),
               const SizedBox(height: 16),
               TextButton(
@@ -132,7 +132,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     MaterialPageRoute(builder: (_) => const SignupScreen()),
                   );
                 },
-                child: const Text("아직 회원이 아니신가요? 회원가입"),
+                child: const Text(
+                  "아직 회원이 아니신가요? 회원가입",
+                  style: TextStyle(color: AppColors.primaryDark),
+                ),
               ),
             ],
           ),

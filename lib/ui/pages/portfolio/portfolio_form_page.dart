@@ -5,6 +5,7 @@ import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../data/models/portfolio.dart';
 import '../../../provider/global/portfolio/portfolio_notifier.dart';
+import 'portfolio_detail_page.dart';
 import 'widgets/form_category_selector.dart';
 import 'widgets/form_image_selector.dart';
 import 'widgets/form_text_fields.dart';
@@ -24,11 +25,6 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
   final _descriptionController = TextEditingController();
 
   List<String> _selectedCategories = [];
-  /*
-   * 수정된 부분: 타입 변경
-   * 기존: List<File> _selectedImages = [];
-   * 이유: FormImageSelector가 File과 String을 모두 처리하므로 Object 타입으로 변경
-   */
   List<Object> _selectedImages = [];
   int? _thumbnailIndex; // 대표 이미지 인덱스
   bool _isLoading = false;
@@ -45,10 +41,6 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
       _titleController.text = portfolio.title;
       _descriptionController.text = portfolio.description;
       _selectedCategories = List.from(portfolio.categories);
-      /*
-       * 수정된 부분: 기존 이미지 URL 로딩
-       * 이유: 수정 모드에서 기존 이미지를 보여주고 관리하기 위함
-       */
       _selectedImages = List.from(portfolio.imageUrls);
       final thumbnailIndex =
           portfolio.imageUrls.indexOf(portfolio.thumbnailUrl);
@@ -125,8 +117,6 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
     );
   }
 
-  // ========== PortfolioFormPage 클래스의 _savePortfolio 메서드 수정 ==========
-
   Future<void> _savePortfolio() async {
     if (!_formKey.currentState!.validate() || _selectedCategories.isEmpty) {
       _showValidationError();
@@ -141,89 +131,61 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
     setState(() => _isLoading = true);
 
     try {
-      // 이미지를 File과 String으로 분리
-      final List<String> existingImageUrls = [];
-      final List<String> newImagePaths = [];
+      final isEdit = widget.portfolio != null;
 
-      for (final image in _selectedImages) {
-        if (image is File) {
-          newImagePaths.add(image.path);
-        } else if (image is String) {
-          existingImageUrls.add(image);
-        }
-      }
+      // 이미지 경로 분리
+      final List<String> newImagePaths = _selectedImages.whereType<File>().map((f) => f.path).toList();
+      final List<String> existingImageUrls = _selectedImages.whereType<String>().toList();
 
-      debugPrint('=== 포트폴리오 저장 데이터 분석 ===');
-      debugPrint('제목: ${_titleController.text.trim()}');
-      debugPrint('기존 이미지 URL 수: ${existingImageUrls.length}');
-      debugPrint('새 이미지 파일 수: ${newImagePaths.length}');
-      debugPrint('전체 이미지 수: ${_selectedImages.length}');
+      if (isEdit) {
+        // 수정 로직
+        final success = await ref
+            .read(portfolioProvider.notifier)
+            .updatePortfolioWithFiles(
+              portfolioId: widget.portfolio!.id,
+              title: _titleController.text.trim(),
+              description: _descriptionController.text.trim(),
+              categories: _selectedCategories,
+              existingImageUrls: existingImageUrls,
+              newImagePaths: newImagePaths,
+            );
 
-      bool success = false;
-
-      // 새로운 파일이 있는 경우 파일 업로드 메서드 사용
-      if (newImagePaths.isNotEmpty) {
-        debugPrint('파일 업로드 메서드 사용');
-
-        if (widget.portfolio != null) {
-          // 수정 모드: 파일 업로드로 수정
-          success = await ref
-              .read(portfolioProvider.notifier)
-              .updatePortfolioWithFiles(
-                portfolioId: widget.portfolio!.id,
-                title: _titleController.text.trim(),
-                description: _descriptionController.text.trim(),
-                categories: _selectedCategories,
-                existingImageUrls: existingImageUrls,
-                newImagePaths: newImagePaths,
-              );
-        } else {
-          // 생성 모드: 파일 업로드로 생성
-          success = await ref
-              .read(portfolioProvider.notifier)
-              .createPortfolioWithFiles(
-                title: _titleController.text.trim(),
-                description: _descriptionController.text.trim(),
-                categories: _selectedCategories,
-                photographerId: 1, // 임시 ID (실제로는 세션에서 가져와야 함)
-                imagePaths: newImagePaths,
-              );
+        if (success && mounted) {
+          debugPrint('포트폴리오 수정 성공: ${_titleController.text}');
+          Navigator.of(context).pop(true); // true를 반환하여 이전 페이지에서 새로고침 하도록 유도
+        } else if (mounted) {
+          final error = ref.read(portfolioProvider).errorMessage;
+          _showErrorDialog('수정에 실패했습니다: ${error ?? ""}');
         }
       } else {
-        // 기존 URL만 있는 경우 기존 메서드 사용
-        debugPrint('기존 메서드 사용 (URL만)');
-
-        final String thumbnailUrl = _thumbnailIndex != null
-            ? _selectedImages[_thumbnailIndex!] as String
-            : existingImageUrls.first;
-
-        final portfolio = Portfolio.create(
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          imageUrls: existingImageUrls,
-          categories: _selectedCategories,
-          photographerId: '1', // 임시 ID
-        ).copyWith(
-          thumbnailUrl: thumbnailUrl,
-        );
-
-        if (widget.portfolio != null) {
-          success = await ref
-              .read(portfolioProvider.notifier)
-              .updatePortfolio(widget.portfolio!.id, portfolio);
-        } else {
-          success = await ref
-              .read(portfolioProvider.notifier)
-              .createPortfolio(portfolio);
+        // 생성 로직
+        if (newImagePaths.isEmpty) {
+          _showErrorDialog('새 포트폴리오에는 최소 1개의 새 이미지가 필요합니다.');
+          setState(() => _isLoading = false);
+          return;
         }
-      }
 
-      if (success && mounted) {
-        debugPrint(
-            '포트폴리오 ${widget.portfolio != null ? '수정' : '등록'} 성공: ${_titleController.text}');
-        Navigator.of(context).pop(true);
-      } else if (mounted) {
-        _showErrorDialog('${widget.portfolio != null ? '수정' : '등록'}에 실패했습니다.');
+        final newPortfolio = await ref
+            .read(portfolioProvider.notifier)
+            .createPortfolioWithFiles(
+              title: _titleController.text.trim(),
+              description: _descriptionController.text.trim(),
+              categories: _selectedCategories,
+              photographerId: 1, // TODO: 실제 사용자 ID로 교체
+              imagePaths: newImagePaths,
+            );
+
+        if (newPortfolio != null && mounted) {
+          debugPrint('포트폴리오 등록 성공: ${newPortfolio.title}');
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => PortfolioDetailPage(portfolioId: newPortfolio.id),
+            ),
+          );
+        } else if (mounted) {
+          final error = ref.read(portfolioProvider).errorMessage;
+          _showErrorDialog('등록에 실패했습니다: ${error ?? ""}');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -231,7 +193,9 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
         _showErrorDialog('오류가 발생했습니다: ${e.toString()}');
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

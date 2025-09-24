@@ -2,17 +2,19 @@ import 'package:chakak_flutter/provider/global/photographer_profile/photographer
 import 'package:chakak_flutter/ui/pages/profile/photographer/photographer_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../_core/constants/user_type.dart';
+import '../../../../../_core/constants/user_type.dart'; // UserType enum
 import '../../../../../provider/auth/session_provider.dart';
-import '../../../../../provider/global/user_profile/user_profile_provider.dart';
+// import '../../../../../provider/global/user_profile/user_profile_provider.dart'; // session 객체를 직접 사용
 import '../../../booking/booking_management_screen.dart';
 import '../../../help_center/help_center_screen.dart';
-import '../../../review/review_manager_screen.dart';
-import '../profile_form_page.dart'; // 프로필 수정 페이지 import
+import '../../../review/review_manager_screen.dart'; // 여기로 보냄
+// import '../../../review/photographer_review_screen.dart'; // ReviewManagerScreen이 처리
+// import '../../../review/my_review_screen.dart'; // ReviewManagerScreen이 처리
+import '../profile_form_page.dart';
 import 'profile_menu_item.dart';
 import 'login_required_dialog.dart';
 import 'logout_dialog.dart';
-import 'withdrawal_dialog.dart'; // 회원 탈퇴 다이얼로그 import
+import 'withdrawal_dialog.dart';
 
 class ProfileMenuList extends ConsumerWidget {
   final AppSession session;
@@ -26,12 +28,9 @@ class ProfileMenuList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final menuItems = _buildMenuItems(context, ref);
 
-    // Column을 ListView.separated로 변경하여 구분선 추가
     return ListView.builder(
       shrinkWrap: true,
-      // Column처럼 동작하도록 설정
       physics: const NeverScrollableScrollPhysics(),
-      // 스크롤 비활성화
       itemCount: menuItems.length,
       itemBuilder: (context, index) {
         final item = menuItems[index];
@@ -65,7 +64,7 @@ class ProfileMenuList extends ConsumerWidget {
       {
         'icon': Icons.star,
         'title': '리뷰 관리',
-        'subtitle': '작성한 리뷰를 관리하세요',
+        'subtitle': '작성/받은 리뷰를 관리하세요', // 포괄적인 부제목으로 변경
         'onTap': () => _handleReviewManagement(context, ref),
       },
       {
@@ -91,33 +90,39 @@ class ProfileMenuList extends ConsumerWidget {
     ];
   }
 
-  void _handleProfileEdit(BuildContext context, WidgetRef ref) {
-    final session = ref.read(sessionProvider);
-    final photographerProfile = ref.read(photographerProfileProvider).profile;
+  Future<void> _handleProfileEdit(BuildContext context, WidgetRef ref) async {
+    print('=== 포토그래퍼 프로필 메뉴 선택 ===');
+    try {
+      await ref.read(photographerProfileProvider.notifier).loadMyProfile();
+      final photographerProfile = ref.read(photographerProfileProvider).profile;
+      final errorMessage = ref.read(photographerProfileProvider).errorMessage;
 
-    // 디버깅 로그 추가
-    print('=== 프로필 편집 버튼 클릭 ===');
-    print('session.userId: ${session.userId}');
-    print('photographerProfile: $photographerProfile');
-    if (photographerProfile != null) {
-      print('photographerProfile.id: ${photographerProfile.id}');
-      print('photographerProfile.photographerId: ${photographerProfile.id}');
-      print('photographerProfile.userId: ${photographerProfile.userId}');
+      if (errorMessage != null && errorMessage.isNotEmpty) {
+        print('[ERROR] 프로필 로드 실패: $errorMessage');
+        return;
+      }
+
+      if (photographerProfile != null) {
+        print('프로필 로드 성공: photographerProfile.id: ${photographerProfile.id}');
+        final photographerId = int.tryParse(photographerProfile.id);
+        if (photographerId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  PhotographerProfilePage(photographerId: photographerId),
+            ),
+          );
+        } else {
+          print('[ERROR] photographerProfile.id를 int로 파싱 실패: ${photographerProfile.id}');
+        }
+      } else {
+        print('[ERROR] 로드된 photographerProfile이 null입니다.');
+      }
+    } catch (e) {
+      print('[ERROR] _handleProfileEdit 중 예외 발생: $e');
     }
     print('=================================');
-
-    if (photographerProfile != null) {
-      final photographerId = int.tryParse(photographerProfile.id);
-      if (photographerId != null) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                PhotographerProfilePage(photographerId: photographerId),
-          ),
-        );
-      }
-    }
   }
 
   void _handleBookingHistory(BuildContext context) {
@@ -125,7 +130,6 @@ class ProfileMenuList extends ConsumerWidget {
       LoginRequiredDialog.show(context);
       return;
     }
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -140,12 +144,12 @@ class ProfileMenuList extends ConsumerWidget {
       return;
     }
 
-    final profile = ref.read(userProfileProvider).profile;
-    final userTypeString = profile?.userTypeName ?? 'user';
-
-    UserType userType = userTypeString.toLowerCase() == 'photographer'
-        ? UserType.photographer
-        : UserType.user;
+    // AppSession 객체는 ProfileMenuList 위젯의 멤버 변수인 'session'을 직접 사용
+    UserType userType = UserType.user; // 기본값
+    if (session.userTypeCode == 'photographer') {
+      userType = UserType.photographer;
+    }
+    // 다른 사용자 유형 코드가 있다면 여기서 추가적인 else if 로직으로 처리 가능
 
     Navigator.push(
       context,

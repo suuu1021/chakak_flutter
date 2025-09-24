@@ -528,8 +528,8 @@ class PortfolioApiService {
       final requestData = {
         'title': title,
         'description': description,
-        'thumbnailUrl':
-            imageInfoList.isNotEmpty ? imageInfoList[0]['imageData'] : null,
+        'thumbnailUrl': 'temporary',
+        //     imageInfoList.isNotEmpty ? imageInfoList[0]['imageData'] : null,
         'categoryIds': categoryIds, // Long 배열
         'imageInfoList': imageInfoList, // AddImageDTO 배열
       };

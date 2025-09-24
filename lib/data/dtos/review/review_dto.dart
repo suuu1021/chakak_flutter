@@ -104,3 +104,43 @@ class ReviewDto {
     );
   }
 }
+
+// ReviewPageDto 클래스 추가
+class ReviewPageDto {
+  final List<ReviewDto> content;
+  final int totalPages;
+  final int totalElements;
+  final int number; // 현재 페이지 번호 (0부터 시작)
+  final int size;   // 페이지 당 항목 수
+  final bool last;  // 마지막 페이지 여부
+  final bool first; // 첫 페이지 여부
+
+  ReviewPageDto({
+    required this.content,
+    required this.totalPages,
+    required this.totalElements,
+    required this.number,
+    required this.size,
+    required this.last,
+    required this.first,
+  });
+
+  factory ReviewPageDto.fromJson(Map<String, dynamic> json) {
+    // API 응답 구조에 맞게 "data" 객체에서 값을 추출
+    final data = json['data'] as Map<String, dynamic>;
+    
+    final contentList = (data['content'] as List)
+        .map((item) => ReviewDto.fromJson(item as Map<String, dynamic>))
+        .toList();
+    
+    return ReviewPageDto(
+      content: contentList,
+      totalPages: data['totalPages'] as int,
+      totalElements: data['totalElements'] as int,
+      number: data['number'] as int,
+      size: data['size'] as int,
+      last: data['last'] as bool,
+      first: data['first'] as bool,
+    );
+  }
+}

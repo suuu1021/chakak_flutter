@@ -380,7 +380,7 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
   }
 
   /// 포트폴리오 생성 (파일 업로드 포함)
-  Future<bool> createPortfolioWithFiles({
+  Future<Portfolio?> createPortfolioWithFiles({
     required String title,
     required String description,
     required List<String> categories,
@@ -393,7 +393,8 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
     }
 
     try {
-      final createdPortfolio =
+      // 1. API를 통해 포트폴리오 생성 (반환된 객체는 불완전할 수 있음)
+      final partiallyCreatedPortfolio =
           await _portfolioRepository.createPortfolioWithFiles(
         title: title,
         description: description,
@@ -403,23 +404,35 @@ class PortfolioNotifier extends Notifier<PortfolioState> {
       );
 
       if (kDebugMode) {
-        print('파일 업로드 포트폴리오 생성 완료: ${createdPortfolio.title}');
+        print(
+            '포트폴리오 1차 생성 완료: ${partiallyCreatedPortfolio.title}, ID: ${partiallyCreatedPortfolio.id}');
       }
 
-      // 기존 목록에 새 포트폴리오 추가
-      state = state.copyWith(
-        portfolios: [...state.portfolios, createdPortfolio],
-        totalElements: state.totalElements + 1,
-      );
+      // 2. 생성된 포트폴리오의 ID를 사용하여 완전한 정보 다시 조회
+      await selectPortfolio(partiallyCreatedPortfolio.id);
+      final createdPortfolio = state.selectedPortfolio;
 
-      return true;
+      if (createdPortfolio == null) {
+        throw Exception("생성 후 포트폴리오를 다시 조회하는 데 실패했습니다.");
+      }
+
+      if (kDebugMode) {
+        print('포트폴리오 최종 조회 완료: ${createdPortfolio.title}');
+        print('이미지 URL 개수: ${createdPortfolio.imageUrls.length}');
+      }
+
+      // 3. 전체 포트폴리오 목록 새로고침
+      await loadPortfolios();
+
+      // 4. 완전한 포트폴리오 객체 반환
+      return createdPortfolio;
     } catch (e) {
       if (kDebugMode) {
         print('파일 업로드 포트폴리오 생성 실패: $e');
       }
 
       state = state.copyWith(errorMessage: e.toString());
-      return false;
+      return null;
     }
   }
 

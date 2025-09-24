@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../_core/constants/app_colors.dart';
 import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_logo.dart';
 import '../home/home_screen.dart';
@@ -14,8 +15,8 @@ class LoginChoiceScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("로그인 선택"),
         centerTitle: true,
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
+        foregroundColor: AppColors.black,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -36,7 +37,7 @@ class LoginChoiceScreen extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
+                  backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -55,33 +56,34 @@ class LoginChoiceScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // 소셜 로그인 버튼
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const SocialLoginScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  "소셜 로그인",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
+            // SizedBox(
+            //   width: double.infinity,
+            //   child: ElevatedButton(
+            //     onPressed: () {
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //             builder: (_) => const SocialLoginScreen()),
+            //       );
+            //     },
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.green,
+            //       padding: const EdgeInsets.symmetric(vertical: 16),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //       ),
+            //     ),
+            //     child: const Text(
+            //       "소셜 로그인",
+            //       style: TextStyle(
+            //         fontSize: 18,
+            //         color: Colors.white,
+            //         fontWeight: FontWeight.bold,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            // const SizedBox(height: 16),
 
             // 로그인 없이 둘러보기 버튼
             SizedBox(

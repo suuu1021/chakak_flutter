@@ -206,7 +206,6 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
               padding: const EdgeInsets.only(bottom: 2),
               child: BookingCard(
                 booking: booking,
-                onTap: () => _showBookingDetail(booking),
               ),
             );
           },
@@ -255,14 +254,5 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
         ],
       ),
     );
-  }
-
-  void _showBookingDetail(BookingListItem booking) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${booking.otherPartyName} 예약 상세 화면'),
-      ),
-    );
-    // TODO: 예약 상세 화면으로 이동
   }
 }

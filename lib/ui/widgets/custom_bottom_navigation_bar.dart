@@ -1,3 +1,5 @@
+import 'package:chakak_flutter/provider/auth/session_provider.dart';
+import 'package:chakak_flutter/ui/pages/profile/user/widgets/login_required_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../_core/constants/app_colors.dart';
@@ -34,12 +36,24 @@ class CustomBottomNavigationBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(bottomNavIndexProvider);
+    final session = ref.watch(sessionProvider); // 세션 가져오기
 
     return BottomNavigationBar(
       items: _navItems,
       currentIndex: currentIndex,
       onTap: (index) {
-        ref.read(bottomNavIndexProvider.notifier).state = index;
+        print("index 값 확인 : $index");
+        if(index == 3) {
+          if (!session.isLogin) {
+            // 로그인되지 않은 경우 다이얼로그 표시
+            LoginRequiredDialog.show(context);
+            return;
+          }
+          // 로그인된 경우 채팅 탭으로 이동
+          ref.read(bottomNavIndexProvider.notifier).state = index;
+        }else {
+          ref.read(bottomNavIndexProvider.notifier).state = index;
+        }
       },
       type: BottomNavigationBarType.fixed,
       selectedItemColor: AppColors.primary,

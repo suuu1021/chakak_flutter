@@ -10,6 +10,7 @@ import '../../../data/models/banner.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service_category.dart';
 import '../../../data/models/photographer.dart';
+import '../../../provider/auth/session_provider.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import '../community/community_list_page.dart';
@@ -33,8 +34,10 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final int currentIndex = ref.watch(bottomNavIndexProvider);
+    final session = ref.watch(sessionProvider); // 세션 가져오기
+
     return Scaffold(
-      appBar: CustomAppbar(),
+      appBar: CustomAppbar(session: session),
       body: IndexedStack(
         index: currentIndex,
         children: _pages,

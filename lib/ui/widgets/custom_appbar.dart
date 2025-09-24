@@ -1,13 +1,16 @@
 // Custom AppBar
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
+import 'package:chakak_flutter/provider/auth/session_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../_core/constants/app_routes.dart';
 import '../../_core/constants/app_strings.dart';
+import '../pages/profile/user/widgets/login_required_dialog.dart';
 import 'custom_bottom_navigation_bar.dart';
 
 class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
-  const CustomAppbar({super.key});
+  final AppSession session;
+  const CustomAppbar({super.key, required this.session,});
 
   @override
   State<CustomAppbar> createState() => _CustomAppbarState();
@@ -18,6 +21,7 @@ class CustomAppbar extends StatefulWidget implements PreferredSizeWidget {
 
 class _CustomAppbarState extends State<CustomAppbar> {
   bool _isNavigating = false;
+
 
   void _navigateToRoute(String route) {
     if (_isNavigating || !mounted) return;
@@ -54,6 +58,24 @@ class _CustomAppbarState extends State<CustomAppbar> {
         }
       });
     });
+  }
+
+  // 로그인 확인 후 액션 실행하는 메서드
+  void _handleLoginRequiredAction(VoidCallback action) {
+    if (!widget.session.isLogin) {
+      LoginRequiredDialog.show(context);
+      return;
+    }
+    action();
+  }
+
+  // 로그인 확인 후 네비게이션하는 메서드
+  void _handleLoginRequiredNavigation(String route) {
+    if (!widget.session.isLogin) {
+      LoginRequiredDialog.show(context);
+      return;
+    }
+    _navigateToRoute(route);
   }
 
   @override
@@ -97,7 +119,8 @@ class _CustomAppbarState extends State<CustomAppbar> {
                 onPressed: _isNavigating
                     ? null
                     : () {
-                        _navigateToRoute(AppRoutes.userBookingList);
+                        //_navigateToRoute(AppRoutes.userBookingList);
+                        _handleLoginRequiredNavigation(AppRoutes.userBookingList);
                       },
               ),
               // IconButton(
