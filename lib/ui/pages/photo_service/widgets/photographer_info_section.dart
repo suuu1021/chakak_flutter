@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
-import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
+import '../../../../../../data/models/photographer_profile.dart';
+import '../../../../../../data/models/repositories/photographer_profile_repository.dart';
+import '../../../../provider/core/dio_provider.dart';
 
 class PhotographerInfoSection extends ConsumerStatefulWidget {
   final PhotoService service;
@@ -22,27 +24,52 @@ class PhotographerInfoSection extends ConsumerStatefulWidget {
 
 class _PhotographerInfoSectionState
     extends ConsumerState<PhotographerInfoSection> {
+
+  // 🔥 로컬 상태 변수들 - 전역 상태와 완전히 분리
+  PhotographerProfile? _profile;
+  bool _isLoading = true;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    // 포토그래퍼 프로필 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPhotographerProfile();
-    });
+    _loadPhotographerProfile();
   }
 
+  // API를 직접 호출하여 로컬 변수에만 저장
   Future<void> _loadPhotographerProfile() async {
-    // 특정 포토그래퍼의 프로필을 로드하는 메서드가 필요
-    final photographerId = widget.service.photographerId.toString();
-    await ref
-        .read(photographerProfileProvider.notifier)
-        .loadProfileById(photographerId);
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final dio = ref.read(dioProvider);
+      final repository = PhotographerProfileRepositoryImpl(dio);
+      final photographerId = widget.service.photographerId.toString();
+
+      final profile = await repository.getProfile(photographerId);
+
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileState = ref.watch(photographerProfileProvider);
-
     return Container(
       margin: const EdgeInsets.all(AppSizes.spacing16),
       padding: const EdgeInsets.all(AppSizes.spacing16),
@@ -59,10 +86,10 @@ class _PhotographerInfoSectionState
       ),
       child: Row(
         children: [
-          _buildProfileImage(profileState.profile?.profileImageUrl),
+          _buildProfileImage(_profile?.profileImageUrl),
           const SizedBox(width: AppSizes.spacing12),
           Expanded(
-            child: _buildPhotographerInfo(profileState),
+            child: _buildPhotographerInfo(),
           ),
           _buildProfileButton(),
         ],
@@ -80,29 +107,29 @@ class _PhotographerInfoSectionState
       ),
       child: imageUrl != null && imageUrl.isNotEmpty
           ? ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Icon(
-                    Icons.person,
-                    size: 30,
-                    color: Colors.grey,
-                  );
-                },
-              ),
-            )
-          : const Icon(
+        borderRadius: BorderRadius.circular(30),
+        child: Image.network(
+          imageUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
               Icons.person,
               size: 30,
               color: Colors.grey,
-            ),
+            );
+          },
+        ),
+      )
+          : const Icon(
+        Icons.person,
+        size: 30,
+        color: Colors.grey,
+      ),
     );
   }
 
-  Widget _buildPhotographerInfo(PhotographerProfileState profileState) {
-    if (profileState.isLoading) {
+  Widget _buildPhotographerInfo() {
+    if (_isLoading) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -127,7 +154,7 @@ class _PhotographerInfoSectionState
       );
     }
 
-    if (profileState.errorMessage != null || profileState.profile == null) {
+    if (_errorMessage != null || _profile == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -150,7 +177,7 @@ class _PhotographerInfoSectionState
       );
     }
 
-    final profile = profileState.profile!;
+    final profile = _profile!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
