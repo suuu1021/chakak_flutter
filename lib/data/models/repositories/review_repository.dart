@@ -59,7 +59,7 @@ class ReviewRepository {
     }
   }
 
-  /// 리뷰 목록 조회 (페이징)
+  /// 리뷰 목록 조회 (포토서비스 단위, 페이징)
   Future<PagedResponseDto<ReviewDto>> getReviews(
       int serviceId, {
         int page = 0,
@@ -96,7 +96,6 @@ class ReviewRepository {
 
   /// ✅ 최근 리뷰 조회 (5개만)
   Future<List<ReviewDto>> getRecentReviews(int serviceId) async {
-    // ⚠️ 서버에 /recent API가 없을 경우, getReviews로 size=5, sortBy=createdAt, sortDir=desc 대체 가능
     final String endpoint =
         '$_photoServicesBaseEndpoint/$serviceId/reviews/recent';
 
@@ -115,6 +114,44 @@ class ReviewRepository {
       }
     } catch (e) {
       if (kDebugMode) print('[ReviewRepository] getRecentReviews 에러: $e');
+      rethrow;
+    }
+  }
+
+  /// ✅ 포토그래퍼 전체 리뷰 조회 (페이징)
+  Future<PagedResponseDto<ReviewDto>> getPhotographerReviews(
+      int photographerId, {
+        int page = 0,
+        int size = 10,
+        String? sortBy,
+        String? sortDir,
+      }) async {
+    final String endpoint =
+        '/api/v1/reviews/photographers/$photographerId';
+
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      'size': size,
+      if (sortBy != null) 'sortBy': sortBy,
+      if (sortDir != null) 'sortDir': sortDir,
+    };
+
+    try {
+      final response = await _dio.get(endpoint, queryParameters: queryParams);
+
+      if (response.statusCode == 200 && response.data != null) {
+        // 🔥 body 제거, 바로 response.data 사용
+        return PagedResponseDto.fromJson(
+          response.data as Map<String, dynamic>,
+              (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
+        );
+      } else {
+        throw Exception('포토그래퍼 리뷰 조회 실패');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('[ReviewRepository] getPhotographerReviews 에러: $e');
+      }
       rethrow;
     }
   }

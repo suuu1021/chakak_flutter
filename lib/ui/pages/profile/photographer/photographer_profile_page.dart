@@ -8,8 +8,8 @@ import '../../../../data/models/photo_service/photo_service.dart';
 import '../../../../provider/global/photoService/photo_service_provider.dart';
 import '../../photo_service/widgets/photo_service_list_widget.dart';
 import '../../photo_service/photo_service_detail_page.dart';
-import 'widgets/photographer_reviews.dart';
 import 'widgets/photographer_upper_profile.dart';
+import 'widgets/photographer_reviews_section.dart'; // ✅ 추가한 리뷰 섹션 임포트
 
 class PhotographerProfilePage extends ConsumerStatefulWidget {
   final int photographerId;
@@ -34,12 +34,10 @@ class _PhotographerProfilePageState
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
     // 즉시 로딩 시작
     ref
         .read(photoServiceProvider.notifier)
         .loadServicesByPhotographer(widget.photographerId);
-    // });
   }
 
   @override
@@ -127,7 +125,7 @@ class _PhotographerProfilePageState
         children: [
           _buildServiceTab(services, isLoading),
           PortfolioPage(photographerId: widget.photographerId.toString()),
-          _buildReviewTab(services, isLoading),
+          _buildReviewTab(services, isLoading), // ✅ 리뷰 탭
         ],
       ),
     );
@@ -158,19 +156,16 @@ class _PhotographerProfilePageState
     );
   }
 
+  /// ✅ 리뷰 탭 (포토그래퍼 전체 리뷰 표시)
   Widget _buildReviewTab(List<PhotoService> services, bool isLoading) {
     if (isLoading) {
       return _buildScrollableContent(
           const Center(child: CircularProgressIndicator()));
     }
 
-    if (services.isEmpty) {
-      return _buildScrollableContent(
-          const Center(child: Text('등록된 서비스가 없어 리뷰를 표시할 수 없습니다.')));
-    }
-
     return _buildScrollableContent(
-        PhotographerReviews(serviceId: services.first.id));
+      PhotographerReviewsSection(photographerId: widget.photographerId),
+    );
   }
 
   Widget _buildScrollableContent(Widget child) {
