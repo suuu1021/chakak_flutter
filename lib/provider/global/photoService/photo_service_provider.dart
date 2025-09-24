@@ -75,47 +75,74 @@ class ServiceNotifier extends Notifier<ServiceState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-// 이미지 데이터 처리 (Base64 인코딩)
+      // 이미지 데이터 처리
       String imageData = '';
-      if (serviceData['newImages'] != null) {
-        final List<File> newImages = serviceData['newImages'];
-        imageData = await _encodeImagesToBase64(newImages);
+      if (serviceData['imageData'] != null &&
+          serviceData['imageData'].toString().isNotEmpty) {
+        imageData = serviceData['imageData'].toString();
+
+        // 이미지 크기 체크 및 로그
+        print('=== 이미지 데이터 처리 ===');
+        print('이미지 데이터 길이: ${imageData.length}');
+        print(
+            '이미지 시작: ${imageData.substring(0, imageData.length > 50 ? 50 : imageData.length)}...');
+
+        // 크기가 너무 크면 에러
+        if (imageData.length > 1048576) {
+          // 1MB
+          throw Exception('이미지 크기가 너무 큽니다. 더 작은 이미지를 선택해주세요.');
+        }
       }
 
-// 가격 정보 구성
-      List<Map<String, dynamic>> priceInfoList = [];
-      if (serviceData['priceInfoList'] != null) {
-        priceInfoList = serviceData['priceInfoList'];
-      }
-
-// 백엔드 API 요청 데이터 구성
+      // 백엔드 API 요청 데이터 구성
       final requestData = {
         'title': serviceData['title'],
         'description': serviceData['description'],
-        'imageData': imageData,
-        'priceInfoList': priceInfoList,
+        'imageData': imageData, // 직접 전달
+        'priceInfoList': serviceData['priceInfoList'] ?? [],
         'categoryIdList': serviceData['categoryIdList'] ?? [],
       };
 
-// API 호출 - POST /api/photo/services
+      print('=== 최종 요청 데이터 확인 ===');
+      print('제목: ${requestData['title']}');
+      print('설명 길이: ${requestData['description']?.toString().length ?? 0}');
+      print('이미지 데이터 길이: ${requestData['imageData']?.toString().length ?? 0}');
+      print('가격 옵션 수: ${(requestData['priceInfoList'] as List?)?.length ?? 0}');
+      print('카테고리 수: ${(requestData['categoryIdList'] as List?)?.length ?? 0}');
+
+      // API 호출 - POST /api/photo/services
       final response = await _dio.post(
         '/api/photo/services',
         data: requestData,
         options: Options(
           headers: {
-            'Authorization': 'Bearer ${await _getAccessToken()}',
             'Content-Type': 'application/json',
           },
+          sendTimeout: const Duration(minutes: 10),
+          receiveTimeout: const Duration(minutes: 10),
+          // 압축 활성화
+          extra: {'compress': true},
         ),
       );
 
-      if (response.statusCode == 200) {
-// 서비스 목록 새로고침
-        await loadServicesByPhotographer(serviceData['photographerId']);
+      print('=== 서버 응답 ===');
+      print('상태 코드: ${response.statusCode}');
+      print('응답 데이터: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // 서비스 목록 새로고침
+        if (serviceData['photographerId'] != null) {
+          await loadServicesByPhotographer(serviceData['photographerId']);
+        }
+        state = state.copyWith(isLoading: false, error: null);
       } else {
-        throw Exception('서비스 생성 실패');
+        throw Exception('서비스 생성 실패: ${response.statusCode}');
       }
     } catch (error) {
+      print('=== createService 에러 ===');
+      print('에러 타입: ${error.runtimeType}');
+      print('에러 메시지: $error');
+
       state = state.copyWith(
         isLoading: false,
         error: error.toString(),

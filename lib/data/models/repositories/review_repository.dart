@@ -86,7 +86,8 @@ class ReviewRepository {
               (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
         );
       } else {
-        throw Exception('리뷰 목록 조회 실패');
+        String serverMsg = response.data?['msg'] ?? '알 수 없는 오류';
+        throw Exception('리뷰 목록 조회 실패: $serverMsg');
       }
     } catch (e) {
       if (kDebugMode) print('[ReviewRepository] getReviews 에러: $e');
@@ -110,7 +111,8 @@ class ReviewRepository {
             .map((json) => ReviewDto.fromJson(json as Map<String, dynamic>))
             .toList();
       } else {
-        throw Exception('최근 리뷰 조회 실패');
+        String serverMsg = response.data?['msg'] ?? '알 수 없는 오류';
+        throw Exception('최근 리뷰 조회 실패: $serverMsg');
       }
     } catch (e) {
       if (kDebugMode) print('[ReviewRepository] getRecentReviews 에러: $e');
@@ -140,7 +142,6 @@ class ReviewRepository {
       final response = await _dio.get(endpoint, queryParameters: queryParams);
 
       if (response.statusCode == 200 && response.data != null) {
-        // 🔥 body 제거, 바로 response.data 사용
         return PagedResponseDto.fromJson(
           response.data as Map<String, dynamic>,
               (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
@@ -152,6 +153,37 @@ class ReviewRepository {
       if (kDebugMode) {
         print('[ReviewRepository] getPhotographerReviews 에러: $e');
       }
+      rethrow;
+    }
+  }
+
+  /// 내가 작성한 리뷰 목록 조회 (페이징)
+  Future<PagedResponseDto<ReviewDto>> getMyReviews({
+    int page = 0,
+    int size = 10,
+  }) async {
+    const String endpoint = '$_photoServicesBaseEndpoint/my-reviews';
+    final Map<String, dynamic> queryParams = {
+      'page': page,
+      'size': size,
+    };
+
+    try {
+      final response = await _dio.get(endpoint, queryParameters: queryParams);
+
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['body'] != null) {
+        return PagedResponseDto.fromJson(
+          response.data['body'] as Map<String, dynamic>,
+              (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
+        );
+      } else {
+        String serverMsg = response.data?['msg'] ?? '알 수 없는 오류';
+        throw Exception('내가 작성한 리뷰 목록 조회 실패: $serverMsg');
+      }
+    } catch (e) {
+      if (kDebugMode) print('[ReviewRepository] getMyReviews 에러: $e');
       rethrow;
     }
   }
