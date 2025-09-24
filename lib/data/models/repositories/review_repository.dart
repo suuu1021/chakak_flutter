@@ -129,7 +129,7 @@ class ReviewRepository {
         String? sortDir,
       }) async {
     final String endpoint =
-        '/api/v1/reviews/photographers/$photographerId';
+        '$_photoServicesBaseEndpoint/photographers/$photographerId/reviews';
 
     final Map<String, dynamic> queryParams = {
       'page': page,
@@ -141,9 +141,11 @@ class ReviewRepository {
     try {
       final response = await _dio.get(endpoint, queryParameters: queryParams);
 
-      if (response.statusCode == 200 && response.data != null) {
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['body'] != null) {
         return PagedResponseDto.fromJson(
-          response.data as Map<String, dynamic>,
+          response.data['body'] as Map<String, dynamic>,
               (json) => ReviewDto.fromJson(json as Map<String, dynamic>),
         );
       } else {
