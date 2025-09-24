@@ -1,6 +1,9 @@
+import '../dtos/review/review_dto.dart'; // <<<<<<< ReviewDto import 추가
+
 // API 명세 ("2-2. 특정 서비스(상품)의 리뷰 목록 조회")에 맞춘 Review 모델
 class Review {
   final int reviewId;
+  final String? serviceId;
   final double rating;
   final String content;
   final String? thumbnailUrl;
@@ -9,6 +12,7 @@ class Review {
 
   Review({
     required this.reviewId,
+    this.serviceId,
     required this.rating,
     required this.content,
     this.thumbnailUrl,
@@ -16,20 +20,11 @@ class Review {
     required this.createdAt,
   });
 
-  factory Review.fromJson(Map<String, dynamic> json) {
-    return Review(
-      reviewId: json['reviewId'] as int,
-      rating: (json['rating'] as num).toDouble(),
-      content: json['content'] as String, // 이 필드가 이전 오류의 원인이었습니다.
-      thumbnailUrl: json['thumbnailUrl'] as String?,
-      author: AuthorInfo.fromJson(json['author'] as Map<String, dynamic>),
-      createdAt: json['createdAt'] as String,
-    );
-  }
+  // factory Review.fromJson은 DTO에서 toModel을 사용하므로 여기서는 직접 사용 안 함
 
-  // copyWith는 필요시 현재 필드에 맞춰 수정하거나, API 응답 전용 모델이면 제거도 고려
   Review copyWith({
     int? reviewId,
+    String? serviceId,
     double? rating,
     String? content,
     String? thumbnailUrl,
@@ -38,6 +33,7 @@ class Review {
   }) {
     return Review(
       reviewId: reviewId ?? this.reviewId,
+      serviceId: serviceId ?? this.serviceId,
       rating: rating ?? this.rating,
       content: content ?? this.content,
       thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
@@ -48,13 +44,13 @@ class Review {
 
   @override
   String toString() {
-    return 'Review(reviewId: $reviewId, rating: $rating, content: $content, thumbnailUrl: $thumbnailUrl, author: $author, createdAt: $createdAt)';
+    return 'Review(reviewId: $reviewId, serviceId: $serviceId, rating: $rating, content: $content, thumbnailUrl: $thumbnailUrl, author: $author, createdAt: $createdAt)';
   }
 }
 
 // 리뷰 목록의 페이지네이션 정보를 담는 모델
 class ReviewPage {
-  final List<Review> content; // Review2 -> Review
+  final List<Review> content;
   final bool last;
   final int totalPages;
   final int totalElements;
@@ -79,7 +75,7 @@ class ReviewPage {
   factory ReviewPage.fromJson(Map<String, dynamic> json) {
     return ReviewPage(
       content: (json['content'] as List)
-          .map((item) => Review.fromJson(item as Map<String, dynamic>)) // Review2 -> Review
+          .map((item) => ReviewDto.fromJson(item as Map<String, dynamic>).toModel()) // <<<<<<< 수정된 부분
           .toList(),
       last: json['last'] as bool,
       totalPages: json['totalPages'] as int,

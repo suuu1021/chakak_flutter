@@ -7,6 +7,7 @@ import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 
 import '../../../../data/models/photo_service/photo_service.dart';
 import '../../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../../_core/utils/image_utils.dart';
 
 class ServiceCardList extends ConsumerStatefulWidget {
   final Function(PhotoService) onServiceTap;
@@ -60,7 +61,7 @@ class _ServiceCardListState extends ConsumerState<ServiceCardList> {
       return const Center(child: Text('서비스가 없습니다.'));
     } else {
       return ListView.builder(
-        padding: EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(bottom: 12),
         scrollDirection: Axis.horizontal,
         itemCount: state.services.length,
         itemBuilder: (context, index) {
@@ -98,57 +99,19 @@ class ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 개선된 이미지 위젯 생성 로직
     Widget imageWidget;
-    if (service.imageUrl.startsWith('http')) {
-      imageWidget = Image.network(
+
+    if (service.imageUrl.isNotEmpty) {
+      // ImageUtils를 사용하여 안전한 이미지 로딩
+      imageWidget = ImageUtils.buildSafeImage(
         service.imageUrl,
-        height: 140,
         width: double.infinity,
+        height: 140,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 140,
-            color: Colors.grey[200],
-            child: const Center(
-              child: Icon(Icons.broken_image, color: Colors.grey),
-            ),
-          );
-        },
       );
-    } else if (service.imageUrl.isNotEmpty) {
-      try {
-        String base64String = service.imageUrl;
-        if (base64String.startsWith('data:image')) {
-          base64String = base64String.split(',').last;
-        }
-        Uint8List imageBytes = base64Decode(base64String);
-        imageWidget = Image.memory(
-          imageBytes,
-          height: 140,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print('Error decoding or displaying base64 image: $error');
-            return Container(
-              height: 140,
-              color: Colors.grey[200],
-              child: const Center(
-                child: Icon(Icons.broken_image, color: Colors.grey),
-              ),
-            );
-          },
-        );
-      } catch (e) {
-        print('Error processing base64 image string: $e');
-        imageWidget = Container(
-          height: 140,
-          color: Colors.grey[200],
-          child: const Center(
-            child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
-          ),
-        );
-      }
     } else {
+      // 기본 플레이스홀더
       imageWidget = Container(
         height: 140,
         color: Colors.grey[200],
@@ -176,7 +139,6 @@ class ServiceCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
               children: [
@@ -208,62 +170,64 @@ class ServiceCard extends StatelessWidget {
                 // ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    service.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 6.0,
-                    runSpacing: 4.0,
-                    children: service.categories
-                        .take(3)
-                        .map((categoryName) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
-                              decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(16.0),
-                                  border: Border.all(
-                                      color: AppColors.primary, width: 0.5)),
-                              child: Text(
-                                categoryName,
-                                style: AppTextStyles.categoryName
-                                    .copyWith(color: AppColors.primary),
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${service.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원~',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 16),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${service.rating.toStringAsFixed(1)} (${service.reviewCount})',
-                        style: const TextStyle(fontSize: 14),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      service.title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 6.0,
+                      runSpacing: 4.0,
+                      children: service.categories
+                          .take(2)
+                          .map((categoryName) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    border: Border.all(
+                                        color: AppColors.primary, width: 0.5)),
+                                child: Text(
+                                  categoryName,
+                                  style: AppTextStyles.categoryName
+                                      .copyWith(color: AppColors.primary),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${service.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}원~',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${service.rating.toStringAsFixed(1)} (${service.reviewCount})',
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
