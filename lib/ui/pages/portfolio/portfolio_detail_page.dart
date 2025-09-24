@@ -10,11 +10,11 @@ import 'widgets/portfolio_image_gallery.dart';
 import 'widgets/portfolio_content_section.dart';
 
 class PortfolioDetailPage extends ConsumerStatefulWidget {
-  Portfolio portfolio;
+  final String portfolioId;
 
-  PortfolioDetailPage({
+  const PortfolioDetailPage({
     super.key,
-    required this.portfolio,
+    required this.portfolioId,
   });
 
   @override
@@ -24,100 +24,95 @@ class PortfolioDetailPage extends ConsumerStatefulWidget {
 
 class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
   @override
+  void initState() {
+    super.initState();
+    // initState에서 provider를 호출할 때는 microtask를 사용
+    Future.microtask(() {
+      ref.read(portfolioProvider.notifier).selectPortfolio(widget.portfolioId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final portfolioState = ref.watch(portfolioProvider);
+    final portfolio = portfolioState.selectedPortfolio;
+
+    // 데이터 로딩 중이거나, 선택된 포트폴리오가 없거나, ID가 일치하지 않는 경우 로딩 인디케이터 표시
+    if (portfolio == null || portfolio.id != widget.portfolioId) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(portfolio),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PortfolioImageGallery(imageUrls: widget.portfolio.imageUrls),
-            PortfolioContentSection(portfolio: widget.portfolio),
+            PortfolioImageGallery(imageUrls: portfolio.imageUrls),
+            PortfolioContentSection(portfolio: portfolio),
           ],
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    final bool isOwner = _isOwner(ref);
+  PreferredSizeWidget _buildAppBar(Portfolio portfolio) {
+    final bool isOwner = _isOwner(ref, portfolio);
 
     return AppBar(
-      title: Text(widget.portfolio.category),
+      title: Text(portfolio.category),
       backgroundColor: AppColors.primaryLight,
       elevation: 0,
       actions: [
-        // 수정 버튼 (소유자만 표시)
         if (isOwner)
           IconButton(
-            onPressed: _editPortfolio,
+            onPressed: () => _editPortfolio(portfolio),
             icon: const Icon(Icons.edit_outlined),
           ),
-        // 삭제 버튼 (소유자만 표시)
         if (isOwner)
           IconButton(
-            onPressed: _deletePortfolio,
+            onPressed: () => _deletePortfolio(portfolio),
             icon: const Icon(Icons.delete_outlined),
           ),
-        // 공유 버튼
         IconButton(
-          onPressed: _sharePortfolio,
+          onPressed: () => _sharePortfolio(portfolio),
           icon: const Icon(Icons.share_outlined),
         ),
       ],
     );
   }
 
-  bool _isOwner(WidgetRef ref) {
+  bool _isOwner(WidgetRef ref, Portfolio portfolio) {
     final authState = ref.watch(authProvider);
-    print('현재 로그인 userId: ${authState.login?.userId}');
-    print('현재 포트폴리오 photographerId: ${widget.portfolio.photographerProfileId}');
-
-    return authState.login?.userId.toString() ==
-        widget.portfolio.photographerUserId;
+    return authState.login?.userId.toString() == portfolio.photographerUserId;
   }
 
-  void _editPortfolio() async {
-    debugPrint('포트폴리오 수정: ${widget.portfolio.title}');
-
-    // 수정 페이지로 이동하며 기존 포트폴리오 데이터를 전달합니다.
+  void _editPortfolio(Portfolio portfolio) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PortfolioFormPage(
-          portfolio: widget.portfolio,
-        ),
+        builder: (context) => PortfolioFormPage(portfolio: portfolio),
       ),
     );
 
-    // 수정 완료 후 true를 반환받으면 포트폴리오 목록을 새로고침합니다.
     if (result == true) {
-      debugPrint('포트폴리오 수정 완료');
-      await ref
-          .read(portfolioProvider.notifier)
-          .selectPortfolio(widget.portfolio.id);
-
-      final updatedPortfolio = ref.read(portfolioProvider).selectedPortfolio;
-      if (updatedPortfolio != null) {
-        setState(() {
-          // 현재 위젯의 portfolio를 업데이트된 것으로 교체
-          widget.portfolio = updatedPortfolio;
-        });
-      }
+      // 수정 완료 후 데이터 다시 로드
+      ref.read(portfolioProvider.notifier).selectPortfolio(widget.portfolioId);
     }
   }
 
-  void _deletePortfolio() {
-    debugPrint('포트폴리오 삭제: ${widget.portfolio.title}');
-    _showDeleteConfirmDialog();
+  void _deletePortfolio(Portfolio portfolio) {
+    _showDeleteConfirmDialog(portfolio);
   }
 
-  void _showDeleteConfirmDialog() {
+  void _showDeleteConfirmDialog(Portfolio portfolio) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('포트폴리오 삭제'),
-        content: Text('${widget.portfolio.title}을(를) 정말 삭제하시겠습니까?'),
+        content: Text('${portfolio.title}을(를) 정말 삭제하시겠습니까?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -126,23 +121,18 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
           TextButton(
             onPressed: () async {
               try {
-                final apiService =
-                    ref.read(portfolioProvider.notifier); // API 서비스
-                await apiService
-                    .deletePortfolio(widget.portfolio.id.toString());
-
-                // 삭제 성공 시
-                debugPrint('포트폴리오 삭제 성공');
-                Navigator.of(context).pop(); // 다이얼로그 닫기
-                Navigator.of(context).pop(true); // 이전 페이지로 돌아가며 true 반환
+                await ref.read(portfolioProvider.notifier).deletePortfolio(portfolio.id);
+                if (mounted) {
+                  Navigator.of(context).pop(); // 다이얼로그 닫기
+                  Navigator.of(context).pop(true); // 이전 페이지로 돌아가며 성공 알림
+                }
               } catch (e) {
-                // 삭제 실패 시 에러 메시지 출력
-                debugPrint('포트폴리오 삭제 실패: $e');
-                Navigator.of(context).pop(); // 다이얼로그 닫기
-                // 사용자에게 오류 메시지를 보여주는 스낵바 또는 다이얼로그 추가
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('삭제에 실패했습니다: ${e.toString()}')),
-                );
+                if (mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('삭제에 실패했습니다: ${e.toString()}')),
+                  );
+                }
               }
             },
             child: const Text('삭제', style: TextStyle(color: AppColors.error)),
@@ -152,10 +142,10 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
     );
   }
 
-  void _sharePortfolio() {
+  void _sharePortfolio(Portfolio portfolio) {
     final shareText =
-        '${widget.portfolio.title}\n\n${widget.portfolio.description}\n\n'
-        'https://myapp.com/portfolio/${widget.portfolio.id}';
+        '${portfolio.title}\n\n${portfolio.description}\n\n'
+        'https://myapp.com/portfolio/${portfolio.id}';
     Share.share(shareText);
   }
 }
