@@ -19,7 +19,7 @@ class CustomLogo extends StatelessWidget {
         //const SizedBox(height: xlargeGap),
         SvgPicture.asset(
           AppImages.logo,
-          colorFilter: ColorFilter.mode(AppColors.black, BlendMode.srcIn),
+          colorFilter: ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
           height: 150,
           width: 150,
         ),
