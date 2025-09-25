@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../../_core/constants/app_sizes.dart';
+import '../../../../data/models/portfolio.dart';
 import '../../../../provider/global/portfolio/portfolio_notifier.dart';
+import '../../portfolio/portfolio_detail_page.dart';
 
 class ServiceGallerySection extends ConsumerStatefulWidget {
   final int photographerId;
@@ -23,7 +25,6 @@ class _ServiceGallerySectionState extends ConsumerState<ServiceGallerySection> {
   @override
   void initState() {
     super.initState();
-    // 포토그래퍼의 포트폴리오 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(portfolioProvider.notifier)
@@ -72,16 +73,9 @@ class _ServiceGallerySectionState extends ConsumerState<ServiceGallerySection> {
         child: _buildErrorWidget(),
       );
     }
-
-    // 포트폴리오에서 이미지 URL들을 추출
     final portfolioImages = portfolioState.portfolios
-        .expand(
-            (portfolio) => portfolio.imageUrls) // Portfolio 모델의 imageData 필드 사용
+        .expand((portfolio) => portfolio.imageUrls)
         .toList();
-
-    print(
-        '[DEBUG] 포토그래퍼 ${widget.photographerId}의 포트폴리오 이미지: ${portfolioImages.length}개');
-    print('[DEBUG] 이미지 URL들: $portfolioImages');
 
     if (portfolioImages.isEmpty) {
       return SizedBox(
@@ -177,7 +171,41 @@ class _ServiceGallerySectionState extends ConsumerState<ServiceGallerySection> {
   }
 
   void _onImageTap(String imageUrl, int index) {
-    // TODO: 이미지 상세보기 또는 갤러리 뷰어 구현
-    print('포트폴리오 이미지 탭: $index, URL: $imageUrl');
+    try {
+      final portfolioState = ref.read(portfolioProvider);
+      Portfolio? targetPortfolio;
+      for (final portfolio in portfolioState.portfolios) {
+        if (portfolio.photographerProfileId ==
+                widget.photographerId.toString() &&
+            portfolio.imageUrls.contains(imageUrl)) {
+          targetPortfolio = portfolio;
+          break;
+        }
+      }
+
+      if (targetPortfolio != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                PortfolioDetailPage(portfolioId: targetPortfolio!.id),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('포트폴리오 정보를 찾을 수 없습니다'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('포트폴리오를 열 수 없습니다'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }

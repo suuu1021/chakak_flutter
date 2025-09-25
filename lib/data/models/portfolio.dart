@@ -55,16 +55,10 @@ class Portfolio {
     );
   }
 
-  // 서버 응답을 위한 factory (JSON 파싱용) - 서버 구조에 맞게 수정
-  // 서버 응답을 위한 factory (JSON 파싱용) - 서버 구조에 맞게 수정
   factory Portfolio.fromJson(Map<String, dynamic> json) {
     print('=== Portfolio.fromJson 디버깅 ===');
     print('입력 JSON 키들: ${json.keys.toList()}');
-
-    // 이미지 URL 처리: images 배열에서 imageUrl 추출
     final List<String> imageUrls = [];
-
-    // 서버 응답의 images 배열 처리
     if (json['images'] != null && json['images'] is List) {
       final imagesList = json['images'] as List;
       print('images 배열 길이: ${imagesList.length}');
@@ -89,7 +83,7 @@ class Portfolio {
       print('중복 여부: ${imageUrls.contains(thumbnailUrl)}');
 
       if (!imageUrls.contains(thumbnailUrl)) {
-        // imageUrls.insert(0, thumbnailUrl);
+        imageUrls.insert(0, thumbnailUrl);
         print('썸네일 URL 추가됨');
       } else {
         print('썸네일 URL 이미 존재하여 추가하지 않음');
