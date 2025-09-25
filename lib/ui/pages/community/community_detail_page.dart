@@ -49,7 +49,7 @@ class _CommunityDetailPageState extends ConsumerState<CommunityDetailPage> {
    */
   Future<void> _loadPostData() async {
     final post =
-        await ref.read(postProvider.notifier).findOrFetchPost(widget.postId);
+        await ref.read(postProvider.notifier).getDetailPost(widget.postId);
     if (post != null) {
       print('*** Loaded Post Data ***');
       print('Posts: ${post} ');

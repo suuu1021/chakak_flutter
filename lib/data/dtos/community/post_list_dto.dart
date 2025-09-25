@@ -51,6 +51,13 @@ class PostListDto {
 
   Post toModel() {
     final isAdmin = authorType == 'admin';
+    String? safeImageUrl;
+    if (thumbnailData != null && thumbnailData!.isNotEmpty) {
+      safeImageUrl = thumbnailData;
+    } else {
+      safeImageUrl = null;
+    }
+
     return Post(
       id: postId,
       title: title,
@@ -58,14 +65,14 @@ class PostListDto {
       author: authorNickname,
       authorId: authorId,
       authorBadge: isAdmin ? '✅' : '',
-      imageUrl: thumbnailData, // 목록에서는 썸네일 데이터를 사용
+      imageUrl: safeImageUrl, // ✅ 안전한 값만 전달
       timeAgo: _formatTimeAgo(createdAt),
       viewCount: viewCount,
       likeCount: likeCount,
       replyCount: replyCount,
       isAdminPost: isAdmin,
       category: isAdmin ? '공지' : '커뮤니티',
-      isActive: true, // 목록에서는 항상 활성 상태로 가정
+      isActive: true,
       isLiked: isLiked,
     );
   }

@@ -2,6 +2,7 @@
  * 개별 게시글 아이템 위젯
  * 커뮤니티 목록에서 각 게시글을 표시하는 재사용 가능한 컴포넌트
  */
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../data/models/community/post.dart';
@@ -27,6 +28,58 @@ class PostListItem extends StatelessWidget {
         return AppColors.primary;
       default:
         return AppColors.accent;
+    }
+  }
+
+  /*
+   * 썸네일 처리 (http URL + Base64 Data URL 모두 지원)
+   */
+  Widget _buildThumbnail(String? dataUrl) {
+    if (dataUrl == null || dataUrl.isEmpty) {
+      return const Icon(Icons.image_not_supported,
+          color: AppColors.gray400, size: 24);
+    }
+
+    try {
+      // http/https 일반 URL 처리
+      if (dataUrl.startsWith('http')) {
+        return Image.network(
+          dataUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.broken_image,
+                color: AppColors.gray400, size: 24);
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.gray400),
+                ),
+              ),
+            );
+          },
+        );
+      }
+
+      // data:image/png;base64,... 형태 처리
+      final base64Str = dataUrl.split(',').last;
+      final bytes = base64Decode(base64Str);
+
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(Icons.broken_image,
+              color: AppColors.gray400, size: 24);
+        },
+      );
+    } catch (e) {
+      return const Icon(Icons.broken_image, color: AppColors.gray400, size: 24);
     }
   }
 
@@ -176,31 +229,8 @@ class PostListItem extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(7),
-                          child: Image.network(
-                            post.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Icon(
-                                Icons.camera_alt,
-                                color: AppColors.gray400,
-                                size: 24,
-                              );
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        AppColors.gray400),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
+                          // 교체: _buildThumbnail(post.imageUrl)
+                          child: _buildThumbnail(post.imageUrl),
                         ),
                       ),
                     ],

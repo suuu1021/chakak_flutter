@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../_core/constants/app_colors.dart';
 import '../../widgets/custom_button_widgets.dart';
 import '../../widgets/custom_auth_text_form_field.dart';
 import '../home/home_screen.dart';
@@ -28,7 +29,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile =
-    await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
 
     if (pickedFile != null) {
       setState(() {
@@ -75,7 +76,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
-            (route) => false,
+        (route) => false,
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,14 +90,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final effectiveUserType =
-    widget.userType == "social" ? selectedType : widget.userType;
+        widget.userType == "social" ? selectedType : widget.userType;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("프로필 설정"),
         centerTitle: true,
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primaryLight,
+        foregroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -109,9 +110,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 radius: 50,
                 backgroundColor: Colors.grey[300],
                 backgroundImage:
-                profileImage != null ? FileImage(profileImage!) : null,
+                    profileImage != null ? FileImage(profileImage!) : null,
                 child: profileImage == null
-                    ? const Icon(Icons.camera_alt, size: 40, color: Colors.black54)
+                    ? const Icon(Icons.camera_alt,
+                        size: 40, color: Colors.black54)
                     : null,
               ),
             ),
@@ -178,10 +180,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             isLoading
                 ? const CircularProgressIndicator()
                 : CustomButtonWidgets.button(
-              context,
-              "저장하고 시작하기",
-              onPressed: _completeProfile,
-            ),
+                    context,
+                    "저장하고 시작하기",
+                    onPressed: _completeProfile,
+                    backgroundColor: AppColors.primary,
+                  ),
           ],
         ),
       ),
