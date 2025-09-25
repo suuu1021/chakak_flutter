@@ -5,6 +5,7 @@ import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_images.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/constants/app_sizes.dart';
+import '../../../../../_core/utils/image_utils.dart';
 import '../../../../../data/dtos/chat_room_create_request_dto.dart';
 import '../../../../../data/models/photographer_profile.dart';
 import '../../../../../data/models/repositories/photographer_profile_repository.dart';
@@ -24,12 +25,11 @@ class PhotographerUpperProfile extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<PhotographerUpperProfile> createState() =>
-      _PhotographerUpperProfileState();
+      PhotographerUpperProfileState();
 }
 
-class _PhotographerUpperProfileState
+class PhotographerUpperProfileState
     extends ConsumerState<PhotographerUpperProfile> {
-  // 로컬 상태 변수들 - 전역 상태와 완전히 분리
   PhotographerProfile? _profile;
   bool _isLoading = true;
   String? _errorMessage;
@@ -40,9 +40,31 @@ class _PhotographerUpperProfileState
     _loadPhotographerProfile();
   }
 
+  @override
+  void didUpdateWidget(PhotographerUpperProfile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.photographerId != widget.photographerId) {
+      _loadPhotographerProfile();
+    }
+  }
+
+  // 새로고침 메서드 - 강제로 다시 로드하고 리빌드 트리거
+  void refreshProfile() {
+    _loadPhotographerProfile();
+    // 위젯 트리 강제 리빌드
+    if (mounted) {
+      setState(() {
+        // 강제 리빌드 트리거
+      });
+    }
+  }
+
   // API를 직접 호출하여 로컬 변수에만 저장
   Future<void> _loadPhotographerProfile() async {
     if (!mounted) return;
+
+    debugPrint(
+        '[PhotographerProfile] Loading profile for ID: ${widget.photographerId}');
 
     setState(() {
       _isLoading = true;
@@ -54,13 +76,11 @@ class _PhotographerUpperProfileState
       final repository = PhotographerProfileRepositoryImpl(dio);
       final session = ref.read(sessionProvider);
 
-      // 마이페이지인지 정확히 판단: photographerId가 정확히 일치해야 함
-      // (단순히 photographer 타입인지가 아니라, 실제 같은 사람인지 확인)
-
-      // 현재 로그인한 사용자의 photographer 정보가 필요
-      // 일단 ID로 조회하고, 나중에 userId 비교로 마이페이지 여부 확인
       final profile =
           await repository.getProfile(widget.photographerId.toString());
+
+      debugPrint(
+          '[PhotographerProfile] Profile loaded: ${profile?.businessName ?? 'Unknown'}, Image: ${profile?.profileImageUrl ?? 'No image'}');
 
       if (mounted) {
         setState(() {
@@ -69,6 +89,7 @@ class _PhotographerUpperProfileState
         });
       }
     } catch (e) {
+      debugPrint('[PhotographerProfile] Error loading profile: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -106,8 +127,15 @@ class _PhotographerUpperProfileState
         const SizedBox(width: AppSizes.spacing16),
         if (isOwner)
           IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.photographerProfileForm);
+            onPressed: () async {
+              // 수정: 결과를 받아서 처리
+              final result = await Navigator.pushNamed(
+                  context, AppRoutes.photographerProfileForm);
+
+              // 프로필이 수정되었을 때 새로고침
+              if (result == 'refresh' && mounted) {
+                refreshProfile();
+              }
             },
             icon: const Icon(Icons.edit),
           )
@@ -127,17 +155,28 @@ class _PhotographerUpperProfileState
   Widget _buildProfileImage() {
     final imageUrl = _profile?.profileImageUrl;
 
-    return CircleAvatar(
-      backgroundImage: imageUrl != null && imageUrl.isNotEmpty
-          ? NetworkImage(imageUrl)
-          : const AssetImage(AppImages.photographerProfile) as ImageProvider,
-      maxRadius: 40,
-      minRadius: 20,
-      backgroundColor: AppColors.gray200,
-      onBackgroundImageError: imageUrl != null
-          ? (exception, stackTrace) =>
-              const AssetImage(AppImages.photographerProfile)
-          : null,
+    return Container(
+      width: 80,
+      height: 80,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.gray200,
+      ),
+      child: ClipOval(
+        child: imageUrl != null && imageUrl.isNotEmpty
+            ? ImageUtils.buildSafeImage(
+                imageUrl,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              )
+            : Image.asset(
+                AppImages.photographerProfile,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+      ),
     );
   }
 
@@ -175,10 +214,10 @@ class _PhotographerUpperProfileState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildUsername(_profile!.businessName),
+        _buildUsername(_profile?.businessName ?? '포토그래퍼'),
         _buildRatingSection(),
-        _buildLocation(_profile!.location),
-        _buildHashTags(_profile!.categories),
+        _buildLocation(_profile?.location ?? '위치 정보 없음'),
+        _buildHashTags(_profile?.categories),
       ],
     );
   }
