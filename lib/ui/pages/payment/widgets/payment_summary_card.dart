@@ -27,11 +27,13 @@ class PaymentSummaryCard extends StatelessWidget {
               children: [
                 const Icon(Icons.camera_alt, size: 28),
                 const SizedBox(width: 8),
-                Text(
-                  itemName,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    itemName,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
