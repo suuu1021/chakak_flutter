@@ -6,16 +6,15 @@ import '../../../data/models/payment.dart';
 import '../../../data/dtos/payment/payment_dto.dart';
 import '../../../provider/core/dio_provider.dart'; // ✅ dioProvider import 추가
 
-/// ✅ 사용자 결제 내역 Provider (API 연동)
 final paymentHistoryProvider = FutureProvider<List<Payment>>((ref) async {
-  // ✅ 공통 dioProvider 사용 (JWT 자동 추가됨)
   final dio = ref.watch(dioProvider);
 
   final response = await dio.get('/api/payment/user');
 
   final body = response.data;
-  final dynamic payload =
-  body is Map ? (body['data'] ?? body['response'] ?? body['body'] ?? body) : body;
+  final dynamic payload = body is Map
+      ? (body['data'] ?? body['response'] ?? body['body'] ?? body)
+      : body;
 
   List<dynamic> list;
   if (payload is Map && payload['content'] is List) {
@@ -63,7 +62,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
   Widget _buildSearchBar() {
     return Container(
       color: AppColors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
@@ -79,7 +78,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
             borderSide: const BorderSide(color: AppColors.primary),
           ),
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           fillColor: AppColors.background,
           filled: true,
         ),
@@ -216,7 +215,7 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
                 if (payment.paymentMethodType != null)
                   Container(
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.gray200,
                       borderRadius: BorderRadius.circular(4),

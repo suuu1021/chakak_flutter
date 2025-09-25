@@ -88,7 +88,7 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
   Widget _buildSearchBar() {
     return Container(
       color: AppColors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
@@ -120,7 +120,7 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
   Widget _buildFilterChips() {
     return Container(
       color: AppColors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
