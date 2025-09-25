@@ -5,6 +5,7 @@ import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
 import '../../../../../../data/models/photographer_profile.dart';
 import '../../../../../../data/models/repositories/photographer_profile_repository.dart';
+import '../../../../_core/utils/image_utils.dart';
 import '../../../../provider/core/dio_provider.dart';
 
 class PhotographerInfoSection extends ConsumerStatefulWidget {
@@ -24,7 +25,6 @@ class PhotographerInfoSection extends ConsumerStatefulWidget {
 
 class _PhotographerInfoSectionState
     extends ConsumerState<PhotographerInfoSection> {
-
   // 🔥 로컬 상태 변수들 - 전역 상태와 완전히 분리
   PhotographerProfile? _profile;
   bool _isLoading = true;
@@ -107,24 +107,19 @@ class _PhotographerInfoSectionState
       ),
       child: imageUrl != null && imageUrl.isNotEmpty
           ? ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(
+              borderRadius: BorderRadius.circular(30),
+              child: ImageUtils.buildSafeImage(
+                imageUrl,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+              ),
+            )
+          : const Icon(
               Icons.person,
               size: 30,
               color: Colors.grey,
-            );
-          },
-        ),
-      )
-          : const Icon(
-        Icons.person,
-        size: 30,
-        color: Colors.grey,
-      ),
+            ),
     );
   }
 

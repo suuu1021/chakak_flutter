@@ -1,6 +1,7 @@
 import 'package:chakak_flutter/data/models/photographer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:chakak_flutter/_core/utils/image_utils.dart';
 
 import '../../../../provider/global/photographer/photographer_provider.dart';
 
@@ -70,12 +71,11 @@ class PhotographerListWidget extends ConsumerWidget {
                         color: Colors.grey[300],
                       ),
                       child: ClipOval(
-                        child: Image.network(
+                        child: ImageUtils.buildSafeImage(
                           photographer.imageUrl,
+                          width: 60,
+                          height: 60,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.person, color: Colors.grey);
-                          },
                         ),
                       ),
                     ),

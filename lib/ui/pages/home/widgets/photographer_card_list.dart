@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
+import 'package:chakak_flutter/_core/utils/image_utils.dart';
 
 import '../../../../data/models/photographer.dart';
 import '../../../../provider/global/photographer/photographer_provider.dart';
@@ -61,7 +62,7 @@ class _PhotographerCardListState extends ConsumerState<PhotographerCardList> {
       return const Center(child: Text('등록된 작가가 없습니다.'));
     } else {
       return ListView.builder(
-        padding: EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.only(bottom: 10),
         scrollDirection: Axis.horizontal,
         itemCount: state.photographers.length,
         itemBuilder: (context, index) {
@@ -99,73 +100,6 @@ class PhotographerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget imageWidget;
-    final String imageUrl = photographer.imageUrl;
-
-    if (imageUrl.startsWith('http')) {
-      // Handle network image
-      imageWidget = Image.network(
-        imageUrl,
-        height: 120,
-        width: double.infinity,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 120,
-            color: Colors.grey[200],
-            child: const Center(
-              child: Icon(Icons.person, color: Colors.grey, size: 40),
-            ),
-          );
-        },
-      );
-    } else if (imageUrl.isNotEmpty) {
-      // Handle Base64 image
-      try {
-        String base64String = imageUrl;
-        if (base64String.startsWith('data:image')) {
-          base64String = base64String.split(',').last;
-        }
-        Uint8List imageBytes = base64Decode(base64String);
-        imageWidget = Image.memory(
-          imageBytes,
-          height: 120,
-          width: double.infinity,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print(
-                'Error decoding Base64 image for photographer ${photographer.businessName}: $error');
-            return Container(
-              height: 120,
-              color: Colors.grey[200],
-              child: const Center(
-                child: Icon(Icons.person, color: Colors.grey, size: 40),
-              ),
-            );
-          },
-        );
-      } catch (e) {
-        print(
-            'Error processing Base64 string for photographer ${photographer.businessName}: $e');
-        imageWidget = Container(
-          height: 120,
-          color: Colors.grey[200],
-          child: const Center(
-            child: Icon(Icons.person, color: Colors.grey, size: 40),
-          ),
-        );
-      }
-    } else {
-      // Handle empty or null imageUrl (fallback)
-      imageWidget = Container(
-        height: 120,
-        color: Colors.grey[200],
-        child: const Center(
-          child: Icon(Icons.person, color: Colors.grey, size: 40),
-        ),
-      );
-    }
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -190,28 +124,13 @@ class PhotographerCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: imageWidget,
+                  child: ImageUtils.buildSafeImage(
+                    photographer.imageUrl,
+                    width: double.infinity,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                // Positioned(
-                //   top: 8,
-                //   right: 8,
-                //   child: GestureDetector(
-                //     onTap: onLikeTap,
-                //     child: Container(
-                //       padding: const EdgeInsets.all(4),
-                //       decoration: BoxDecoration(
-                //         color: Colors.white.withOpacity(0.8),
-                //         shape: BoxShape.circle,
-                //       ),
-                //       child: Icon(
-                //         photographer.isLiked
-                //             ? Icons.favorite
-                //             : Icons.favorite_border,
-                //         color: photographer.isLiked ? Colors.red : Colors.black,
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
             Padding(

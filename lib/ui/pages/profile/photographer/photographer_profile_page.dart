@@ -11,7 +11,7 @@ import '../../photo_service/photo_service_form_page.dart';
 import '../../photo_service/widgets/photo_service_list_widget.dart';
 import '../../photo_service/photo_service_detail_page.dart';
 import 'widgets/photographer_upper_profile.dart';
-import 'widgets/photographer_reviews_section.dart'; // ✅ 리뷰 섹션 임포트
+import 'widgets/photographer_reviews_section.dart';
 
 class PhotographerProfilePage extends ConsumerStatefulWidget {
   final int photographerId;
@@ -30,20 +30,22 @@ class _PhotographerProfilePageState
     extends ConsumerState<PhotographerProfilePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _hasLoadedServices = false; // 중복 호출 방지 플래그
+  bool _hasLoadedServices = false;
+
+  // GlobalKey 추가하여 PhotographerUpperProfile에 접근 가능하게 함
+  final GlobalKey<PhotographerUpperProfileState> _upperProfileKey =
+      GlobalKey<PhotographerUpperProfileState>();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 
-    // 한 번만 호출되도록 플래그로 제어
     if (!_hasLoadedServices) {
       _hasLoadedServices = true;
       Future.microtask(() {
         final serviceState = ref.read(photoServiceProvider);
 
-        // 이미 해당 photographer의 서비스가 로드되었는지 확인
         final hasPhotographerServices = serviceState.services
             .any((service) => service.photographerId == widget.photographerId);
 
@@ -110,7 +112,10 @@ class _PhotographerProfilePageState
   Widget _buildProfileSection() {
     return Container(
       padding: const EdgeInsets.all(AppSizes.spacing16),
-      child: PhotographerUpperProfile(photographerId: widget.photographerId),
+      child: PhotographerUpperProfile(
+        key: _upperProfileKey,
+        photographerId: widget.photographerId,
+      ),
     );
   }
 
@@ -150,7 +155,7 @@ class _PhotographerProfilePageState
         children: [
           _buildServiceTab(services, isLoading, isMyProfile),
           PortfolioPage(photographerId: widget.photographerId.toString()),
-          _buildReviewTab(services, isLoading), // ✅ 리뷰 탭
+          _buildReviewTab(services, isLoading),
         ],
       ),
     );
@@ -176,7 +181,7 @@ class _PhotographerProfilePageState
                   builder: (context) => PhotoServiceDetailPage(
                     service: service,
                     otherServices:
-                    services.where((s) => s.id != service.id).toList(),
+                        services.where((s) => s.id != service.id).toList(),
                   ),
                 ),
               );
@@ -188,8 +193,9 @@ class _PhotographerProfilePageState
             bottom: AppSizes.spacing16,
             child: FloatingActionButton(
               heroTag: null,
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                // 서비스 추가 후 결과를 받아서 처리
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => PhotoServiceFormPage(
@@ -197,6 +203,11 @@ class _PhotographerProfilePageState
                     ),
                   ),
                 );
+
+                // 서비스가 추가/수정되었을 때 프로필 새로고침
+                if (result == true && mounted) {
+                  _upperProfileKey.currentState?.refreshProfile();
+                }
               },
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.white,

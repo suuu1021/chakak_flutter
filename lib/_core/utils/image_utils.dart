@@ -1,5 +1,5 @@
-// utils/image_utils.dart 파일
 import 'dart:convert';
+import 'dart:io'; // 추가
 import 'package:flutter/material.dart';
 
 class ImageUtils {
@@ -9,7 +9,7 @@ class ImageUtils {
     double height = 120,
     BoxFit fit = BoxFit.cover,
   }) {
-    // 1. 먼저 URL 체크
+    // 1. URL 체크
     if (imageData.startsWith('http://') || imageData.startsWith('https://')) {
       return Image.network(
         imageData,
@@ -21,7 +21,23 @@ class ImageUtils {
       );
     }
 
-    // 2. Base64 체크 (가장 중요!)
+    // 2. 로컬 파일 경로 체크 (추가!)
+    if (imageData.startsWith('/data/') ||
+        imageData.startsWith('/storage/') ||
+        imageData.startsWith('/')) {
+      return Image.file(
+        File(imageData),
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          print('로컬 파일 로드 실패: $error');
+          return _buildErrorWidget(width, height);
+        },
+      );
+    }
+
+    // 3. Base64 체크
     if (imageData.startsWith('/9j/') || imageData.length > 100) {
       try {
         final bytes = base64Decode(imageData);
@@ -41,7 +57,7 @@ class ImageUtils {
       }
     }
 
-    // 3. Asset 경로 체크 (마지막에!)
+    // 4. Asset 경로 체크
     if (imageData.startsWith('assets/') || imageData.startsWith('images/')) {
       return Image.asset(
         imageData,
@@ -53,7 +69,7 @@ class ImageUtils {
       );
     }
 
-    // 4. 모든 경우에 해당하지 않으면 에러 위젯
+    // 5. 모든 경우에 해당하지 않으면 에러 위젯
     return _buildErrorWidget(width, height);
   }
 
