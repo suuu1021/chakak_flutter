@@ -14,6 +14,7 @@ import '../../../provider/global/photographer/photographer_provider.dart';
 import '../../../provider/review/review_provider.dart';
 import '../chat/chat_screen.dart';
 import '../profile/photographer/photographer_profile_page.dart';
+import '../profile/user/widgets/login_required_dialog.dart';
 import '../review/review_list_screen.dart';
 import '../review/widgets/review_card_widget.dart';
 import 'widgets/other_services_section.dart';
@@ -339,9 +340,15 @@ class _PhotoServiceDetailPageState
   }
 
   void _onBookingTap(BuildContext context, WidgetRef ref) async {
-    try {
-      final session = ref.read(sessionProvider);
+    final session = ref.read(sessionProvider);
 
+    // 비로그인 사용자 체크
+    if (!session.isLogin) {
+      LoginRequiredDialog.show(context);
+      return;
+    }
+
+    try {
       final photographer = ref
           .read(photographerProvider.notifier)
           .getPhotographerById(widget.service.photographerId);
@@ -452,7 +459,8 @@ class ServiceReviewSection extends ConsumerWidget {
     final asyncReviews = ref.watch(recentReviewsProvider(service.id));
 
     return asyncReviews.when(
-      data: (reviewDtoList) { // 변수명을 reviewDtoList로 변경하여 명확화
+      data: (reviewDtoList) {
+        // 변수명을 reviewDtoList로 변경하여 명확화
         if (reviewDtoList.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
@@ -483,7 +491,8 @@ class ServiceReviewSection extends ConsumerWidget {
             const SizedBox(height: 8),
             // reviewDtoList (List<ReviewDto>)를 사용
             ...reviewDtoList.take(5).map(
-              (reviewDto) { // 변수명을 reviewDto로 변경
+              (reviewDto) {
+                // 변수명을 reviewDto로 변경
                 // ReviewDto를 Review 모델로 변환
                 final Review reviewModel = reviewDto.toModel();
 
