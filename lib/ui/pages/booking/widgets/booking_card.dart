@@ -192,7 +192,7 @@ class BookingCard extends ConsumerWidget {
         );
       case BookingStatus.REVIEWED:
         return _buildActionChip(
-          text: '내 리뷰 보기',
+          text: '서비스 상세보기',
           color: AppColors.secondary,
           onPressed: () => _viewMyReview(context, ref), // ref 전달
         );
