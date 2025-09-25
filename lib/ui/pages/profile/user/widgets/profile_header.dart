@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../../_core/constants/app_routes.dart';
+import '../../../../../_core/utils/image_utils.dart';
 import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 import '../../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../../../provider/auth/session_provider.dart';
@@ -60,7 +61,8 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
       final pState = ref.watch(photographerProfileProvider);
 
       if (pState.isLoading) return _buildLoadingHeader();
-      if (pState.errorMessage != null) return _buildErrorHeader(context, ref, pState.errorMessage!);
+      if (pState.errorMessage != null)
+        return _buildErrorHeader(context, ref, pState.errorMessage!);
 
       final profile = pState.profile;
 
@@ -76,14 +78,18 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
               decoration: BoxDecoration(
                 color: AppColors.gray200,
                 borderRadius: BorderRadius.circular(40),
-                image: profile?.profileImageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(profile!.profileImageUrl!), fit: BoxFit.cover)
-                    : null,
               ),
-              child: profile?.profileImageUrl == null
-                  ? Icon(Icons.person, size: 40, color: AppColors.gray500)
-                  : null,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(40),
+                child: profile?.profileImageUrl != null
+                    ? ImageUtils.buildSafeImage(
+                        profile!.profileImageUrl!,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      )
+                    : Icon(Icons.person, size: 40, color: AppColors.gray500),
+              ),
             ),
             const SizedBox(width: AppSizes.spacing16),
             Expanded(
@@ -92,17 +98,22 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
                 children: [
                   Text(
                     profile?.businessName ?? '사진작가',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary),
                   ),
                   const SizedBox(height: AppSizes.spacing4),
                   Text(
                     profile?.location ?? '-',
-                    style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                    style:
+                        TextStyle(fontSize: 14, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: AppSizes.spacing4),
                   Text(
                     profile?.introduction ?? '소개글이 없습니다.',
-                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                    style:
+                        TextStyle(fontSize: 12, color: AppColors.textTertiary),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -112,10 +123,13 @@ class _ProfileHeaderState extends ConsumerState<ProfileHeader> {
             IconButton(
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const PhotographerProfileFormPage()),
+                MaterialPageRoute(
+                    builder: (_) => const PhotographerProfileFormPage()),
               ).then((success) {
                 if (success == true) {
-                  ref.read(photographerProfileProvider.notifier).loadMyProfile();
+                  ref
+                      .read(photographerProfileProvider.notifier)
+                      .loadMyProfile();
                 }
               }),
               icon: const Icon(Icons.edit),
@@ -271,20 +285,18 @@ Widget _buildProfileImage(profile) {
     decoration: BoxDecoration(
       color: AppColors.gray200,
       borderRadius: BorderRadius.circular(40),
-      image: profile?.hasProfileImage == true
-          ? DecorationImage(
-              image: NetworkImage(profile!.imageData!),
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(40),
+      child: profile?.hasProfileImage == true
+          ? ImageUtils.buildSafeImage(
+              profile!.imageData!,
+              width: 80,
+              height: 80,
               fit: BoxFit.cover,
             )
-          : null,
+          : Icon(Icons.person, size: 40, color: AppColors.gray500),
     ),
-    child: profile?.hasProfileImage != true
-        ? Icon(
-            Icons.person,
-            size: 40,
-            color: AppColors.gray500,
-          )
-        : null,
   );
 }
 

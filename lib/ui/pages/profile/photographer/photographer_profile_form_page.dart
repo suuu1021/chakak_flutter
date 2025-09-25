@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../../data/models/photographer_profile.dart';
-import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 import '../../../../provider/auth/session_provider.dart';
-import 'widgets/profile_image_widget.dart';
+import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
 import 'widgets/profile_form_fields.dart';
+import 'widgets/profile_image_widget.dart';
 import 'widgets/profile_save_button.dart';
 
 class PhotographerProfileFormPage extends ConsumerStatefulWidget {
@@ -28,10 +28,8 @@ class _PhotographerProfileFormPageState
   final _locationController = TextEditingController();
   final _experienceYearsController = TextEditingController();
 
-  // String _selectedStatus = '활성'; // 상태 관련 변수 제거
   String? _profileImageUrl;
-
-  bool _requestedLoad = false; // 프로필 로드 요청 플래그
+  bool _requestedLoad = false;
 
   @override
   void initState() {
@@ -135,7 +133,6 @@ class _PhotographerProfileFormPageState
               introductionController: _introductionController,
               locationController: _locationController,
               experienceYearsController: _experienceYearsController,
-              // selectedStatus 및 onStatusChanged 파라미터 제거
             ),
             const SizedBox(height: AppSizes.spacing32),
             ProfileSaveButton(
@@ -155,19 +152,20 @@ class _PhotographerProfileFormPageState
     }
 
     print('[DEBUG] PhotographerProfileFormPage._handleSave 호출');
-    final bool wasEditMode = ref.read(photographerProfileProvider.select((s) => s.isEditMode));
+    final bool wasEditMode =
+        ref.read(photographerProfileProvider.select((s) => s.isEditMode));
 
     try {
-      final success = await ref.read(photographerProfileProvider.notifier).saveProfile(
-        businessName: _businessNameController.text,
-        introduction: _introductionController.text,
-        location: _locationController.text,
-        experienceYears: _experienceYearsController.text.isNotEmpty
-            ? int.tryParse(_experienceYearsController.text)
-            : null,
-        // displayStatus 파라미터 제거
-        profileImageUrl: _profileImageUrl,
-      );
+      final success =
+          await ref.read(photographerProfileProvider.notifier).saveProfile(
+                businessName: _businessNameController.text,
+                introduction: _introductionController.text,
+                location: _locationController.text,
+                experienceYears: _experienceYearsController.text.isNotEmpty
+                    ? int.tryParse(_experienceYearsController.text)
+                    : null,
+                profileImageUrl: _profileImageUrl,
+              );
 
       print('[DEBUG] PhotographerProfileFormPage._handleSave 결과: $success');
 
@@ -178,7 +176,7 @@ class _PhotographerProfileFormPageState
             backgroundColor: AppColors.success,
           ),
         );
-        Navigator.pop(context, true);
+        Navigator.pop(context, 'refresh');
       } else if (mounted) {
         final err = ref.read(profileErrorMessageProvider);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -209,10 +207,7 @@ class _PhotographerProfileFormPageState
     _experienceYearsController.text = profile.experienceYears?.toString() ?? '';
 
     setState(() {
-      // _selectedStatus 설정 로직 제거
       _profileImageUrl = profile.profileImageUrl;
     });
   }
-
-  // _getDisplayStatus 메소드 제거
 }
