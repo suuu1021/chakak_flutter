@@ -43,7 +43,7 @@ class CustomBottomNavigationBar extends ConsumerWidget {
       currentIndex: currentIndex,
       onTap: (index) {
         print("index 값 확인 : $index");
-        if(index == 3) {
+        if(index == 2 || index == 3) {
           if (!session.isLogin) {
             // 로그인되지 않은 경우 다이얼로그 표시
             LoginRequiredDialog.show(context);
