@@ -206,6 +206,27 @@ class _CommunityDetailPageState extends ConsumerState<CommunityDetailPage> {
                 // 게시글 헤더, 본문, 액션 버튼
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    post.title,
+                    style: const TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      height: 1.3,
+                      letterSpacing: 0.9,
+                      shadows: [
+                        Shadow(
+                          offset: Offset(1, 3),
+                          blurRadius: 2,
+                          color: Colors.black12,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12), // 제목과 헤더 사이 간격
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: PostDetailHeader(
                     postId: post.id,
                   ),
