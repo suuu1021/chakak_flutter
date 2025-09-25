@@ -8,6 +8,11 @@ import '../../../../data/models/booking/booking_list_item.dart';
 import '../../../../data/models/booking/booking_model.dart';
 import '../../../../provider/auth/session_provider.dart';
 import '../../../../provider/global/booking/booking_list_notifier.dart';
+// 추가된 import 문들
+import '../../../../provider/global/photoService/photo_service_provider.dart';
+import '../../photo_service/photo_service_detail_page.dart'; // 경로는 실제 프로젝트 구조에 맞게 확인 필요
+import '../../../../data/models/photo_service/photo_service.dart';
+
 import '../../review/review_form_screen.dart';
 import 'booking_cancel_dialog.dart';
 import 'booking_status_chip.dart';
@@ -39,7 +44,7 @@ class BookingCard extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.04), // LINT: Use .withValues()
             spreadRadius: 0,
             blurRadius: 4,
             offset: const Offset(0, 1),
@@ -54,19 +59,14 @@ class BookingCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 상단: 상대방명 + 상태칩
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   BookingStatusChip(status: booking.status),
-                  // 액션 버튼
                   _buildActionButtons(context, ref, userType),
                 ],
               ),
-
               const SizedBox(height: 12),
-
-              // 서비스 정보
               if (booking.photoService != null) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -82,7 +82,7 @@ class BookingCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${DateFormat('yyyy년 M월 d일 HH:mm').format(booking.bookingDateTime)}',
+                        DateFormat('yyyy년 M월 d일 HH:mm').format(booking.bookingDateTime), // LINT: Unnecessary string interpolation
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -164,80 +164,6 @@ class BookingCard extends ConsumerWidget {
     );
   }
 
-  /// 헤더 영역
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            booking.otherPartyName,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-        BookingStatusChip(status: booking.status),
-      ],
-    );
-  }
-
-  /// 서비스 정보 영역 (서비스명, 가격)
-  Widget _buildServiceInfo() {
-    // 통화 형식 수정 - 원화 기호를 직접 사용
-    final currencyFormat = NumberFormat.currency(locale: 'ko_KR', symbol: '₩');
-    final service = booking.photoService;
-
-    // service가 null일 경우 빈 위젯 반환
-    if (service == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.photo_camera_outlined,
-                  size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  service.title,
-                  style: TextStyle(
-                      color: Colors.grey[800], fontWeight: FontWeight.w500),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.paid_outlined, size: 16, color: Colors.grey[600]),
-              const SizedBox(width: 8),
-              Text(
-                currencyFormat.format(service.price),
-                style: TextStyle(
-                    color: Colors.grey[800], fontWeight: FontWeight.w500),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 액션 버튼 영역 (사용자 타입별 분기)
   Widget _buildActionButtons(
       BuildContext context, WidgetRef ref, String? userType) {
     if (userType == "user") {
@@ -248,7 +174,6 @@ class BookingCard extends ConsumerWidget {
     return const SizedBox.shrink();
   }
 
-  /// 사용자 버튼들
   Widget _buildUserButtons(BuildContext context, WidgetRef ref) {
     switch (booking.status) {
       case BookingStatus.PENDING:
@@ -269,16 +194,15 @@ class BookingCard extends ConsumerWidget {
         return _buildActionChip(
           text: '내 리뷰 보기',
           color: AppColors.secondary,
-          onPressed: () => _viewMyReview(context),
+          onPressed: () => _viewMyReview(context, ref),
         );
       case BookingStatus.CANCELED:
         return _buildActionChip(text: '취소된 예약', color: AppColors.error);
-      default:
+      default: // LINT: This default clause is covered by the previous cases.
         return const SizedBox.shrink();
     }
   }
 
-  /// 포토그래퍼 버튼들
   Widget _buildPhotographerButtons(BuildContext context, WidgetRef ref) {
     switch (booking.status) {
       case BookingStatus.PENDING:
@@ -299,16 +223,15 @@ class BookingCard extends ConsumerWidget {
         return _buildActionChip(
           text: '리뷰 확인',
           color: AppColors.secondary,
-          onPressed: () => _viewReview(context),
+          onPressed: () => _viewReview(context, ref),
         );
       case BookingStatus.CANCELED:
         return _buildActionChip(text: '취소된 예약', color: AppColors.error);
-      default:
+      default: // LINT: This default clause is covered by the previous cases.
         return const SizedBox.shrink();
     }
   }
 
-  /// 통합 액션 칩 위젯
   Widget _buildActionChip({
     required String text,
     required Color color,
@@ -327,17 +250,15 @@ class BookingCard extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                // 클릭 가능하면 진한 배경, 아니면 연한 배경
-                color: isClickable ? color : color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8), // 상태칩보다 덜 둥글게
+                color: isClickable ? color : color.withOpacity(0.1), // LINT: Use .withValues()
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isClickable ? color : color.withOpacity(0.3),
+                  color: isClickable ? color : color.withOpacity(0.3), // LINT: Use .withValues()
                 ),
-                // 클릭 가능하면 미세한 그림자
                 boxShadow: isClickable
                     ? [
                         BoxShadow(
-                          color: color.withOpacity(0.6),
+                          color: color.withOpacity(0.6), // LINT: Use .withValues()
                           blurRadius: 4,
                           offset: const Offset(1, 2),
                         ),
@@ -347,7 +268,6 @@ class BookingCard extends ConsumerWidget {
               child: Text(
                 text,
                 style: TextStyle(
-                  // 클릭 가능하면 흰색, 아니면 원래 색상
                   color: isClickable ? Colors.white : color,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -360,7 +280,6 @@ class BookingCard extends ConsumerWidget {
     );
   }
 
-  /// 예약 취소 다이얼로그 표시
   void _showCancelDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -368,7 +287,6 @@ class BookingCard extends ConsumerWidget {
     );
   }
 
-  /// 예약 확정 처리 (포토그래퍼만 가능)
   void _confirmBooking(BuildContext context, WidgetRef ref) {
     if (booking.bookingInfoId != null) {
       ref
@@ -380,7 +298,6 @@ class BookingCard extends ConsumerWidget {
     }
   }
 
-  /// 촬영 완료 처리
   void _completeBooking(BuildContext context, WidgetRef ref) {
     if (booking.bookingInfoId != null) {
       ref
@@ -392,47 +309,86 @@ class BookingCard extends ConsumerWidget {
     }
   }
 
-  /// 리뷰 작성
   void _writeReview(BuildContext context, WidgetRef ref) async {
-    // 1. async 추가
     final result = await Navigator.push(
-      // 2. await으로 결과 받기
       context,
       MaterialPageRoute(
         builder: (context) => ReviewFormScreen(booking: booking),
       ),
     );
 
-    // 3. ReviewFormScreen에서 true를 반환했고, 위젯이 아직 화면에 있다면
     if (result == true && context.mounted) {
       if (booking.bookingInfoId != null) {
-        // 4. BookingListNotifier의 markBookingAsReviewed 메서드 호출
         ref
             .read(bookingListProvider.notifier)
             .markBookingAsReviewed(booking.bookingInfoId!);
+        // LINT: Don't invoke 'print' in production code.
         print(
             '[BookingCard] markBookingAsReviewed 호출 완료 for bookingId: ${booking.bookingInfoId}');
-
-        // (선택적) 사용자에게 추가적인 피드백을 주고 싶다면 여기에 SnackBar 등을 표시할 수 있습니다.
-        // 하지만 ReviewFormScreen 에서 이미 성공 다이얼로그를 보여주므로 중복될 수 있습니다.
       } else {
+        // LINT: Don't invoke 'print' in production code.
         print(
             '[BookingCard] booking.bookingInfoId is null, cannot update status.');
       }
     }
   }
 
-  /// 내 리뷰 보기 (TODO: 리뷰 상세 화면으로 이동)
-  void _viewMyReview(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('리뷰 보기 기능은 준비 중입니다')),
-    );
+  // 공통 서비스 상세 페이지 이동 로직
+  Future<void> _navigateToServiceDetail(BuildContext context, WidgetRef ref) async {
+    // booking.photoService?.id가 int? 타입이라고 가정하여 수정
+    final int? serviceId = booking.photoService?.id;
+
+    if (serviceId == null) { // .isEmpty 체크 제거, null 체크만 수행
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("서비스 ID가 없어 상세 페이지로 이동할 수 없습니다.")),
+        );
+      }
+      return;
+    }
+
+    // serviceId는 이미 int? 타입이므로, 파싱 불필요. 바로 사용.
+    final int intServiceId = serviceId;
+
+    try {
+      // 로딩 인디케이터 (선택적)
+      // if (context.mounted) showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator()));
+
+      final PhotoService? loadedPhotoService = await ref
+          .read(photoServiceProvider.notifier)
+          .loadServiceDetail(intServiceId); // intServiceId 직접 사용
+      
+      // if (context.mounted) Navigator.of(context).pop(); // 로딩 인디케이터 닫기
+
+      if (loadedPhotoService != null && context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PhotoServiceDetailPage(service: loadedPhotoService),
+          ),
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("해당 서비스 정보를 찾을 수 없습니다.")),
+        );
+      }
+    } catch (e) {
+      // if (context.mounted) Navigator.of(context).pop(); // 로딩 인디케이터 닫기
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("상세 페이지 이동 중 오류 발생: $e")),
+        );
+      }
+    }
   }
 
-  /// 작성된 리뷰 확인 (TODO: 리뷰 상세 화면으로 이동)
-  void _viewReview(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('리뷰 확인 기능은 준비 중입니다')),
-    );
+  /// 내 리뷰 보기 (서비스 상세 페이지로 이동)
+  void _viewMyReview(BuildContext context, WidgetRef ref) {
+    _navigateToServiceDetail(context, ref);
+  }
+
+  /// 작성된 리뷰 확인 (서비스 상세 페이지로 이동)
+  void _viewReview(BuildContext context, WidgetRef ref) {
+    _navigateToServiceDetail(context, ref);
   }
 }
