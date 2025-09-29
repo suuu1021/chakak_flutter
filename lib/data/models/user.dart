@@ -1,5 +1,3 @@
-// lib/data/models/user.dart
-
 enum UserStatus {
   ACTIVE, // 활성
   INACTIVE, // 비활성
@@ -101,7 +99,6 @@ class User {
     };
   }
 
-  /// copyWith 메서드: 기존 User 객체를 복사하면서 일부 필드만 수정 가능
   User copyWith({
     int? userId,
     String? email,

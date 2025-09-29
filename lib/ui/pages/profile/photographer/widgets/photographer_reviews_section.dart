@@ -4,10 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../../data/models/review.dart';
-import '../../../../../provider/global/photographer/photographer_reviews_provider.dart';
-import '../../../../../data/dtos/review/review_dto.dart';
+import '../../../../../provider/photographer/photographer_reviews_provider.dart';
 
-/// ✅ 포토그래퍼 전체 리뷰 섹션 위젯
 class PhotographerReviewsSection extends ConsumerWidget {
   final int photographerId;
 
@@ -26,13 +24,12 @@ class PhotographerReviewsSection extends ConsumerWidget {
           return const Center(child: Text("아직 작성된 리뷰가 없습니다."));
         }
 
-        // ✅ ReviewDto → Review 변환
         final List<Review> reviews =
-        reviewPage.content.map((dto) => dto.toModel()).toList();
+            reviewPage.content.map((dto) => dto.toModel()).toList();
 
         final double averageRating = reviews.isNotEmpty
             ? reviews.map((r) => r.rating).reduce((a, b) => a + b) /
-            reviews.length
+                reviews.length
             : 0.0;
 
         return Column(
@@ -44,10 +41,8 @@ class PhotographerReviewsSection extends ConsumerWidget {
           ],
         );
       },
-      loading: () =>
-      const Center(child: CircularProgressIndicator()), // 로딩중
-      error: (error, stack) =>
-          Center(child: Text("리뷰 로딩 실패: $error")), // 에러처리
+      loading: () => const Center(child: CircularProgressIndicator()), // 로딩중
+      error: (error, stack) => Center(child: Text("리뷰 로딩 실패: $error")), // 에러처리
     );
   }
 
@@ -101,7 +96,7 @@ class PhotographerReviewsSection extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: reviews.length,
       separatorBuilder: (context, index) =>
-      const SizedBox(height: AppSizes.spacing16),
+          const SizedBox(height: AppSizes.spacing16),
       itemBuilder: (context, index) {
         return _buildReviewCard(reviews[index]);
       },

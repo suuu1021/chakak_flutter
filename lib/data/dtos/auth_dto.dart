@@ -1,4 +1,4 @@
-// <<<     회원가입  요청       >>>
+// 회원가입  요청
 class RegisterRequest {
   final String email;
   final String password;
@@ -19,7 +19,7 @@ class RegisterRequest {
   }
 }
 
-// <<<    회원가입 응답 DTO     >>>
+// 회원가입 응답 DTO
 // 일반 회원가입 성공 응답 DTO
 class RegisterResponse {
   final int userId;

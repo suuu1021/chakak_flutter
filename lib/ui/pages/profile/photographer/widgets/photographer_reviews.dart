@@ -2,18 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../_core/constants/app_colors.dart';
-import '../../../../../data/models/repositories/photo_service_repository.dart';
 import '../../../../../data/models/review.dart';
 import '../../../../../provider/chat/chat_provider.dart';
 
-// 3단계: Provider 생성
 final reviewsProvider =
     FutureProvider.family<ReviewPage, int>((ref, serviceId) async {
   final repository = ref.watch(photoServiceRepositoryProvider);
   return repository.fetchReviews(serviceId: serviceId);
 });
 
-// 4단계: UI 수정
 class PhotographerReviews extends ConsumerWidget {
   final int serviceId;
 
@@ -162,7 +159,7 @@ class PhotographerReviews extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            review.content, // reviewContent에서 content로 변경 (Review 모델 따름)
+            review.content,
             style: const TextStyle(
               fontSize: 14,
               color: AppColors.textPrimary,

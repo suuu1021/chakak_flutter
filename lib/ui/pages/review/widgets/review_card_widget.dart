@@ -43,7 +43,7 @@ class ReviewCardWidget extends StatelessWidget {
             // 사용자 정보 (닉네임)
             // 'mode'에 따라 다르게 표시할 수도 있지만, 우선은 닉네임으로 통일
             Text(
-              "작성자: ${review.author.nickname}", // reviewerId -> author.nickname
+              "작성자: ${review.author.nickname}",
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
@@ -52,16 +52,16 @@ class ReviewCardWidget extends StatelessWidget {
             const SizedBox(height: 4),
             // 리뷰 내용
             Text(
-              review.content.isNotEmpty ? review.content : "코멘트 없음", // reviewContent -> content
+              review.content.isNotEmpty ? review.content : "코멘트 없음",
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 8),
             // 별점
-            Text("⭐ ${review.rating.toStringAsFixed(1)} / 5"), // 평점은 .toStringAsFixed(1)로 소수점 한자리 표시
+            Text("⭐ ${review.rating.toStringAsFixed(1)} / 5"),
             const SizedBox(height: 4),
             // 작성일
             Text(
-              "작성일: $formattedDate", // createdAt (String) 직접 사용 또는 파싱 후 포매팅
+              "작성일: $formattedDate",
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],

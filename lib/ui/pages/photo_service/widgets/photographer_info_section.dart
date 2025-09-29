@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
-import '../../../../../../data/models/photographer_profile.dart';
-import '../../../../../../data/models/repositories/photographer_profile_repository.dart';
 import '../../../../_core/utils/image_utils.dart';
+import '../../../../data/models/_repositories/photographer_profile_repository.dart';
+import '../../../../data/models/photographer/photographer_profile.dart';
 import '../../../../provider/core/dio_provider.dart';
 
 class PhotographerInfoSection extends ConsumerStatefulWidget {
@@ -25,7 +24,6 @@ class PhotographerInfoSection extends ConsumerStatefulWidget {
 
 class _PhotographerInfoSectionState
     extends ConsumerState<PhotographerInfoSection> {
-  // 🔥 로컬 상태 변수들 - 전역 상태와 완전히 분리
   PhotographerProfile? _profile;
   bool _isLoading = true;
   String? _errorMessage;
@@ -36,7 +34,6 @@ class _PhotographerInfoSectionState
     _loadPhotographerProfile();
   }
 
-  // API를 직접 호출하여 로컬 변수에만 저장
   Future<void> _loadPhotographerProfile() async {
     if (!mounted) return;
 

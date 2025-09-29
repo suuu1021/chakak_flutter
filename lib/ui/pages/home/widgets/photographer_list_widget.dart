@@ -1,9 +1,8 @@
-import 'package:chakak_flutter/data/models/photographer.dart';
+import 'package:chakak_flutter/data/models/photographer/photographer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/utils/image_utils.dart';
-
-import '../../../../provider/global/photographer/photographer_provider.dart';
+import '../../../../provider/photographer/photographer_provider.dart';
 
 class PhotographerListWidget extends ConsumerWidget {
   final List<Photographer> photographers;

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,8 +9,8 @@ import '../../../../_core/constants/app_sizes.dart';
 import '../../../../_core/utils/error_handler.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/photo_service/price_option.dart';
-import '../../../data/models/photo_service_category.dart';
-import '../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../data/models/photographer/photo_service_category.dart';
+import '../../../provider/photoService/photo_service_provider.dart';
 
 class PhotoServiceFormPage extends ConsumerStatefulWidget {
   final PhotoService? service; // null이면 생성, 있으면 수정
@@ -37,7 +36,6 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
   List<String> _selectedCategoryIds = [];
   List<PhotoServiceCategory> _availableCategories = [];
 
-  // 포트폴리오 패턴을 따라 Object 타입으로 변경 (File과 String을 모두 처리)
   List<Object> _selectedImages = [];
   bool _isLoading = false;
 
@@ -57,7 +55,6 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
     _titleController.text = service.title;
     _descriptionController.text = service.description;
 
-    // 기존 이미지 URL을 _selectedImages에 추가 (포트폴리오 패턴과 동일)
     if (service.imageUrl != null && service.imageUrl!.isNotEmpty) {
       _selectedImages = [service.imageUrl!];
     }
@@ -186,7 +183,6 @@ class _PhotoServiceFormPageState extends ConsumerState<PhotoServiceFormPage> {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              // 선택된 이미지들 표시 (File과 String 모두 처리)
               ..._selectedImages.asMap().entries.map((entry) {
                 final index = entry.key;
                 final image = entry.value;

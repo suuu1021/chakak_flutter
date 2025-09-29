@@ -1,10 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/data/dtos/review/review_dto.dart';
-import 'package:chakak_flutter/data/models/repositories/review_repository.dart';
 import 'package:chakak_flutter/data/dtos/paged_response_dto.dart';
-import '../core/dio_provider.dart'; // dio_provider 경로 수정
+import '../../data/models/_repositories/review_repository.dart';
+import '../core/dio_provider.dart';
 
-enum PhotographerReviewStatus { initial, loading, success, failure, loadingMore }
+enum PhotographerReviewStatus {
+  initial,
+  loading,
+  success,
+  failure,
+  loadingMore
+}
 
 class PhotographerReviewState {
   final PhotographerReviewStatus status;
@@ -38,12 +44,14 @@ class PhotographerReviewState {
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       canLoadMore: canLoadMore ?? this.canLoadMore,
-      errorMessage: clearErrorMessage == true ? null : errorMessage ?? this.errorMessage,
+      errorMessage:
+          clearErrorMessage == true ? null : errorMessage ?? this.errorMessage,
     );
   }
 }
 
-class PhotographerReviewNotifier extends StateNotifier<PhotographerReviewState> {
+class PhotographerReviewNotifier
+    extends StateNotifier<PhotographerReviewState> {
   final ReviewRepository _reviewRepository;
   final int photographerId;
 
@@ -54,15 +62,14 @@ class PhotographerReviewNotifier extends StateNotifier<PhotographerReviewState> 
 
   Future<void> fetchInitialReviews({int pageSize = 10}) async {
     if (state.status == PhotographerReviewStatus.loading) return;
-    state = state.copyWith(status: PhotographerReviewStatus.loading, clearErrorMessage: true);
+    state = state.copyWith(
+        status: PhotographerReviewStatus.loading, clearErrorMessage: true);
     try {
       final PagedResponseDto<ReviewDto> pagedResponse =
           await _reviewRepository.getPhotographerReviews(
         photographerId,
         page: 0,
         size: pageSize,
-        // sortBy: 'createdAt', // 필요 시 정렬 옵션 추가
-        // sortDir: 'desc',
       );
       state = state.copyWith(
         status: PhotographerReviewStatus.success,
@@ -80,9 +87,11 @@ class PhotographerReviewNotifier extends StateNotifier<PhotographerReviewState> 
   }
 
   Future<void> loadMoreReviews({int pageSize = 10}) async {
-    if (!state.canLoadMore || state.status == PhotographerReviewStatus.loadingMore) return;
+    if (!state.canLoadMore ||
+        state.status == PhotographerReviewStatus.loadingMore) return;
 
-    state = state.copyWith(status: PhotographerReviewStatus.loadingMore, clearErrorMessage: true);
+    state = state.copyWith(
+        status: PhotographerReviewStatus.loadingMore, clearErrorMessage: true);
     try {
       final nextPage = state.currentPage + 1;
       final PagedResponseDto<ReviewDto> pagedResponse =
@@ -100,9 +109,8 @@ class PhotographerReviewNotifier extends StateNotifier<PhotographerReviewState> 
       );
     } catch (e) {
       state = state.copyWith(
-        status: PhotographerReviewStatus.success, // 에러 발생 시 로딩 상태를 되돌림
+        status: PhotographerReviewStatus.success,
         errorMessage: e.toString(),
-        // canLoadMore: false, // 선택적으로 더 이상 로드 시도를 막을 수 있음
       );
     }
   }

@@ -1,6 +1,5 @@
-import '../dtos/review/review_dto.dart'; // <<<<<<< ReviewDto import 추가
+import '../dtos/review/review_dto.dart';
 
-// API 명세 ("2-2. 특정 서비스(상품)의 리뷰 목록 조회")에 맞춘 Review 모델
 class Review {
   final int reviewId;
   final String? serviceId;
@@ -19,8 +18,6 @@ class Review {
     required this.author,
     required this.createdAt,
   });
-
-  // factory Review.fromJson은 DTO에서 toModel을 사용하므로 여기서는 직접 사용 안 함
 
   Review copyWith({
     int? reviewId,
@@ -48,7 +45,6 @@ class Review {
   }
 }
 
-// 리뷰 목록의 페이지네이션 정보를 담는 모델
 class ReviewPage {
   final List<Review> content;
   final bool last;
@@ -75,7 +71,8 @@ class ReviewPage {
   factory ReviewPage.fromJson(Map<String, dynamic> json) {
     return ReviewPage(
       content: (json['content'] as List)
-          .map((item) => ReviewDto.fromJson(item as Map<String, dynamic>).toModel()) // <<<<<<< 수정된 부분
+          .map((item) =>
+              ReviewDto.fromJson(item as Map<String, dynamic>).toModel())
           .toList(),
       last: json['last'] as bool,
       totalPages: json['totalPages'] as int,
@@ -89,7 +86,6 @@ class ReviewPage {
   }
 }
 
-// 리뷰 작성자 정보를 담는 모델 (API 명세와 일치)
 class AuthorInfo {
   final int userId;
   final String nickname;

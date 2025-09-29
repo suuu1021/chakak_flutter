@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../_core/constants/app_colors.dart';
-import '../../../data/models/portfolio.dart';
-import '../../../provider/auth_provider.dart';
-import '../../../provider/global/portfolio/portfolio_notifier.dart';
+import '../../../data/models/portfolio/portfolio.dart';
+import '../../../provider/auth/auth_provider.dart';
+import '../../../provider/portfolio/portfolio_notifier.dart';
 import 'portfolio_form_page.dart';
 import 'widgets/portfolio_image_gallery.dart';
 import 'widgets/portfolio_content_section.dart';
@@ -26,7 +26,6 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
   @override
   void initState() {
     super.initState();
-    // initState에서 provider를 호출할 때는 microtask를 사용
     Future.microtask(() {
       ref.read(portfolioProvider.notifier).selectPortfolio(widget.portfolioId);
     });
@@ -37,7 +36,6 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
     final portfolioState = ref.watch(portfolioProvider);
     final portfolio = portfolioState.selectedPortfolio;
 
-    // 데이터 로딩 중이거나, 선택된 포트폴리오가 없거나, ID가 일치하지 않는 경우 로딩 인디케이터 표시
     if (portfolio == null || portfolio.id != widget.portfolioId) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -121,7 +119,9 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
           TextButton(
             onPressed: () async {
               try {
-                await ref.read(portfolioProvider.notifier).deletePortfolio(portfolio.id);
+                await ref
+                    .read(portfolioProvider.notifier)
+                    .deletePortfolio(portfolio.id);
                 if (mounted) {
                   Navigator.of(context).pop(); // 다이얼로그 닫기
                   Navigator.of(context).pop(true); // 이전 페이지로 돌아가며 성공 알림
@@ -143,8 +143,7 @@ class _PortfolioDetailPageState extends ConsumerState<PortfolioDetailPage> {
   }
 
   void _sharePortfolio(Portfolio portfolio) {
-    final shareText =
-        '${portfolio.title}\n\n${portfolio.description}\n\n'
+    final shareText = '${portfolio.title}\n\n${portfolio.description}\n\n'
         'https://myapp.com/portfolio/${portfolio.id}';
     Share.share(shareText);
   }

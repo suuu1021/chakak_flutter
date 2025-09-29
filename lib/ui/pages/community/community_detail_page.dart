@@ -5,8 +5,8 @@ import '../../../_core/constants/app_colors.dart';
 import '../../../data/models/community/post.dart';
 import '../../../data/models/community/reply.dart';
 import '../../../provider/auth/session_provider.dart';
-import '../../../provider/global/community/post_provider.dart';
-import '../../../provider/global/community/reply_provider.dart';
+import '../../../provider/community/post_provider.dart';
+import '../../../provider/community/reply_provider.dart';
 import 'community_form_page.dart';
 import 'widgets/community_states.dart';
 import 'widgets/post_detail_header.dart';
@@ -224,7 +224,7 @@ class _CommunityDetailPageState extends ConsumerState<CommunityDetailPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12), // 제목과 헤더 사이 간격
+                const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: PostDetailHeader(
@@ -282,7 +282,7 @@ class _CommunityDetailPageState extends ConsumerState<CommunityDetailPage> {
    * 게시글 수정
    */
   void _editPost(Post post) {
-    Navigator.pop(context); // 바텀시트 닫기
+    Navigator.pop(context);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -295,12 +295,12 @@ class _CommunityDetailPageState extends ConsumerState<CommunityDetailPage> {
    * 게시글 삭제
    */
   void _deletePost(Post post) async {
-    Navigator.pop(context); // 바텀시트 닫기
+    Navigator.pop(context);
     final confirmed = await _showDeleteConfirmDialog();
     if (confirmed) {
       await ref.read(postProvider.notifier).deletePost(post.id);
       if (mounted) {
-        Navigator.pop(context); // 상세페이지 닫기
+        Navigator.pop(context);
       }
     }
   }

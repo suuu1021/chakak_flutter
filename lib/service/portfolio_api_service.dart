@@ -1,11 +1,8 @@
-// lib/services/api/portfolio_api_service.dart
-
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:dio/dio.dart';
 
-// 페이징 응답 데이터 클래스 (클래스 외부에서 정의)
+// 페이징 응답 데이터 클래스
 class PaginatedResponse<T> {
   final List<T> content;
   final int page;

@@ -1,4 +1,4 @@
-import '../photo_service_dto.dart';
+import '../photo_service/photo_service_dto.dart';
 
 class ApiBookingItemDto {
   final int bookingInfoId;
@@ -18,7 +18,8 @@ class ApiBookingItemDto {
       bookingInfoId: json['bookingInfoId'] as int,
       bookingDate: json['bookingDate'] as String,
       bookingStatus: json['bookingStatus'] as String,
-      photoServiceInfo: PhotoServiceDto.fromJson(json['photoServiceInfo'] as Map<String, dynamic>),
+      photoServiceInfo: PhotoServiceDto.fromJson(
+          json['photoServiceInfo'] as Map<String, dynamic>),
     );
   }
 }

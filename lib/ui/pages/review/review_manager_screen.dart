@@ -1,21 +1,18 @@
-// lib/ui/pages/review/review_manager_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // 추가
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../provider/photographer_profile/photographer_profile_notifier.dart';
 import 'my_review_screen.dart';
 import 'photographer_review_screen.dart';
 import '../../../_core/constants/user_type.dart';
-import '../../../provider/global/photographer_profile/photographer_profile_notifier.dart'; // 추가
 
-// StatelessWidget에서 ConsumerWidget으로 변경
 class ReviewManagerScreen extends ConsumerWidget {
   final UserType userType;
 
   const ReviewManagerScreen({super.key, required this.userType});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) { // WidgetRef ref 추가
+  Widget build(BuildContext context, WidgetRef ref) {
     if (userType == UserType.photographer) {
-      // 포토그래퍼 프로필 상태를 watch
       final profileState = ref.watch(photographerProfileProvider);
 
       if (profileState.isLoading) {

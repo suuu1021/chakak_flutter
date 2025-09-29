@@ -1,7 +1,7 @@
 import 'package:chakak_flutter/ui/pages/chat/chat_list_screen.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/models/portfolio.dart'; //
+import '../../data/models/portfolio/portfolio.dart'; //
 import '../../ui/pages/auth/login_choice_screen.dart';
 import '../../ui/pages/auth/login_screen.dart';
 import '../../ui/pages/auth/signup_screen.dart';
@@ -65,8 +65,8 @@ class AppRoutes {
         photographerProfileForm: (context) =>
             const PhotographerProfileFormPage(),
         profileEdit: (context) => const ProfileEditPage(),
-        photographerReviews: (context) => 
-            const ReviewManagerScreen(userType: UserType.photographer), // 수정된 부분
+        photographerReviews: (context) => const ReviewManagerScreen(
+            userType: UserType.photographer), // 수정된 부분
         reviewManager: (context) =>
             const ReviewManagerScreen(userType: UserType.user), // 기본값은 일반 유저
         portfolioDetail: (context) {

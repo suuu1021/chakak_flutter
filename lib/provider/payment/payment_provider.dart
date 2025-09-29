@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/payment.dart';
-import '../../../data/dtos/payment/payment_dto.dart';
 import '../../../data/dtos/payment/payment_response_dto.dart';
 import '../../../service/payment_service.dart';
 import '../core/dio_provider.dart';
 
-// State 클래스
 class PaymentState {
   final List<Payment> payments;
   final bool isLoading;
@@ -36,7 +34,6 @@ class PaymentState {
   }
 }
 
-// Notifier 클래스
 class PaymentNotifier extends StateNotifier<PaymentState> {
   final PaymentService _paymentService;
 
@@ -91,7 +88,6 @@ class PaymentNotifier extends StateNotifier<PaymentState> {
   }
 }
 
-// Provider
 final paymentProvider =
     StateNotifierProvider<PaymentNotifier, PaymentState>((ref) {
   final dio = ref.watch(dioProvider);

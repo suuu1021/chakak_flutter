@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import '../../../data/models/portfolio.dart';
+import '../../../data/models/portfolio/portfolio.dart';
 import '../../../provider/auth/session_provider.dart';
-import '../../../provider/global/portfolio/portfolio_notifier.dart';
+import '../../../provider/portfolio/portfolio_notifier.dart';
 import 'portfolio_detail_page.dart';
 import 'portfolio_form_page.dart';
 import 'widgets/portfolio_card_widget.dart';

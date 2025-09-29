@@ -181,20 +181,17 @@ class _ReviewListScreenState extends ConsumerState<ReviewListScreen> {
             review: reviewModel,
             mode: "user",
             onTap: () {
-              // 서비스 상세 페이지로 이동
-              // PhotoService 객체 생성 시 필요한 정보들은 현재 컨텍스트에서 가져올 수 있는 값으로 채워야 합니다.
-              // 예를 들어, title, photographerId 등은 reviewDto 또는 다른 Provider에서 가져올 수 있습니다.
-              // 여기서는 임시 값으로 설정하며, 실제 프로젝트에서는 정확한 데이터로 채워야 합니다.
               final dummyService = PhotoService(
-                id: widget.serviceId, // 현재 화면의 serviceId 사용
-                photographerId: 1, // TODO: 실제 사진작가 ID로 교체 필요
-                photographerUserId: int.tryParse(reviewDto.reviewerId) ?? 0, // DTO의 reviewerId를 사용 (userId로 간주)
-                title: "서비스 상세", // TODO: 실제 서비스 제목으로 교체 필요
-                imageUrl: reviewModel.thumbnailUrl ?? "https://via.placeholder.com/150",
-                categories: [], // TODO: 실제 카테고리 정보로 교체 필요
-                price: 0, // TODO: 실제 가격 정보로 교체 필요
+                id: widget.serviceId,
+                photographerId: 1,
+                photographerUserId: int.tryParse(reviewDto.reviewerId) ?? 0,
+                title: "서비스 상세",
+                imageUrl: reviewModel.thumbnailUrl ??
+                    "https://via.placeholder.com/150",
+                categories: [],
+                price: 0,
                 rating: reviewModel.rating,
-                reviewCount: reviewsListState.reviews.length, // TODO: 더 정확한 리뷰 카운트 로직 필요 (전체 카운트 등)
+                reviewCount: reviewsListState.reviews.length,
               );
               Navigator.push(
                 context,

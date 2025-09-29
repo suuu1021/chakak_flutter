@@ -8,8 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/banner.dart';
 import '../../../data/models/photo_service/photo_service.dart';
-import '../../../data/models/photo_service_category.dart';
-import '../../../data/models/photographer.dart';
+import '../../../data/models/photographer/photo_service_category.dart';
+import '../../../data/models/photographer/photographer.dart';
 import '../../../provider/auth/session_provider.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
@@ -34,7 +34,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final int currentIndex = ref.watch(bottomNavIndexProvider);
-    final session = ref.watch(sessionProvider); // 세션 가져오기
+    final session = ref.watch(sessionProvider);
 
     return Scaffold(
       appBar: CustomAppbar(session: session),
@@ -124,11 +124,9 @@ class _HomeContentState extends ConsumerState<HomeContent>
               onCategorySelected: (category) =>
                   _onCategoryTap(context, category),
             ),
-            //const SizedBox(height: 8),
             ServiceCardList(
               onServiceTap: (service) => _onServiceTap(context, service),
             ),
-            //const SizedBox(height: 8),
             PhotographerCardList(
               onPhotographerTap: (photographer) =>
                   _onPhotographerTap(context, photographer),

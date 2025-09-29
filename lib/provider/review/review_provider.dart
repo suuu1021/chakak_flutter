@@ -1,28 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-// Core DioProvider
 import 'package:chakak_flutter/provider/core/dio_provider.dart';
-
-// Repositories
-import 'package:chakak_flutter/data/models/repositories/review_repository.dart';
-
-// DTOs
 import 'package:chakak_flutter/data/dtos/review/review_status_dto.dart';
 import 'package:chakak_flutter/data/dtos/review/review_dto.dart';
-import 'package:chakak_flutter/data/dtos/paged_response_dto.dart';
-import 'package:chakak_flutter/data/dtos/review/reviewCreationRequestDto.dart';
 
-/// --------------------
+import 'package:chakak_flutter/data/dtos/review/reviewCreationRequestDto.dart';
+import '../../data/models/_repositories/review_repository.dart';
+
 /// ReviewRepository Provider
-/// --------------------
 final reviewRepositoryProvider = Provider<ReviewRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return ReviewRepository(dio);
 });
 
-/// --------------------
 /// Review Status (특정 서비스의 리뷰 통계)
-/// --------------------
 enum ReviewServiceFetchStatus { initial, loading, success, error }
 
 class ReviewServiceStatusState {
@@ -50,7 +40,7 @@ class ReviewServiceStatusState {
       status: status ?? this.status,
       data: clearData ? null : data ?? this.data,
       errorMessage:
-      clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
       currentServiceId: currentServiceId ?? this.currentServiceId,
     );
   }
@@ -89,12 +79,11 @@ class ReviewServiceStatusNotifier extends Notifier<ReviewServiceStatusState> {
   void resetState() => state = const ReviewServiceStatusState();
 }
 
-final reviewStatusProvider = NotifierProvider<ReviewServiceStatusNotifier,
-    ReviewServiceStatusState>(ReviewServiceStatusNotifier.new);
+final reviewStatusProvider =
+    NotifierProvider<ReviewServiceStatusNotifier, ReviewServiceStatusState>(
+        ReviewServiceStatusNotifier.new);
 
-/// --------------------
 /// Reviews List (특정 서비스 리뷰 목록, 페이지네이션 포함)
-/// --------------------
 enum ReviewsListFetchStatus {
   initial,
   loadingFirstPage,
@@ -142,7 +131,7 @@ class ReviewsListState {
       reviews: clearReviews ? [] : reviews ?? this.reviews,
       currentPage: currentPage ?? this.currentPage,
       errorMessage:
-      clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
       canLoadMore: canLoadMore ?? this.canLoadMore,
       currentServiceId: currentServiceId ?? this.currentServiceId,
       currentSortBy: currentSortBy ?? this.currentSortBy,
@@ -246,12 +235,10 @@ class ReviewsListNotifier extends Notifier<ReviewsListState> {
 }
 
 final reviewsListProvider =
-NotifierProvider<ReviewsListNotifier, ReviewsListState>(
-    ReviewsListNotifier.new);
+    NotifierProvider<ReviewsListNotifier, ReviewsListState>(
+        ReviewsListNotifier.new);
 
-/// --------------------
 /// Review Creation (리뷰 작성)
-/// --------------------
 enum ReviewCreationStatus { initial, loading, success, error }
 
 class ReviewCreationState {
@@ -275,9 +262,9 @@ class ReviewCreationState {
     return ReviewCreationState(
       status: status ?? this.status,
       errorMessage:
-      clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
       createdReview:
-      clearCreatedReview ? null : createdReview ?? this.createdReview,
+          clearCreatedReview ? null : createdReview ?? this.createdReview,
     );
   }
 }
@@ -297,7 +284,7 @@ class ReviewCreationNotifier extends Notifier<ReviewCreationState> {
     try {
       final repo = ref.read(reviewRepositoryProvider);
       final createdReviewDto =
-      await repo.createReview(reviewCreationRequestDto);
+          await repo.createReview(reviewCreationRequestDto);
 
       state = state.copyWith(
         status: ReviewCreationStatus.success,
@@ -317,14 +304,12 @@ class ReviewCreationNotifier extends Notifier<ReviewCreationState> {
 }
 
 final reviewCreationProvider =
-NotifierProvider<ReviewCreationNotifier, ReviewCreationState>(
-    ReviewCreationNotifier.new);
+    NotifierProvider<ReviewCreationNotifier, ReviewCreationState>(
+        ReviewCreationNotifier.new);
 
-/// --------------------
 /// Recent Reviews (최근 리뷰 5개)
-/// --------------------
 final recentReviewsProvider =
-FutureProvider.family<List<ReviewDto>, int>((ref, serviceId) async {
+    FutureProvider.family<List<ReviewDto>, int>((ref, serviceId) async {
   final repo = ref.read(reviewRepositoryProvider);
   final reviews = await repo.getRecentReviews(serviceId);
   return reviews;

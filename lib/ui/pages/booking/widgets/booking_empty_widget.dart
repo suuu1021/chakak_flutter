@@ -58,32 +58,31 @@ class BookingEmptyWidget extends StatelessWidget {
     }
 
     switch (selectedFilter!) {
-      case BookingStatus.PENDING: // PENDING으로 수정
+      case BookingStatus.PENDING:
         return const _EmptyData(
           icon: Icons.schedule,
           title: '대기중인 예약이 없습니다',
           subtitle: '새로운 예약을 진행해보세요',
         );
-      case BookingStatus.CONFIRMED: // CONFIRMED으로 수정
+      case BookingStatus.CONFIRMED:
         return const _EmptyData(
           icon: Icons.check_circle_outline,
           title: '확정된 예약이 없습니다',
           subtitle: '결제 완료된 예약이 여기에 표시됩니다',
         );
-      case BookingStatus.COMPLETED: // COMPLETED로 수정
+      case BookingStatus.COMPLETED:
         return const _EmptyData(
           icon: Icons.camera_alt_outlined,
           title: '완료된 촬영이 없습니다',
           subtitle: '촬영이 완료되면 여기에서 확인할 수 있습니다',
         );
-      case BookingStatus.REVIEWED: // REVIEWED로 수정
+      case BookingStatus.REVIEWED:
         return const _EmptyData(
           icon: Icons.star_outline,
           title: '리뷰 완료한 촬영이 없습니다',
           subtitle: '촬영 후 리뷰를 작성하면 여기에 표시됩니다',
         );
       default:
-        // rejected, canceled 등
         return const _EmptyData(
           icon: Icons.info_outline,
           title: '해당 상태의 예약이 없습니다',

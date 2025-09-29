@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../data/models/photo_service_category.dart';
-import '../../../../provider/global/category/photo_service_category_provider.dart';
+import '../../../../data/models/photographer/photo_service_category.dart';
+import '../../../../provider/category/photo_service_category_provider.dart';
 
 class CategoryGrid extends ConsumerWidget {
   final Function(PhotoServiceCategory) onCategoryTap;

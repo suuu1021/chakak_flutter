@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../_core/constants/sender_type.dart';
-import '../../data/models/repositories/chat_repository.dart';
-import '../../data/dtos/chat_message_dto.dart';
-import '../../data/models/repositories/booking_repository.dart';
 import '../../data/dtos/booking/booking_request_dto.dart';
-import '../../data/models/repositories/photo_service_repository.dart';
-import '../../_core/constants/api_config.dart';
+import '../../data/dtos/chat/chat_message_dto.dart';
+import '../../data/models/_repositories/booking_repository.dart';
+import '../../data/models/_repositories/chat_repository.dart';
+import '../../data/models/_repositories/photo_service_repository.dart';
 import '../core/dio_provider.dart';
 
 final bookingRepositoryProvider = Provider<BookingRepository>((ref) {
@@ -209,7 +207,9 @@ class ChatMessagesNotifier
     required int fileSize,
     String? message,
   }) {
-    if (!state.isConnected || _currentUserId == null || _currentUserType == null) {
+    if (!state.isConnected ||
+        _currentUserId == null ||
+        _currentUserType == null) {
       print('[ChatProvider] 이미지 전송 불가: 연결되지 않았거나 사용자 정보 없음');
       return;
     }

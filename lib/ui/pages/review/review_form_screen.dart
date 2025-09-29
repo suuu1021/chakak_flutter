@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/dtos/review/reviewCreationRequestDto.dart';
 import '../../../data/models/booking/booking_list_item.dart';
-import '../../../provider/review/review_provider.dart'; // Provider import
-import 'widgets/review_star_widget.dart';
+import '../../../provider/review/review_provider.dart';
 
 class ReviewFormScreen extends ConsumerStatefulWidget {
   final BookingListItem booking;
@@ -24,7 +23,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
   final TextEditingController _controller = TextEditingController();
   late AnimationController _starAnimationController;
   late AnimationController _submitAnimationController;
-  bool _isSubmitting = false; // 기존 _isSubmitting 상태 유지
+  bool _isSubmitting = false;
 
   final List<String> _ratingLabels = [
     '',
@@ -81,7 +80,6 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
       }
       return;
     }
-    // ▲▲▲ End of the new code block ▲▲▲
 
     if (_rating == 0 || _controller.text.isEmpty) {
       _showErrorSnackBar("별점과 리뷰 내용을 입력해주세요.");
@@ -89,22 +87,18 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
     }
 
     setState(() {
-      // 기존 로직 유지
       _isSubmitting = true;
     });
-    _submitAnimationController.forward(); // 기존 로직 유지
+    _submitAnimationController.forward();
 
     final reviewRequest = ReviewCreationRequestDto(
-      serviceId: widget.booking.photoService!.id, // 이 값이 0이 아니어야 함
+      serviceId: widget.booking.photoService!.id,
       bookingId: widget.booking.bookingInfoId!,
       rating: _rating.toDouble(),
       reviewContent: _controller.text,
     );
 
-    // Provider를 통해 리뷰 생성 요청
     await ref.read(reviewCreationProvider.notifier).createReview(reviewRequest);
-
-    // _isSubmitting = false 및 애니메이션 reverse는 ref.listen에서 처리
   }
 
   void _showErrorSnackBar(String message) {
@@ -170,9 +164,8 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop(); // 다이얼로그 닫기
-                  Navigator.of(context).pop(true); // 리뷰 화면 닫고 true 반환
-                  // Provider 상태 초기화는 ref.listen에서 담당
+                  Navigator.of(dialogContext).pop();
+                  Navigator.of(context).pop(true);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade600,
@@ -191,7 +184,6 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
     );
   }
 
-  // _buildServiceCard, _buildRatingSection, _buildReviewInput 메서드는 기존 코드 유지
   Widget _buildServiceCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -254,7 +246,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
                     ),
                     const SizedBox(width: 2),
                     Text(
-                      '0.0 (0)', // 이 부분은 실제 데이터로 채워져야 합니다.
+                      '0.0 (0)',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -264,7 +256,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '200,000원~', // 이 부분은 실제 데이터로 채워져야 합니다.
+                  '200,000원~',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.black,
@@ -436,7 +428,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
 
       if (nextStatus == ReviewCreationStatus.success) {
         if (mounted) {
-          _showSuccessDialog(); // 다이얼로그의 확인 버튼이 pop(true)를 호출
+          _showSuccessDialog();
           setState(() {
             _isSubmitting = false;
           });
@@ -461,10 +453,7 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
         }
         ref.read(reviewCreationProvider.notifier).resetState();
       }
-      // ReviewCreationStatus.loading 상태는 _submitReview에서 _isSubmitting = true로 이미 처리됨
     });
-
-    // ElevatedButton의 상태는 _isSubmitting 변수를 직접 사용 (기존 로직 유지)
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -503,25 +492,23 @@ class _ReviewFormScreenState extends ConsumerState<ReviewFormScreen>
           ],
         ),
         child: AnimatedBuilder(
-          animation: _submitAnimationController, // 기존 애니메이션 컨트롤러 유지
+          animation: _submitAnimationController,
           builder: (context, child) {
             return SizedBox(
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed:
-                    _isSubmitting ? null : _submitReview, // _isSubmitting 사용
+                onPressed: _isSubmitting ? null : _submitReview,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isSubmitting
-                      ? Colors.grey.shade400
-                      : Colors.black87, // _isSubmitting 사용
+                  backgroundColor:
+                      _isSubmitting ? Colors.grey.shade400 : Colors.black87,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   elevation: 0,
                 ),
-                child: _isSubmitting // _isSubmitting 사용
+                child: _isSubmitting
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

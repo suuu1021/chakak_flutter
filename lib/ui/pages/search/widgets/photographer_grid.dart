@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../data/models/photographer.dart';
-import '../../../../provider/global/photographer/photographer_provider.dart';
+import '../../../../data/models/photographer/photographer.dart';
+import '../../../../provider/photographer/photographer_provider.dart';
 
 class PhotographerGrid extends ConsumerWidget {
   final Function(Photographer) onPhotographerTap;
@@ -105,33 +104,6 @@ class PhotographerGrid extends ConsumerWidget {
                               ),
                             ),
                     ),
-                    // Positioned(
-                    //   top: 8,
-                    //   right: 8,
-                    //   child: GestureDetector(
-                    //     onTap: () {
-                    //       // 좋아요 토글 기능
-                    //       ref
-                    //           .read(photographerProvider.notifier)
-                    //           .toggleLike(photographer.id);
-                    //     },
-                    //     child: Container(
-                    //       padding: const EdgeInsets.all(4),
-                    //       decoration: BoxDecoration(
-                    //         color: Colors.white.withOpacity(0.8),
-                    //         shape: BoxShape.circle,
-                    //       ),
-                    //       child: Icon(
-                    //         photographer.isLiked
-                    //             ? Icons.favorite
-                    //             : Icons.favorite_border,
-                    //         size: 16,
-                    //         color:
-                    //             photographer.isLiked ? Colors.red : Colors.grey,
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/models/photo_service/photo_service.dart';
-import '../../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../../provider/photoService/photo_service_provider.dart';
 import 'photo_service_card.dart';
 
 class PhotoServiceListWidget extends ConsumerWidget {

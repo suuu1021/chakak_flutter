@@ -43,7 +43,6 @@ class _CustomSearchFieldState extends State<CustomSearchField> {
 
   @override
   void dispose() {
-    // 외부에서 제공된 controller와 focusNode는 dispose하지 않음
     if (widget.controller == null) {
       _controller.dispose();
     }

@@ -1,7 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../data/dtos/chat_room_list_item_dto.dart';
-import '../../data/models/repositories/chat_repository.dart';
+import '../../data/dtos/chat/chat_room_list_item_dto.dart';
 import 'chat_provider.dart';
 
 class ChatListState {
@@ -24,7 +22,8 @@ class ChatListState {
     return ChatListState(
       chatRooms: chatRooms ?? this.chatRooms,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearErrorMessage ? null : errorMessage ?? this.errorMessage,
+      errorMessage:
+          clearErrorMessage ? null : errorMessage ?? this.errorMessage,
     );
   }
 }
@@ -42,7 +41,9 @@ class ChatListNotifier extends Notifier<ChatListState> {
       final chatRooms = await chatRepository.getMyChatRooms();
       state = state.copyWith(chatRooms: chatRooms, isLoading: false);
     } catch (e) {
-      state = state.copyWith(isLoading: false, errorMessage: '채팅방 목록을 불러오는데 실패했습니다: ${e.toString()}');
+      state = state.copyWith(
+          isLoading: false,
+          errorMessage: '채팅방 목록을 불러오는데 실패했습니다: ${e.toString()}');
     }
   }
 
@@ -51,4 +52,5 @@ class ChatListNotifier extends Notifier<ChatListState> {
   }
 }
 
-final chatListProvider = NotifierProvider<ChatListNotifier, ChatListState>(ChatListNotifier.new);
+final chatListProvider =
+    NotifierProvider<ChatListNotifier, ChatListState>(ChatListNotifier.new);

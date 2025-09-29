@@ -4,9 +4,9 @@ import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/utils/image_utils.dart';
-import '../../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
-import '../../../../../provider/global/user_profile/user_profile_provider.dart';
 import '../../../../../provider/auth/session_provider.dart';
+import '../../../../../provider/photographer_profile/photographer_profile_notifier.dart';
+import '../../../../../provider/user_profile/user_profile_provider.dart';
 import '../../photographer/photographer_profile_form_page.dart';
 import '../profile_form_page.dart';
 

@@ -38,7 +38,7 @@ class _CustomTextFormFieldState extends State<CustomTextFormField> {
       controller: widget.controller,
       obscureText: widget.obscureText,
       decoration: InputDecoration(
-        hintText: widget.hint, // ✅ hintText는 여기서만 사용
+        hintText: widget.hint, // hintText는 여기서만 사용
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
         ),

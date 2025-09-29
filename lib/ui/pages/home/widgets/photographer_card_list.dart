@@ -5,9 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:chakak_flutter/_core/constants/app_text_styles.dart';
 import 'package:chakak_flutter/_core/utils/image_utils.dart';
-
-import '../../../../data/models/photographer.dart';
-import '../../../../provider/global/photographer/photographer_provider.dart';
+import '../../../../data/models/photographer/photographer.dart';
+import '../../../../provider/photographer/photographer_provider.dart';
 
 class PhotographerCardList extends ConsumerStatefulWidget {
   final Function(Photographer) onPhotographerTap;

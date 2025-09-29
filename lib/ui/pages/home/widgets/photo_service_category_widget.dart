@@ -4,8 +4,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../data/models/photo_service_category.dart';
-import '../../../../provider/global/category/photo_service_category_provider.dart';
+import '../../../../data/models/photographer/photo_service_category.dart';
+import '../../../../provider/category/photo_service_category_provider.dart';
 
 class PhotoServiceCategoryWidget extends ConsumerStatefulWidget {
   final Function(PhotoServiceCategory category) onCategorySelected;
@@ -176,10 +176,6 @@ class _PhotoServiceCategoryWidgetState
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                // border: isSelected
-                //     ? Border.all(
-                //         color: Theme.of(context).primaryColor, width: 2)
-                //     : null,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.2),
@@ -198,9 +194,6 @@ class _PhotoServiceCategoryWidgetState
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                // color: isSelected
-                //     ? Theme.of(context).primaryColor
-                //     : Colors.black87,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -239,7 +232,6 @@ class _PhotoServiceCategoryWidgetState
               style: TextStyle(color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
-            // Text(error, style: TextStyle(color: Colors.grey[500], fontSize: 10)),
             TextButton(
                 onPressed: () {
                   ref

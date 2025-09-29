@@ -2,8 +2,8 @@ import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../data/models/photo_service/photo_service.dart';
-import '../../../data/models/photo_service_category.dart';
-import '../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../data/models/photographer/photo_service_category.dart';
+import '../../../provider/photoService/photo_service_provider.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
 
@@ -26,14 +26,12 @@ class _CategoryServiceListPageState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 카테고리별 서비스 로드로 변경
       ref
           .read(photoServiceProvider.notifier)
           .loadServicesByCategory(widget.category.id.toString());
     });
   }
 
-// 필터링 제거 (이미 카테고리별로 로드했으므로)
   @override
   Widget build(BuildContext context) {
     final serviceState = ref.watch(photoServiceProvider);
@@ -44,7 +42,7 @@ class _CategoryServiceListPageState
         surfaceTintColor: Colors.transparent,
         backgroundColor: AppColors.primaryLight,
       ),
-      body: _buildBody(serviceState, serviceState.services), // 필터링 제거
+      body: _buildBody(serviceState, serviceState.services),
     );
   }
 

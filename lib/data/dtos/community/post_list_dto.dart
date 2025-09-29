@@ -65,7 +65,7 @@ class PostListDto {
       author: authorNickname,
       authorId: authorId,
       authorBadge: isAdmin ? '✅' : '',
-      imageUrl: safeImageUrl, // ✅ 안전한 값만 전달
+      imageUrl: safeImageUrl, // 안전한 값만 전달
       timeAgo: _formatTimeAgo(createdAt),
       viewCount: viewCount,
       likeCount: likeCount,

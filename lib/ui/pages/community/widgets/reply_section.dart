@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../data/models/community/reply.dart';
-import '../../../../provider/global/community/reply_provider.dart';
+import '../../../../provider/community/reply_provider.dart';
 
 /*
  * 댓글 섹션과 개별 댓글 아이템을 관리하는 위젯
- * 댓글 목록 표시와 댓글 상호작용을 담당합니다.
+ * 댓글 목록 표시와 댓글 상호작용을 담당
  */
 class ReplySection extends StatelessWidget {
   final ReplyState replyState;
@@ -71,7 +71,7 @@ class ReplySection extends StatelessWidget {
 
 /*
  * 개별 댓글 아이템 위젯
- * 댓글의 작성자, 내용, 좋아요 기능을 표시합니다.
+ * 댓글의 작성자, 내용, 좋아요 기능을 표시
  */
 class ReplyItem extends StatefulWidget {
   final Reply reply;

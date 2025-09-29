@@ -4,13 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/utils/error_handler.dart';
-import '../../../data/dtos/chat_room_create_request_dto.dart';
+import '../../../data/dtos/chat/chat_room_create_request_dto.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 import '../../../data/models/review.dart';
 import '../../../provider/auth/session_provider.dart';
 import '../../../provider/chat/chat_provider.dart';
-import '../../../provider/global/photoService/photo_service_provider.dart';
-import '../../../provider/global/photographer/photographer_provider.dart';
+
+import '../../../provider/photoService/photo_service_provider.dart';
+import '../../../provider/photographer/photographer_provider.dart';
 import '../../../provider/review/review_provider.dart';
 import '../chat/chat_screen.dart';
 import '../profile/photographer/photographer_profile_page.dart';
@@ -25,7 +26,6 @@ import 'widgets/service_image_section.dart';
 import 'widgets/service_info_section.dart';
 import 'widgets/service_price_section.dart';
 
-// ConsumerWidget 대신 ConsumerStatefulWidget 사용
 class PhotoServiceDetailPage extends ConsumerStatefulWidget {
   final PhotoService service;
   final List<PhotoService>? otherServices;
@@ -65,7 +65,6 @@ class _PhotoServiceDetailPageState
   Widget build(BuildContext context) {
     final serviceState = ref.watch(photoServiceProvider);
 
-    // provider에서 최신 데이터 찾기
     final currentService = serviceState.services
             .where((s) => s.id == widget.service.id)
             .firstOrNull ??
@@ -109,7 +108,7 @@ class _PhotoServiceDetailPageState
   }
 
   PreferredSizeWidget _buildAppBar() {
-    final serviceState = ref.watch(photoServiceProvider); // 추가
+    final serviceState = ref.watch(photoServiceProvider);
     final bool isOwner = _isOwner();
     final currentService = serviceState.services
             .where((s) => s.id == widget.service.id)
@@ -155,8 +154,7 @@ class _PhotoServiceDetailPageState
     debugPrint(
         '현재 서비스 photographerUserId: ${widget.service.photographerUserId}');
     // userId가 포토그래퍼의 User ID와 일치하는지 확인
-    final bool isMatch =
-        session.userId == widget.service.photographerUserId; // 이 부분 수정
+    final bool isMatch = session.userId == widget.service.photographerUserId;
     debugPrint('두 ID가 일치하는가? $isMatch');
     return isMatch;
   }
@@ -173,8 +171,7 @@ class _PhotoServiceDetailPageState
 
     // 포토그래퍼인 경우 bottomNavigationBar를 null로 반환하여 숨김
     if (isPhotographer) {
-      return const SizedBox
-          .shrink(); // 또는 null을 반환할 수 있지만, Widget을 반환하는 것이 더 안전
+      return const SizedBox.shrink();
     }
 
     return Container(
@@ -234,11 +231,8 @@ class _PhotoServiceDetailPageState
               .read(photoServiceProvider.notifier)
               .loadServicesByPhotographer(widget.service.photographerId);
 
-          // 현재 화면 새로고침을 위해 setState 호출
           if (mounted) {
-            setState(() {
-              // 화면 리빌드를 트리거
-            });
+            setState(() {});
           }
         }
       });
@@ -440,9 +434,7 @@ class _PhotoServiceDetailPageState
   }
 }
 
-/// --------------------
-/// 리뷰 미리보기 섹션 (ServiceReviewSection으로 이름 통일)
-/// --------------------
+// 리뷰 미리보기 섹션 (ServiceReviewSection으로 이름 통일)
 class ServiceReviewSection extends ConsumerWidget {
   final PhotoService service;
   final VoidCallback onViewAllTap;
@@ -455,12 +447,10 @@ class ServiceReviewSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // recentReviewsProvider는 List<ReviewDto>를 반환합니다.
     final asyncReviews = ref.watch(recentReviewsProvider(service.id));
 
     return asyncReviews.when(
       data: (reviewDtoList) {
-        // 변수명을 reviewDtoList로 변경하여 명확화
         if (reviewDtoList.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16.0),
@@ -471,7 +461,6 @@ class ServiceReviewSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 "최근 리뷰" + "모두 보기"를 한 줄에 배치
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -489,19 +478,16 @@ class ServiceReviewSection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // reviewDtoList (List<ReviewDto>)를 사용
             ...reviewDtoList.take(5).map(
               (reviewDto) {
-                // 변수명을 reviewDto로 변경
-                // ReviewDto를 Review 모델로 변환
                 final Review reviewModel = reviewDto.toModel();
 
                 return Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
                   child: ReviewCardWidget(
-                    review: reviewModel, // 변환된 Review 모델 전달
-                    mode: "user", // 또는 "service_detail" 등 적절한 모드
+                    review: reviewModel,
+                    mode: "user",
                   ),
                 );
               },

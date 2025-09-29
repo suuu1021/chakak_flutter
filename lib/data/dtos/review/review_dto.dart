@@ -1,5 +1,5 @@
-import '../../models/review.dart'; // Review, AuthorInfo 모델 임포트
-import 'package:flutter/foundation.dart'; // For kDebugMode and print
+import '../../models/review.dart';
+import 'package:flutter/foundation.dart';
 
 class ReviewDto {
   final String id;
@@ -31,9 +31,10 @@ class ReviewDto {
 
     String parsedId = json['reviewId']?.toString() ?? '0';
     double parsedRating = (json['rating'] as num?)?.toDouble() ?? 0.0;
-    String? parsedContent = json['content'] as String? ?? json['reviewContent'] as String?;
+    String? parsedContent =
+        json['content'] as String? ?? json['reviewContent'] as String?;
     String? parsedThumbnailUrl = json['thumbnailUrl'] as String?;
-    
+
     DateTime parsedCreatedAt;
     String? createdAtString = json['createdAt'] as String?;
     if (createdAtString != null) {
@@ -41,13 +42,15 @@ class ReviewDto {
         parsedCreatedAt = DateTime.parse(createdAtString);
       } catch (e) {
         if (kDebugMode) {
-          print("[ReviewDto.fromJson] Error parsing 'createdAt' string: \"$createdAtString\". Error: $e. Falling back to DateTime.now().");
+          print(
+              "[ReviewDto.fromJson] Error parsing 'createdAt' string: \"$createdAtString\". Error: $e. Falling back to DateTime.now().");
         }
         parsedCreatedAt = DateTime.now();
       }
     } else {
       if (kDebugMode) {
-        print("[ReviewDto.fromJson] 'createdAt' field is null. Falling back to DateTime.now().");
+        print(
+            "[ReviewDto.fromJson] 'createdAt' field is null. Falling back to DateTime.now().");
       }
       parsedCreatedAt = DateTime.now();
     }
@@ -57,25 +60,26 @@ class ReviewDto {
     final dynamic authorField = json['author'];
 
     if (authorField is Map<String, dynamic>) {
-        finalReviewerId = authorField['userId']?.toString() ?? '0';
-        finalReviewerNickname = authorField['nickname'] as String?;
-    } else if (json['userId'] != null) { 
-        finalReviewerId = json['userId']?.toString() ?? '0'; 
-        finalReviewerNickname = (json['nickname'] ?? json['reviewerNickname']) as String?; // 수정된 부분
-        if (authorField != null && !(authorField is Map) && kDebugMode) {
-            print("[ReviewDto.fromJson] Warning: 'author' field was present but not a Map (type: ${authorField.runtimeType}, value: '$authorField'). Top-level 'userId' was used.");
-        }
+      finalReviewerId = authorField['userId']?.toString() ?? '0';
+      finalReviewerNickname = authorField['nickname'] as String?;
+    } else if (json['userId'] != null) {
+      finalReviewerId = json['userId']?.toString() ?? '0';
+      finalReviewerNickname =
+          (json['nickname'] ?? json['reviewerNickname']) as String?;
+      if (authorField != null && !(authorField is Map) && kDebugMode) {
+        print(
+            "[ReviewDto.fromJson] Warning: 'author' field was present but not a Map (type: ${authorField.runtimeType}, value: '$authorField'). Top-level 'userId' was used.");
+      }
     } else if (authorField is String) {
-        finalReviewerNickname = authorField;
-        if (kDebugMode) {
-            print("[ReviewDto.fromJson] Warning: 'author' field is a String ('$authorField') and top-level 'userId' is absent. Using string as nickname; ID for reviewer remains default ('$finalReviewerId').");
-        }
+      finalReviewerNickname = authorField;
+      if (kDebugMode) {
+        print(
+            "[ReviewDto.fromJson] Warning: 'author' field is a String ('$authorField') and top-level 'userId' is absent. Using string as nickname; ID for reviewer remains default ('$finalReviewerId').");
+      }
     } else {
-         if (kDebugMode) {
-            // print("[ReviewDto.fromJson] No parsable author information found. Reviewer ID will be default ('0') and nickname null.");
-         }
+      if (kDebugMode) {}
     }
-    
+
     return ReviewDto(
       id: parsedId,
       reviewerId: finalReviewerId,
@@ -92,13 +96,13 @@ class ReviewDto {
   Review toModel() {
     return Review(
       reviewId: int.tryParse(id) ?? 0,
-      serviceId: serviceId, // <<<<<<< serviceId 전달 추가
+      serviceId: serviceId,
       rating: rating,
       content: reviewContent ?? '',
       thumbnailUrl: thumbnailUrl,
       author: AuthorInfo(
-        userId: int.tryParse(reviewerId) ?? 0, 
-        nickname: reviewerNickname ?? "사용자", 
+        userId: int.tryParse(reviewerId) ?? 0,
+        nickname: reviewerNickname ?? "사용자",
       ),
       createdAt: createdAt.toIso8601String(),
     );
@@ -111,8 +115,8 @@ class ReviewPageDto {
   final int totalPages;
   final int totalElements;
   final int number; // 현재 페이지 번호 (0부터 시작)
-  final int size;   // 페이지 당 항목 수
-  final bool last;  // 마지막 페이지 여부
+  final int size; // 페이지 당 항목 수
+  final bool last; // 마지막 페이지 여부
   final bool first; // 첫 페이지 여부
 
   ReviewPageDto({
@@ -126,13 +130,12 @@ class ReviewPageDto {
   });
 
   factory ReviewPageDto.fromJson(Map<String, dynamic> json) {
-    // API 응답 구조에 맞게 "data" 객체에서 값을 추출
     final data = json['data'] as Map<String, dynamic>;
-    
+
     final contentList = (data['content'] as List)
         .map((item) => ReviewDto.fromJson(item as Map<String, dynamic>))
         .toList();
-    
+
     return ReviewPageDto(
       content: contentList,
       totalPages: data['totalPages'] as int,

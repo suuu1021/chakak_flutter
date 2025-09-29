@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_images.dart';
 import '../../../../../_core/constants/app_routes.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../../_core/utils/image_utils.dart';
-import '../../../../../data/dtos/chat_room_create_request_dto.dart';
-import '../../../../../data/models/photographer_profile.dart';
-import '../../../../../data/models/repositories/photographer_profile_repository.dart';
+import '../../../../../data/dtos/chat/chat_room_create_request_dto.dart';
+import '../../../../../data/models/_repositories/photographer_profile_repository.dart';
+import '../../../../../data/models/photographer/photographer_profile.dart';
 import '../../../../../provider/auth/session_provider.dart';
 import '../../../../../provider/chat/chat_provider.dart';
 import '../../../../../provider/core/dio_provider.dart';
-import '../../../../../provider/global/photographer/photographer_provider.dart';
+import '../../../../../provider/photographer/photographer_provider.dart';
 import '../../../chat/chat_screen.dart';
 
 class PhotographerUpperProfile extends ConsumerStatefulWidget {
@@ -48,18 +47,13 @@ class PhotographerUpperProfileState
     }
   }
 
-  // 새로고침 메서드 - 강제로 다시 로드하고 리빌드 트리거
   void refreshProfile() {
     _loadPhotographerProfile();
-    // 위젯 트리 강제 리빌드
     if (mounted) {
-      setState(() {
-        // 강제 리빌드 트리거
-      });
+      setState(() {});
     }
   }
 
-  // API를 직접 호출하여 로컬 변수에만 저장
   Future<void> _loadPhotographerProfile() async {
     if (!mounted) return;
 
@@ -113,7 +107,6 @@ class PhotographerUpperProfileState
   Widget _buildProfileSection(BuildContext context) {
     final session = ref.watch(sessionProvider);
 
-    // 현재 로그인한 포토그래퍼가 자신의 프로필을 보고 있는지 확인
     final isOwner = session.isLogin &&
         session.userTypeCode == 'photographer' &&
         _profile != null &&

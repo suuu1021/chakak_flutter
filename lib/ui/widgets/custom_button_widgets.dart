@@ -22,7 +22,7 @@ class CustomButtonWidgets {
             borderRadius: BorderRadius.circular(12),
           ),
           backgroundColor: backgroundColor ?? Colors.black,
-          foregroundColor: Colors.white, // 글자 흰색
+          foregroundColor: Colors.white,
         ),
         child: Text(
           "$title",

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../_core/constants/app_colors.dart'; // AppColors import 추가
+import '../../../_core/constants/app_colors.dart';
 
 class ChatBubble extends StatelessWidget {
   final String message;
@@ -22,10 +22,7 @@ class ChatBubble extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
         padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
         decoration: BoxDecoration(
-          color: isMe
-              ? AppColors.primary
-              : AppColors
-                  .gray200, // Theme.of(context).primaryColor → AppColors.primary, Colors.grey[300] → AppColors.gray200
+          color: isMe ? AppColors.primary : AppColors.gray200,
           borderRadius: isMe
               ? const BorderRadius.only(
                   topLeft: Radius.circular(20.0),
@@ -46,10 +43,7 @@ class ChatBubble extends StatelessWidget {
             Text(
               message,
               style: TextStyle(
-                color: isMe
-                    ? AppColors.textOnPrimary
-                    : AppColors
-                        .textPrimary, // Colors.white → AppColors.textOnPrimary, Colors.black → AppColors.textPrimary
+                color: isMe ? AppColors.textOnPrimary : AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 4.0),
@@ -58,8 +52,7 @@ class ChatBubble extends StatelessWidget {
               style: TextStyle(
                 color: isMe
                     ? AppColors.textOnPrimary.withOpacity(0.7)
-                    : AppColors
-                        .textSecondary, // Colors.white70 → AppColors.textOnPrimary.withOpacity(0.7), Colors.black54 → AppColors.textSecondary
+                    : AppColors.textSecondary,
                 fontSize: 10.0,
               ),
             ),

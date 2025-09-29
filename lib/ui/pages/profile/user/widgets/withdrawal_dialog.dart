@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_strings.dart';
-import '../../../../../provider/auth_provider.dart';
+import '../../../../../provider/auth/auth_provider.dart';
 
 class WithdrawalDialog extends ConsumerWidget {
   const WithdrawalDialog({super.key});
@@ -99,9 +99,7 @@ class WithdrawalDialog extends ConsumerWidget {
                 color: AppColors.error,
               ),
             ),
-
             const SizedBox(height: 24),
-
             Text(
               '회원 탈퇴',
               style: TextStyle(
@@ -111,9 +109,7 @@ class WithdrawalDialog extends ConsumerWidget {
                 fontFamily: AppStrings.fontFamily1,
               ),
             ),
-
             const SizedBox(height: 14),
-
             Text(
               '정말 탈퇴하시겠습니까?\n모든 정보가 영구적으로 삭제되며, 복구할 수 없습니다.',
               textAlign: TextAlign.center,
@@ -124,9 +120,7 @@ class WithdrawalDialog extends ConsumerWidget {
                 letterSpacing: 0.2,
               ),
             ),
-
             const SizedBox(height: 36),
-
             Row(
               children: [
                 Expanded(
@@ -166,9 +160,7 @@ class WithdrawalDialog extends ConsumerWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
                 Expanded(
                   child: Container(
                     height: 52,

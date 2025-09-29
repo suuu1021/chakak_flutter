@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_colors.dart';
 import '../../../_core/utils/validator_util.dart';
 import '../../../data/dtos/auth_dto.dart';
-import '../../../provider/auth/session_provider.dart'; // ✅ SessionProvider import
-import '../../../provider/auth_provider.dart';
+import '../../../provider/auth/session_provider.dart';
+import '../../../provider/auth/auth_provider.dart';
 import '../../widgets/custom_auth_button_widgets.dart';
 import '../../widgets/custom_auth_text_form_field.dart';
 import '../../widgets/custom_logo.dart';
@@ -43,19 +43,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     print("[LoginScreen] 로그인 버튼 클릭. authProvider.login() 호출 시도.");
 
     try {
-      // authProvider의 login 함수를 호출합니다.
       await ref.read(authProvider.notifier).login(
             LoginRequest(email: email, password: password),
           );
 
       print(
           "[LoginScreen] authProvider.login() 호출 성공. 화면 이동은 Session 상태 변경에 따라 자동으로 처리됩니다.");
-      // 화면 이동은 아래 build 메소드의 ref.listen에서 처리하므로 여기서 직접 호출할 필요가 없습니다.
     } catch (e) {
-      //  2. [수정] 에러 발생 시 로그를 남기고, 사용자에게 스낵바로 피드백을 줍니다.
       print("[LoginScreen] !!!!! 로그인 과정에서 에러 발생 !!!!!: $e");
       if (mounted) {
-        // 위젯이 여전히 화면에 있는지 확인
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요."),
@@ -68,11 +64,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    //  3. [수정] AuthProvider의 '진행 상태'와 SessionProvider의 '로그인 여부'를 모두 감시합니다.
     final authState = ref.watch(authProvider);
-
-    //  4. [신설] ref.listen을 사용하여 로그인 상태 변화를 감지하고, 화면을 '단 한 번만' 이동시킵니다.
-    // build 메소드 안에서 화면을 이동시키는 것보다 훨씬 안전하고 권장되는 방식입니다.
     ref.listen(sessionProvider, (previous, next) {
       if (next.isLogin) {
         print(

@@ -48,10 +48,8 @@ class PaymentSummaryCard extends StatelessWidget {
               ),
             ),
             const Divider(height: 24),
-            const Text("포함 서비스",
-                style: TextStyle(fontWeight: FontWeight.w600)),
+            const Text("포함 서비스", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            // TODO: [4] 현재는 하드코딩. 백엔드에서 옵션 리스트 받아서 출력해야 함
             const Text("✔ 스튜디오 촬영"),
             const Text("✔ 기본 의상 제공"),
             const Text("✔ 촬영본 전달"),

@@ -1,11 +1,10 @@
 import 'package:chakak_flutter/ui/pages/profile/user/widgets/profile_menu_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../provider/auth/session_provider.dart';
-import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
-import '../../../../provider/global/user_profile/user_profile_provider.dart';
+import '../../../../provider/photographer_profile/photographer_profile_notifier.dart';
+import '../../../../provider/user_profile/user_profile_provider.dart';
 import 'widgets/profile_header.dart';
 
 class MyProfilePage extends ConsumerStatefulWidget {
@@ -19,9 +18,7 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    // 마이페이지 진입 시 바로 프로필 로드
-    // 포토그래퍼인 경우, photographerProfileProvider를 사용
+
     final session = ref.read(sessionProvider);
     if (session.isLogin) {
       final userType = session.userTypeCode?.toUpperCase();
@@ -33,7 +30,6 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
         ref.read(userProfileProvider.notifier).loadMyProfile();
       }
     }
-    // });
   }
 
   @override
@@ -48,7 +44,6 @@ class _MyProfilePageState extends ConsumerState<MyProfilePage> {
             if (userType == null) {
               return Future.value();
             } else if (userType == 'PHOTOGRAPHER') {
-              // 새로고침 시에도 동일한 프로바이더 사용
               return ref
                   .read(photographerProfileProvider.notifier)
                   .loadMyProfile();

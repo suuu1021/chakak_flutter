@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_routes.dart';
 import '../../../data/models/user_profile.dart';
 import '../../../provider/auth/session_provider.dart';
-import '../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
-import '../../../provider/global/user_profile/user_profile_provider.dart';
+import '../../../provider/photographer_profile/photographer_profile_notifier.dart';
+import '../../../provider/user_profile/user_profile_provider.dart';
 import 'photographer/photographer_profile_form_page.dart';
 import 'user/profile_form_page.dart';
 
@@ -18,7 +18,7 @@ class ProfileEditPage extends ConsumerStatefulWidget {
 
 class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   bool _navigatedToLogin = false;
-  bool _requestedPhotographerLoad = false; // 추가
+  bool _requestedPhotographerLoad = false;
 
   @override
   void initState() {
@@ -28,7 +28,6 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   void _navigateToLogin(BuildContext context) {
     if (_navigatedToLogin) return;
     _navigatedToLogin = true;
-    // 라우트로 이동
     Navigator.pushNamed(context, AppRoutes.login);
   }
 

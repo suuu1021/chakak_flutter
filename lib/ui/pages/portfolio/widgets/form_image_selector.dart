@@ -7,8 +7,8 @@ import '../../../../../_core/constants/app_sizes.dart';
 class FormImageSelector extends StatelessWidget {
   final List<Object> selectedImages;
   final Function(List<Object>) onChanged;
-  final int? thumbnailIndex; // 썸네일로 지정된 이미지의 인덱스
-  final Function(int?)? onThumbnailChanged; // 썸네일 변경 콜백
+  final int? thumbnailIndex;
+  final Function(int?)? onThumbnailChanged;
 
   const FormImageSelector({
     super.key,

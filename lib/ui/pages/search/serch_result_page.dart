@@ -1,11 +1,10 @@
-import 'package:chakak_flutter/data/models/portfolio.dart';
+import 'package:chakak_flutter/data/models/portfolio/portfolio.dart';
 import 'package:chakak_flutter/ui/pages/home/widgets/photographer_list_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../data/models/photo_service/photo_service.dart';
-import '../../../data/models/photographer.dart';
-import '../../../provider/global/search/search_provider.dart';
+import '../../../data/models/photographer/photographer.dart';
+import '../../../provider/search/search_provider.dart';
 import '../photo_service/photo_service_detail_page.dart';
 import '../photo_service/widgets/photo_service_list_widget.dart';
 import '../portfolio/widgets/portfolio_card_widget.dart';

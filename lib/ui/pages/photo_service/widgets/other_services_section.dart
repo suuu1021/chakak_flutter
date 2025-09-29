@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../../_core/constants/app_sizes.dart';
 import '../../../../../../data/models/photo_service/photo_service.dart';
-import '../../../../../../provider/global/photoService/photo_service_provider.dart';
 import '../../../../_core/utils/image_utils.dart';
+import '../../../../provider/photoService/photo_service_provider.dart';
 
 class OtherServicesSection extends ConsumerWidget {
   final PhotoService service;

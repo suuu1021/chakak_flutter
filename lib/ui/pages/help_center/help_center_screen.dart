@@ -8,7 +8,6 @@ import '../../../_core/constants/app_colors.dart';
 class HelpCenterScreen extends StatelessWidget {
   const HelpCenterScreen({super.key});
 
-  // 📌 전화 앱 실행
   Future<void> _makePhoneCall(String phoneNumber) async {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
 
@@ -19,7 +18,6 @@ class HelpCenterScreen extends StatelessWidget {
     }
   }
 
-  // 📌 카카오톡 채널 열기
   Future<void> _openKakaoChannel(BuildContext context) async {
     const String kakaoAppUrl = 'kakaoplus://plusfriend/_igsxmn';
     const String kakaoWebUrl = 'http://pf.kakao.com/_igsxmn';
@@ -43,7 +41,6 @@ class HelpCenterScreen extends StatelessWidget {
     }
   }
 
-  // 📌 에러 다이얼로그
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
@@ -86,7 +83,7 @@ class HelpCenterScreen extends StatelessWidget {
         color: Colors.white,
         padding: const EdgeInsets.all(20),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 화면 전체 균등 배치
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 대표번호 + 운영시간 + 이미지
@@ -117,8 +114,8 @@ class HelpCenterScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 24),
                 Image.asset(
-                  "assets/images/helpcall.png", // 새 이미지
-                  width: 130, // 🔼 이미지 크게
+                  "assets/images/helpcall.png",
+                  width: 130,
                   height: 130,
                   fit: BoxFit.contain,
                 ),
@@ -135,7 +132,7 @@ class HelpCenterScreen extends StatelessWidget {
               ),
               child: Row(
                 children: const [
-                  Text("📢", style: TextStyle(fontSize: 20)), // 이모지 크게
+                  Text("📢", style: TextStyle(fontSize: 20)),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(

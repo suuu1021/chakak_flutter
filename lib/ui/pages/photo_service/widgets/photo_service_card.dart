@@ -49,28 +49,6 @@ class PhotoServiceCard extends StatelessWidget {
                     borderRadius: const BorderRadius.all(Radius.circular(12)),
                     child: _buildImage(),
                   ),
-                  // 북마크 아이콘
-                  // Positioned(
-                  //   top: 8,
-                  //   right: 8,
-                  //   child: GestureDetector(
-                  //     onTap: onBookmarkTap,
-                  //     child: Container(
-                  //       padding: const EdgeInsets.all(4),
-                  //       decoration: BoxDecoration(
-                  //         color: Colors.black.withOpacity(0.3),
-                  //         borderRadius: BorderRadius.circular(12),
-                  //       ),
-                  //       child: Icon(
-                  //         service.isLiked
-                  //             ? Icons.bookmark
-                  //             : Icons.bookmark_border,
-                  //         color: service.isLiked ? Colors.orange : Colors.white,
-                  //         size: 16,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
             ),

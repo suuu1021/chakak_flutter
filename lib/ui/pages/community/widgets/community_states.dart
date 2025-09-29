@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../_core/constants/app_colors.dart';
 
-/*
- * 커뮤니티 화면의 다양한 상태를 표시하는 위젯들
- * 로딩, 에러, 빈 목록 상태를 관리합니다.
- */
-
-/*
- * 로딩 상태 위젯
- * 게시글을 불러오는 중일 때 표시됩니다.
- */
 class CommunityLoadingWidget extends StatelessWidget {
   const CommunityLoadingWidget({super.key});
 
@@ -36,10 +27,6 @@ class CommunityLoadingWidget extends StatelessWidget {
   }
 }
 
-/*
- * 에러 상태 위젯
- * 게시글 로딩 실패 시 표시됩니다.
- */
 class CommunityErrorWidget extends StatelessWidget {
   final String error;
   final VoidCallback onRetry;
@@ -94,10 +81,6 @@ class CommunityErrorWidget extends StatelessWidget {
   }
 }
 
-/*
- * 빈 목록 상태 위젯
- * 게시글이 없을 때 표시됩니다.
- */
 class CommunityEmptyWidget extends StatelessWidget {
   const CommunityEmptyWidget({super.key});
 

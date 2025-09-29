@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
-import '../../../../data/models/portfolio.dart';
+import '../../../../data/models/portfolio/portfolio.dart';
 
 class PortfolioContentSection extends StatelessWidget {
   final Portfolio portfolio;
@@ -43,28 +43,6 @@ class PortfolioContentSection extends StatelessWidget {
             ),
           ),
         ),
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        //   decoration: const BoxDecoration(
-        //     color: AppColors.primary,
-        //     borderRadius: BorderRadius.all(Radius.circular(20)),
-        //   ),
-        //   child: Row(
-        //     mainAxisSize: MainAxisSize.min,
-        //     children: [
-        //       const Icon(Icons.favorite, size: 16, color: AppColors.white),
-        //       const SizedBox(width: 4),
-        //       Text(
-        //         '${portfolio.likes}',
-        //         style: const TextStyle(
-        //           fontSize: 14,
-        //           fontWeight: FontWeight.w600,
-        //           color: AppColors.white,
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
       ],
     );
   }

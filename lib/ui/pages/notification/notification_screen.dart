@@ -1,6 +1,5 @@
 import 'package:chakak_flutter/data/dtos/notification_dto.dart';
 import 'package:flutter/material.dart';
-
 import '../../../_core/constants/app_colors.dart';
 import 'widgets/notification_item.dart';
 
@@ -9,7 +8,6 @@ class NotificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 📌 Mock DTO 리스트 (각 알림별 다른 이미지 적용)
     final notifications = [
       NotificationDto(
         id: "1",

@@ -6,12 +6,13 @@ import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 import '../../../../_core/constants/size.dart';
 import '../../../../data/models/user_profile.dart';
-import '../../../../provider/global/user_profile/user_profile_provider.dart';
+import '../../../../provider/user_profile/user_profile_provider.dart';
 
 class ProfileFormPage extends ConsumerStatefulWidget {
   final UserProfile userProfile;
 
-  const ProfileFormPage({Key? key, required this.userProfile}) : super(key: key);
+  const ProfileFormPage({Key? key, required this.userProfile})
+      : super(key: key);
 
   @override
   ConsumerState<ProfileFormPage> createState() => _ProfileFormPageState();
@@ -25,8 +26,10 @@ class _ProfileFormPageState extends ConsumerState<ProfileFormPage> {
   @override
   void initState() {
     super.initState();
-    _nicknameController = TextEditingController(text: widget.userProfile.displayName);
-    _introduceController = TextEditingController(text: widget.userProfile.introduce ?? '');
+    _nicknameController =
+        TextEditingController(text: widget.userProfile.displayName);
+    _introduceController =
+        TextEditingController(text: widget.userProfile.introduce ?? '');
   }
 
   @override
@@ -43,19 +46,23 @@ class _ProfileFormPageState extends ConsumerState<ProfileFormPage> {
       final requestDto = UserProfileUpdateRequestDto(
         nickName: _nicknameController.text,
         introduce: _introduceController.text,
-        // imageData는 이번 버전에서 수정하지 않으므로 null 또는 기존 값 전달
       );
 
-      ref.read(userProfileProvider.notifier).updateProfile(requestDto).then((success) {
+      ref
+          .read(userProfileProvider.notifier)
+          .updateProfile(requestDto)
+          .then((success) {
         if (mounted) {
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('프로필이 성공적으로 수정되었습니다.')),
             );
-            Navigator.pop(context, true); // 성공 시 true 반환
+            Navigator.pop(context, true);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(ref.read(userProfileProvider).errorMessage ?? '프로필 수정에 실패했습니다.')),
+              SnackBar(
+                  content: Text(ref.read(userProfileProvider).errorMessage ??
+                      '프로필 수정에 실패했습니다.')),
             );
           }
         }
@@ -147,7 +154,8 @@ class _ProfileFormPageState extends ConsumerState<ProfileFormPage> {
       ),
       child: isUpdating
           ? const CircularProgressIndicator(color: Colors.white)
-          : const Text('저장', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          : const Text('저장',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
     );
   }
 }

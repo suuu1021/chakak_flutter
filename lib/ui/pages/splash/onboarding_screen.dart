@@ -1,9 +1,7 @@
 import 'package:chakak_flutter/ui/widgets/custom_logo.dart';
 import 'package:flutter/material.dart';
-
 import '../../../_core/constants/app_colors.dart';
 import '../../../_core/constants/app_strings.dart';
-import '../../../_core/constants/app_images.dart';
 
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
@@ -13,15 +11,6 @@ class OnboardingScreen extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
-          // 배경 이미지
-          // SizedBox.expand(
-          //   child: Image.asset(
-          //     AppImages.onboarding2,
-          //     fit: BoxFit.cover,
-          //   ),
-          // ),
-
-          // 반투명 오버레이
           Container(
             color: Colors.white.withOpacity(0.6),
           ),
@@ -65,7 +54,7 @@ class OnboardingScreen extends StatelessWidget {
                   width: double.infinity, // 버튼 가로 전체
                   child: ElevatedButton(
                     onPressed: () {
-                      // 👉 로그인 선택 화면으로 이동
+                      // 로그인 선택 화면으로 이동
                       Navigator.pushReplacementNamed(context, '/login-choice');
                     },
                     style: ElevatedButton.styleFrom(
@@ -88,7 +77,7 @@ class OnboardingScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () {
-                    // 👉 바로 회원가입 화면으로 이동 (선택 사항)
+                    // 바로 회원가입 화면으로 이동 (선택 사항)
                     Navigator.pushNamed(context, '/signup');
                   },
                   child: const Text(

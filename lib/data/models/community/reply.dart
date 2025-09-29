@@ -18,8 +18,7 @@ class Reply {
   });
 
   /*
-   * 서버로부터 받은 JSON 데이터를 Reply 객체로 변환합니다.
-   * 백엔드 엔티티의 필드명과 일치시켜 매핑합니다.
+   * 서버로부터 받은 JSON 데이터를 Reply 객체로 변환
   */
   factory Reply.fromJson(Map<String, dynamic> json) {
     final user = json['user'] as Map<String, dynamic>?;
@@ -38,7 +37,7 @@ class Reply {
   }
 
   /*
-   * Reply 객체를 JSON 데이터로 변환하여 서버에 보낼 수 있도록 합니다.
+   * Reply 객체를 JSON 데이터로 변환
   */
   Map<String, dynamic> toJson() {
     return {
@@ -48,8 +47,7 @@ class Reply {
   }
 
   /*
-   * 기존 객체의 일부만 변경하여 새로운 Reply 객체를 생성합니다.
-   * 상태 관리에서 댓글 데이터를 업데이트할 때 사용됩니다.
+   * 기존 객체의 일부만 변경하여 새로운 Reply 객체를 생성 사용
    */
   Reply copyWith({
     String? id,

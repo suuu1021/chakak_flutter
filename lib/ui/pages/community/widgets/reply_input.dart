@@ -3,7 +3,7 @@ import '../../../../_core/constants/app_colors.dart';
 
 /*
  * 댓글 입력 위젯
- * 댓글 작성을 위한 텍스트 입력과 전송 기능을 제공합니다.
+ * 댓글 작성을 위한 텍스트 입력과 전송 기능을 제공
  */
 class ReplyInput extends StatelessWidget {
   final TextEditingController controller;

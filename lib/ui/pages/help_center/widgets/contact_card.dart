@@ -22,7 +22,7 @@ class ContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100, // 🔽 카드 크기 줄임 (기존 120 → 100)
+      height: 100,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(10),
@@ -31,17 +31,17 @@ class ContactCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (icon != null)
-            Icon(icon, size: 30, color: Colors.black87) // 🔽 아이콘 크기 축소
+            Icon(icon, size: 30, color: Colors.black87)
           else if (imagePath != null)
-            Image.asset(imagePath!, width: 32, height: 32), // 🔽 이미지 축소
+            Image.asset(imagePath!, width: 32, height: 32),
           const SizedBox(height: 6),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), // 🔽 텍스트 축소
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           if (subtitle != null)
-            Text(subtitle!, style: const TextStyle(fontSize: 11)), // 🔽 작은 텍스트 축소
+            Text(subtitle!, style: const TextStyle(fontSize: 11)),
         ],
       ),
     );

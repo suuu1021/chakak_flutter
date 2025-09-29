@@ -1,7 +1,7 @@
 import 'package:chakak_flutter/data/models/booking/booking_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../provider/global/booking/booking_list_notifier.dart';
+import '../../../../provider/booking/booking_list_notifier.dart';
 
 /// 예약 취소 확인 다이얼로그 위젯
 class BookingCancelDialog extends ConsumerWidget {

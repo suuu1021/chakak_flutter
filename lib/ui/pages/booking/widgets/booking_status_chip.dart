@@ -16,10 +16,10 @@ class BookingStatusChip extends StatelessWidget {
     final chipData = _getChipData(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), // vertical 패딩 증가
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: chipData.color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16), // 더 둥글게 유지
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: chipData.color.withOpacity(0.3)),
       ),
       child: Text(
@@ -39,32 +39,32 @@ class BookingStatusChip extends StatelessWidget {
       case BookingStatus.PENDING:
         return _ChipData(
           text: status.description,
-          color: AppColors.warning, // AppColors 사용
+          color: AppColors.warning,
         );
       case BookingStatus.CONFIRMED:
         return _ChipData(
           text: status.description,
-          color: AppColors.success, // AppColors 사용
+          color: AppColors.success,
         );
       case BookingStatus.CANCELED:
         return _ChipData(
           text: status.description,
-          color: AppColors.error, // AppColors 사용
+          color: AppColors.error,
         );
       case BookingStatus.COMPLETED:
         return _ChipData(
           text: status.description,
-          color: AppColors.info, // AppColors 사용
+          color: AppColors.info,
         );
       case BookingStatus.REVIEWED:
         return _ChipData(
           text: status.description,
-          color: AppColors.secondary, // 보라색 대신 secondary 사용
+          color: AppColors.secondary,
         );
       default:
         return _ChipData(
           text: status.description,
-          color: AppColors.gray500, // AppColors.gray500 사용
+          color: AppColors.gray500,
         );
     }
   }

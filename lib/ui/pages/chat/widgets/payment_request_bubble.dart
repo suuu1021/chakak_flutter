@@ -8,7 +8,7 @@ class PaymentRequestBubble extends StatelessWidget {
   final int price; // 가격
   final String description; // 설명
   final bool isMe; // 내가 보낸 메시지인지
-  final int bookingInfoId; // ✅ required
+  final int bookingInfoId;
 
   const PaymentRequestBubble({
     super.key,
@@ -16,7 +16,7 @@ class PaymentRequestBubble extends StatelessWidget {
     required this.price,
     required this.description,
     required this.isMe,
-    required this.bookingInfoId, // ✅ required
+    required this.bookingInfoId,
   });
 
   @override
@@ -70,7 +70,7 @@ class PaymentRequestBubble extends StatelessWidget {
                       builder: (_) => PaymentFormScreen(
                         itemName: title,
                         totalAmount: price,
-                        bookingInfoId: bookingInfoId, // ✅ 전달
+                        bookingInfoId: bookingInfoId,
                       ),
                     ),
                   );

@@ -1,17 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/dtos/auth_dto.dart';
+import '../../data/models/_repositories/signup_auth_repository.dart';
+import '../core/dio_provider.dart';
 
-// Repository와 DTO, dioProvider import는 이전과 동일하게 필요합니다.
-import '../../data/models/repositories/signup_auth_repository.dart';
-import '../../data/dtos/auth_dto.dart'; // RegisterRequest, RegisterResponse DTO
-import '../core/dio_provider.dart'; // dioProvider
-
-// 1. SignupAuthRepository를 위한 Provider (변경 없음)
 final signupAuthRepositoryProvider = Provider<SignupAuthRepository>((ref) {
   final dio = ref.watch(dioProvider);
   return SignupAuthRepository(dio);
 });
 
-// 2. 회원가입 진행 상태 enum (변경 없음)
+// 2회원가입 진행 상태 enum
 enum SignupStatus {
   initial,
   loading,
@@ -19,7 +16,7 @@ enum SignupStatus {
   error,
 }
 
-// 3. 회원가입 상태를 나타내는 클래스 (변경 없음)
+// 회원가입 상태를 나타내는 클래스
 class SignupState {
   final SignupStatus status;
   final RegisterResponse? responseData;
@@ -49,17 +46,13 @@ class SignupState {
 }
 
 class SignupNotifier extends Notifier<SignupState> {
-  // Notifier는 생성자에서 의존성을 주입받지 않고,
-
   @override
   SignupState build() {
-    // build 메서드에서 초기 상태를 반환합니다.
     return const SignupState();
   }
 
   // 회원가입 요청 메서드
   Future<void> registerUser(RegisterRequest request) async {
-    // Notifier 내에서는 ref를 직접 사용할 수 있습니다.
     final signupAuthRepository = ref.read(signupAuthRepositoryProvider);
 
     state = state.copyWith(
@@ -78,7 +71,7 @@ class SignupNotifier extends Notifier<SignupState> {
 
   // 상태를 초기화하는 메서드
   void resetState() {
-    state = const SignupState(); // 초기 상태로 되돌림
+    state = const SignupState();
   }
 }
 

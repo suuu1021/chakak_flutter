@@ -1,17 +1,13 @@
-// lib/data/models/booking/booking_model.dart
-
 import 'package:chakak_flutter/data/models/booking/booking_list_item.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 enum BookingStatus {
-  // 백엔드와 일치하도록 상태 설명 수정
   PENDING(
     description: '예약대기',
     nextStatus: [BookingStatus.CONFIRMED, BookingStatus.CANCELED],
   ),
   CONFIRMED(
-    description: '예약확정', // '결제완료'에서 '예약확정'으로 수정
+    description: '예약확정',
     nextStatus: [BookingStatus.COMPLETED],
   ),
   COMPLETED(
@@ -19,7 +15,7 @@ enum BookingStatus {
     nextStatus: [BookingStatus.REVIEWED],
   ),
   REVIEWED(
-    description: '리뷰작성완료', // 백엔드와 일치하도록 수정
+    description: '리뷰작성완료',
     nextStatus: [],
   ),
   CANCELED(
@@ -133,7 +129,7 @@ class BookingListState {
       isLoading: isLoading ?? this.isLoading,
       errorMessage:
           forceErrorMessageNull ? null : errorMessage ?? this.errorMessage,
-      selectedFilter: selectedFilter, // selectedFilter는 null이 될 수 있으므로 그대로 전달
+      selectedFilter: selectedFilter,
     );
   }
 }

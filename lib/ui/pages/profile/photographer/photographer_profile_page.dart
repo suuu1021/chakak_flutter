@@ -6,7 +6,7 @@ import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
 import '../../../../data/models/photo_service/photo_service.dart';
 import '../../../../provider/auth/session_provider.dart';
-import '../../../../provider/global/photoService/photo_service_provider.dart';
+import '../../../../provider/photoService/photo_service_provider.dart';
 import '../../photo_service/photo_service_form_page.dart';
 import '../../photo_service/widgets/photo_service_list_widget.dart';
 import '../../photo_service/photo_service_detail_page.dart';

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import '../../../../data/models/photographer_profile.dart';
+
+import '../../../../data/models/photographer/photographer_profile.dart';
 import '../../../../provider/auth/session_provider.dart';
-import '../../../../provider/global/photographer_profile/photographer_profile_notifier.dart';
+
+import '../../../../provider/photographer_profile/photographer_profile_notifier.dart';
 import 'widgets/profile_form_fields.dart';
 import 'widgets/profile_image_widget.dart';
 import 'widgets/profile_save_button.dart';

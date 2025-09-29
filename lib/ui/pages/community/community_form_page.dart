@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../_core/constants/app_colors.dart';
 import '../../../data/models/community/post.dart';
-import '../../../provider/global/community/community_repository_provider.dart';
-import '../../../provider/global/community/post_provider.dart';
+import '../../../provider/community/community_repository_provider.dart';
+import '../../../provider/community/post_provider.dart';
 
 /*
  * 커뮤니티 게시글 등록/수정 페이지
- * 기존 UI 스타일을 유지하면서 실제 Provider와 연동하여 게시글을 등록합니다.
+ * 기존 UI 스타일을 유지하면서 실제 Provider와 연동하여 게시글을 등록
  */
 class CommunityFormPage extends ConsumerStatefulWidget {
   final String? postId; // null이면 새 글 작성, 값이 있으면 수정
@@ -40,12 +41,7 @@ class _CommunityFormPageState extends ConsumerState<CommunityFormPage> {
   /*
    * 수정할 게시글 데이터 로드 (수정 모드)
    */
-  void _loadPostData() {
-    // TODO: PostProvider에서 특정 게시글 데이터를 가져와서 폼에 설정
-    // final post = ref.read(postDetailProvider(widget.postId!));
-    // _titleController.text = post.title;
-    // _contentController.text = post.content;
-  }
+  void _loadPostData() {}
 
   /*
    * 폼 유효성 검사
@@ -111,7 +107,7 @@ class _CommunityFormPageState extends ConsumerState<CommunityFormPage> {
 
       // 성공 시 이전 화면으로 돌아가기
       if (mounted) {
-        Navigator.pop(context, true); // true: 새로고침 필요
+        Navigator.pop(context, true);
       }
     } catch (error) {
       _showErrorMessage('${_isEditMode ? '수정' : '등록'} 중 오류가 발생했습니다: $error');

@@ -28,12 +28,12 @@ class SocialLoginButton extends StatelessWidget {
 
     return SizedBox(
       width: double.infinity,
-      height: 56, // 버튼 높이 조금 키움
+      height: 56,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white, // 배경 흰색
+          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16), // 모서리 둥글게
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),

@@ -25,7 +25,6 @@ class CustomLogo extends StatelessWidget {
         ),
         Stack(
           children: <Widget>[
-            // 테두리 역할을 할 텍스트 (Stroke)
             Text(
               title,
               style: TextStyle(
@@ -33,11 +32,10 @@ class CustomLogo extends StatelessWidget {
                 fontFamily: AppStrings.fontFamily1,
                 foreground: Paint()
                   ..style = PaintingStyle.stroke
-                  ..strokeWidth = 4 // 테두리 두께
-                  ..color = AppColors.white, // 테두리 색상
+                  ..strokeWidth = 4
+                  ..color = AppColors.white,
               ),
             ),
-            // 원본 텍스트 (Fill)
             Text(
               title,
               style: const TextStyle(

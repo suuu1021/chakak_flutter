@@ -1,13 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
-import 'dart:io';
 
 class ImageUploadHelper {
   static Future<void> pickAndUploadImage(
-    BuildContext context,
-    {
+    BuildContext context, {
     required Function(String base64Image, String fileName, int fileSize)
         onImageSelected,
   }) async {
@@ -22,7 +21,7 @@ class ImageUploadHelper {
 
       if (image != null) {
         if (!context.mounted) return;
-        
+
         await _processImage(context, image, onImageSelected);
       }
     } catch (e) {
@@ -52,7 +51,6 @@ class ImageUploadHelper {
       final String finalBase64String = "data:$mimeType;base64,$pureBase64";
 
       onImageSelected(finalBase64String, image.name, imageBytes.length);
-
     } catch (e) {
       if (kDebugMode) {
         print('[ImageUploadHelper] 이미지 처리 오류: $e');
@@ -66,10 +64,14 @@ class ImageUploadHelper {
 
   static String _getMimeType(String extension) {
     switch (extension) {
-      case 'png': return 'image/png';
-      case 'gif': return 'image/gif';
-      case 'webp': return 'image/webp';
-      default: return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg';
     }
   }
 }

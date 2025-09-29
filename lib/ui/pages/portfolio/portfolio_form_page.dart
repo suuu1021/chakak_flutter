@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import '../../../data/models/portfolio.dart';
-import '../../../provider/global/portfolio/portfolio_notifier.dart';
+import '../../../data/models/portfolio/portfolio.dart';
+import '../../../provider/portfolio/portfolio_notifier.dart';
 import 'portfolio_detail_page.dart';
 import 'widgets/form_category_selector.dart';
 import 'widgets/form_image_selector.dart';
@@ -26,7 +26,7 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
 
   List<String> _selectedCategories = [];
   List<Object> _selectedImages = [];
-  int? _thumbnailIndex; // 대표 이미지 인덱스
+  int? _thumbnailIndex;
   bool _isLoading = false;
 
   @override
@@ -134,25 +134,26 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
       final isEdit = widget.portfolio != null;
 
       // 이미지 경로 분리
-      final List<String> newImagePaths = _selectedImages.whereType<File>().map((f) => f.path).toList();
-      final List<String> existingImageUrls = _selectedImages.whereType<String>().toList();
+      final List<String> newImagePaths =
+          _selectedImages.whereType<File>().map((f) => f.path).toList();
+      final List<String> existingImageUrls =
+          _selectedImages.whereType<String>().toList();
 
       if (isEdit) {
         // 수정 로직
-        final success = await ref
-            .read(portfolioProvider.notifier)
-            .updatePortfolioWithFiles(
-              portfolioId: widget.portfolio!.id,
-              title: _titleController.text.trim(),
-              description: _descriptionController.text.trim(),
-              categories: _selectedCategories,
-              existingImageUrls: existingImageUrls,
-              newImagePaths: newImagePaths,
-            );
+        final success =
+            await ref.read(portfolioProvider.notifier).updatePortfolioWithFiles(
+                  portfolioId: widget.portfolio!.id,
+                  title: _titleController.text.trim(),
+                  description: _descriptionController.text.trim(),
+                  categories: _selectedCategories,
+                  existingImageUrls: existingImageUrls,
+                  newImagePaths: newImagePaths,
+                );
 
         if (success && mounted) {
           debugPrint('포트폴리오 수정 성공: ${_titleController.text}');
-          Navigator.of(context).pop(true); // true를 반환하여 이전 페이지에서 새로고침 하도록 유도
+          Navigator.of(context).pop(true);
         } else if (mounted) {
           final error = ref.read(portfolioProvider).errorMessage;
           _showErrorDialog('수정에 실패했습니다: ${error ?? ""}');
@@ -165,21 +166,21 @@ class _PortfolioFormPageState extends ConsumerState<PortfolioFormPage> {
           return;
         }
 
-        final newPortfolio = await ref
-            .read(portfolioProvider.notifier)
-            .createPortfolioWithFiles(
-              title: _titleController.text.trim(),
-              description: _descriptionController.text.trim(),
-              categories: _selectedCategories,
-              photographerId: 1, // TODO: 실제 사용자 ID로 교체
-              imagePaths: newImagePaths,
-            );
+        final newPortfolio =
+            await ref.read(portfolioProvider.notifier).createPortfolioWithFiles(
+                  title: _titleController.text.trim(),
+                  description: _descriptionController.text.trim(),
+                  categories: _selectedCategories,
+                  photographerId: 1,
+                  imagePaths: newImagePaths,
+                );
 
         if (newPortfolio != null && mounted) {
           debugPrint('포트폴리오 등록 성공: ${newPortfolio.title}');
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => PortfolioDetailPage(portfolioId: newPortfolio.id),
+              builder: (context) =>
+                  PortfolioDetailPage(portfolioId: newPortfolio.id),
             ),
           );
         } else if (mounted) {

@@ -1,19 +1,16 @@
-import 'package:chakak_flutter/provider/global/photographer_profile/photographer_profile_notifier.dart';
 import 'package:chakak_flutter/ui/pages/profile/photographer/photographer_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../_core/constants/user_type.dart'; // UserType enum
+import '../../../../../_core/constants/user_type.dart';
 import '../../../../../provider/auth/session_provider.dart';
-// import '../../../../../provider/global/user_profile/user_profile_provider.dart'; // session 객체를 직접 사용
+import '../../../../../provider/photographer_profile/photographer_profile_notifier.dart';
 import '../../../booking/booking_management_screen.dart';
 import '../../../help_center/help_center_screen.dart';
-import '../../../review/review_manager_screen.dart'; // 여기로 보냄
-// import '../../../review/photographer_review_screen.dart'; // ReviewManagerScreen이 처리
-// import '../../../review/my_review_screen.dart'; // ReviewManagerScreen이 처리
+import '../../../review/review_manager_screen.dart';
 import '../profile_form_page.dart';
-import 'profile_menu_item.dart';
 import 'login_required_dialog.dart';
 import 'logout_dialog.dart';
+import 'profile_menu_item.dart';
 import 'withdrawal_dialog.dart';
 
 class ProfileMenuList extends ConsumerWidget {
@@ -64,7 +61,7 @@ class ProfileMenuList extends ConsumerWidget {
       {
         'icon': Icons.star,
         'title': '리뷰 관리',
-        'subtitle': '작성/받은 리뷰를 관리하세요', // 포괄적인 부제목으로 변경
+        'subtitle': '작성/받은 리뷰를 관리하세요',
         'onTap': () => _handleReviewManagement(context, ref),
       },
       {
@@ -114,7 +111,8 @@ class ProfileMenuList extends ConsumerWidget {
             ),
           );
         } else {
-          print('[ERROR] photographerProfile.id를 int로 파싱 실패: ${photographerProfile.id}');
+          print(
+              '[ERROR] photographerProfile.id를 int로 파싱 실패: ${photographerProfile.id}');
         }
       } else {
         print('[ERROR] 로드된 photographerProfile이 null입니다.');
@@ -144,12 +142,10 @@ class ProfileMenuList extends ConsumerWidget {
       return;
     }
 
-    // AppSession 객체는 ProfileMenuList 위젯의 멤버 변수인 'session'을 직접 사용
     UserType userType = UserType.user; // 기본값
     if (session.userTypeCode == 'photographer') {
       userType = UserType.photographer;
     }
-    // 다른 사용자 유형 코드가 있다면 여기서 추가적인 else if 로직으로 처리 가능
 
     Navigator.push(
       context,

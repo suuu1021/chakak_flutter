@@ -7,7 +7,7 @@ import '../../widgets/custom_auth_text_form_field.dart';
 import '../home/home_screen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
-  final String userType; // "user" | "photographer" | "social"
+  final String userType;
 
   const ProfileSetupScreen({super.key, required this.userType});
 
@@ -21,10 +21,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   String category = "";
   String experience = "";
 
-  String selectedType = ""; // ✅ 소셜 로그인 시 선택된 유형
+  String selectedType = "";
   bool isLoading = false;
 
-  File? profileImage; // ✅ 프로필 사진 파일
+  File? profileImage;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -38,7 +38,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
-  /// ✅ 프로필 저장/완료 처리
+  /// 프로필 저장/완료 처리
   Future<void> _completeProfile() async {
     if (nickname.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -56,11 +56,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     setState(() => isLoading = true);
 
     try {
-      // 👉 나중에 실제 API 요청 코드 추가
       await Future.delayed(const Duration(seconds: 2));
 
       // 더미 로그
-      debugPrint("✅ 프로필 저장 완료!");
+      debugPrint("프로필 저장 완료!");
       debugPrint("닉네임: $nickname");
       debugPrint("소개: $introduction");
       if (profileImage != null) {
@@ -119,7 +118,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             ),
             const SizedBox(height: 24),
 
-            // 소셜 로그인 → 회원 유형 선택
+            // 회원 유형 선택
             if (widget.userType == "social") ...[
               const Text(
                 "회원 유형을 선택하세요",

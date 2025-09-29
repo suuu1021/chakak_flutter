@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_colors.dart';
-import '../../../provider/global/community/post_provider.dart';
+import '../../../provider/community/post_provider.dart';
 import 'community_detail_page.dart';
 import 'community_form_page.dart';
 import 'widgets/community_states.dart';
@@ -9,7 +9,7 @@ import 'widgets/post_list_item.dart';
 
 /*
  * 커뮤니티 게시글 목록을 표시하는 메인 페이지
- * 기존 UI 스타일을 유지하면서 실제 Provider와 Model을 사용합니다.
+ * 기존 UI 스타일을 유지하면서 실제 Provider와 Model을 사용
  */
 class CommunityListPage extends ConsumerStatefulWidget {
   const CommunityListPage({super.key});
@@ -22,7 +22,7 @@ class _CommunityListPageState extends ConsumerState<CommunityListPage> {
   @override
   void initState() {
     super.initState();
-    // 페이지 로드 시 게시글 목록을 가져옵니다
+    // 페이지 로드 시 게시글 목록을 가져오기
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(postProvider.notifier).loadPosts();
     });

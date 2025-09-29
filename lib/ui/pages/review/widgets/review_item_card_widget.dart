@@ -46,7 +46,7 @@ class ReviewItemCardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 6),
 
-            // ⭐ 별점 위젯
+            // 별점 위젯
             ReviewStarWidget(rating: rating, size: 20),
 
             const SizedBox(height: 6),

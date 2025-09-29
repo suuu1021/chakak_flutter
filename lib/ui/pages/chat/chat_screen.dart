@@ -7,7 +7,6 @@ import 'package:chakak_flutter/ui/pages/chat/widgets/payment_request_dialog.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../_core/constants/app_colors.dart';
 import '../../widgets/chat_bubble.dart';
@@ -220,7 +219,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: AppColors.surface, // white → AppColors.surface
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.all(20),
@@ -231,8 +230,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors
-                    .gray300, // Colors.grey.shade300 → AppColors.gray300
+                color: AppColors.gray300,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -244,7 +242,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   _buildOptionButton(
                     icon: Icons.payment,
                     label: '결제 요청',
-                    color: AppColors.primary, // Colors.blue → AppColors.primary
+                    color: AppColors.primary,
                     onTap: () {
                       Navigator.pop(context);
                       PaymentRequestDialog.show(
@@ -261,8 +259,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 _buildOptionButton(
                   icon: Icons.image,
                   label: '이미지',
-                  color:
-                      AppColors.secondary, // Colors.green → AppColors.secondary
+                  color: AppColors.secondary,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage();
@@ -301,8 +298,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         Text(
           label,
           style: const TextStyle(
-            color: AppColors
-                .textSecondary, // Colors.grey.shade700 → AppColors.textSecondary
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -365,19 +361,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       decoration: const BoxDecoration(
-        color: AppColors.surface, // Colors.white → AppColors.surface
-        border: Border(
-            top: BorderSide(
-                color: AppColors
-                    .border)), // Colors.grey.shade200 → AppColors.border
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: SafeArea(
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.add_circle,
-                  color: AppColors
-                      .gray500), // Colors.grey.shade500 → AppColors.gray500
+              icon: const Icon(Icons.add_circle, color: AppColors.gray500),
               onPressed: _showOptionsBottomSheet,
             ),
             Expanded(
@@ -392,8 +383,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: AppColors
-                        .gray200, // Colors.grey.shade200 → AppColors.gray200
+                    fillColor: AppColors.gray200,
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
@@ -403,8 +393,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
             const SizedBox(width: 8),
             Material(
-              color:
-                  AppColors.primary, // Colors.blue.shade600 → AppColors.primary
+              color: AppColors.primary,
               borderRadius: BorderRadius.circular(20),
               child: InkWell(
                 onTap: () {
@@ -421,8 +410,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   child: const Icon(
                     Icons.send,
-                    color: AppColors
-                        .textOnPrimary, // Colors.white → AppColors.textOnPrimary
+                    color: AppColors.textOnPrimary,
                     size: 20,
                   ),
                 ),
@@ -478,7 +466,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           if (message.messageType == 'PAYMENT_REQUEST') {
                             if (message.bookingInfoId == null) {
                               return Text(
-                                '⚠️ 결제 요청 데이터가 올바르지 않습니다.',
+                                '결제 요청 데이터가 올바르지 않습니다.',
                                 style: const TextStyle(color: Colors.red),
                               );
                             }

@@ -1,7 +1,5 @@
-// data/models/price_option.dart
-
 class PriceOption {
-  final int? id; // ID 필드 추가
+  final int? id;
   final String name;
   final int price;
   final String duration;
@@ -10,7 +8,7 @@ class PriceOption {
   final List<String> features;
 
   const PriceOption({
-    this.id, // ID 필드 추가
+    this.id,
     required this.name,
     required this.price,
     required this.duration,
@@ -21,16 +19,14 @@ class PriceOption {
 
   factory PriceOption.fromJson(Map<String, dynamic> json) {
     return PriceOption(
-      id: json['priceInfoId'] as int?, // priceInfoId를 id로 매핑
-      name: json['title'] as String, // title → name
+      id: json['priceInfoId'] as int?,
+      name: json['title'] as String,
       price: json['price'] as int,
-      duration: '${json['shootingDuration']}분', // int → String 변환
-      photoCount: '${json['participantCount']}명', // int → String 변환
-      editingLevel: json['makeupService'] == true
-          ? '메이크업 포함'
-          : '기본 보정', // boolean → String 변환
+      duration: '${json['shootingDuration']}분',
+      photoCount: '${json['participantCount']}명',
+      editingLevel: json['makeupService'] == true ? '메이크업 포함' : '기본 보정',
       features: [
-        json['specialEquipment'] as String? ?? '기본 장비', // null 처리
+        json['specialEquipment'] as String? ?? '기본 장비',
         if (json['outfitChanges'] != null) '의상 변경 ${json['outfitChanges']}회',
       ],
     );
@@ -38,7 +34,7 @@ class PriceOption {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id, // ID 필드 추가
+      'id': id,
       'title': name,
       'price': price,
       'shootingDuration': int.parse(duration.replaceAll('분', '')),
@@ -54,7 +50,7 @@ class PriceOption {
   }
 
   PriceOption copyWith({
-    int? id, // ID 필드 추가
+    int? id,
     String? name,
     int? price,
     String? duration,
@@ -63,7 +59,7 @@ class PriceOption {
     List<String>? features,
   }) {
     return PriceOption(
-      id: id ?? this.id, // ID 필드 추가
+      id: id ?? this.id,
       name: name ?? this.name,
       price: price ?? this.price,
       duration: duration ?? this.duration,
@@ -77,7 +73,7 @@ class PriceOption {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is PriceOption &&
-        other.id == id && // ID 필드 추가
+        other.id == id &&
         other.name == name &&
         other.price == price &&
         other.duration == duration &&
@@ -89,7 +85,7 @@ class PriceOption {
   @override
   int get hashCode {
     return Object.hash(
-      id, // ID 필드 추가
+      id,
       name,
       price,
       duration,
@@ -104,7 +100,6 @@ class PriceOption {
     return 'PriceOption(id: $id, name: $name, price: $price, duration: $duration, photoCount: $photoCount, editingLevel: $editingLevel, features: $features)';
   }
 
-  // Helper method for list comparison
   bool _listEquals<T>(List<T>? a, List<T>? b) {
     if (a == null) return b == null;
     if (b == null || a.length != b.length) return false;

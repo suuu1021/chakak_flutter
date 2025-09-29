@@ -4,10 +4,9 @@ import 'package:chakak_flutter/ui/pages/search/widgets/custom_search_field.dart'
 import 'package:chakak_flutter/ui/pages/search/widgets/photographer_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../data/models/photo_service_category.dart';
-import '../../../data/models/photographer.dart';
-import '../../../provider/global/search/search_provider.dart';
+import '../../../data/models/photographer/photo_service_category.dart';
+import '../../../data/models/photographer/photographer.dart';
+import '../../../provider/search/search_provider.dart';
 import '../photo_service/category_service_list_page.dart';
 import '../profile/photographer/photographer_profile_page.dart';
 

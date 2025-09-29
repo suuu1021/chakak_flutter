@@ -1,4 +1,4 @@
-import '../../dtos/photo_service_dto.dart';
+import '../../dtos/photo_service/photo_service_dto.dart';
 import 'price_option.dart';
 
 class PhotoService {

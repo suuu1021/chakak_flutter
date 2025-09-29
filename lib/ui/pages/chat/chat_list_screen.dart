@@ -1,11 +1,10 @@
-import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:chakak_flutter/provider/chat/chat_list_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
 import '../../../_core/constants/app_colors.dart';
-import '../../../_core/constants/app_text_styles.dart';
-import '../../../data/dtos/chat_room_list_item_dto.dart';
+import '../../../data/dtos/chat/chat_room_list_item_dto.dart';
 import '../../../provider/chat/chat_room_provider.dart';
 import 'chat_screen.dart';
 
@@ -137,8 +136,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
       ),
       // 임시 채팅 시작 버튼 (활성화)
       floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(), // 완전한 원형
-
+        shape: const CircleBorder(),
         backgroundColor: AppColors.primaryLight,
         onPressed: () => _startTempChat(context, ref),
         child: const Icon(

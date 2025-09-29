@@ -1,5 +1,3 @@
-// features/booking/presentation/ui/widgets/booking_card.dart
-
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,9 +5,9 @@ import 'package:intl/intl.dart';
 import '../../../../data/models/booking/booking_list_item.dart';
 import '../../../../data/models/booking/booking_model.dart';
 import '../../../../provider/auth/session_provider.dart';
-import '../../../../provider/global/booking/booking_list_notifier.dart';
-// 추가된 import 문들
-import '../../../../provider/global/photoService/photo_service_provider.dart';
+
+import '../../../../provider/booking/booking_list_notifier.dart';
+import '../../../../provider/photoService/photo_service_provider.dart';
 import '../../photo_service/photo_service_detail_page.dart';
 import '../../../../data/models/photo_service/photo_service.dart';
 
@@ -82,7 +80,8 @@ class BookingCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        DateFormat('yyyy년 M월 d일 HH:mm').format(booking.bookingDateTime), // LINT
+                        DateFormat('yyyy년 M월 d일 HH:mm')
+                            .format(booking.bookingDateTime), // LINT
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey[600],
@@ -334,8 +333,9 @@ class BookingCard extends ConsumerWidget {
   }
 
   // 공통 서비스 상세 페이지 이동 로직
-  Future<void> _navigateToServiceDetail(BuildContext context, WidgetRef ref) async {
-    final int? serviceId = booking.photoService?.id; // booking.photoService.id는 int? 타입
+  Future<void> _navigateToServiceDetail(
+      BuildContext context, WidgetRef ref) async {
+    final int? serviceId = booking.photoService?.id;
 
     if (serviceId == null) {
       if (context.mounted) {
@@ -349,13 +349,14 @@ class BookingCard extends ConsumerWidget {
     try {
       final PhotoService? loadedPhotoService = await ref
           .read(photoServiceProvider.notifier)
-          .loadServiceDetail(serviceId); // 이미 int이므로 파싱 불필요
-      
+          .loadServiceDetail(serviceId);
+
       if (loadedPhotoService != null && context.mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => PhotoServiceDetailPage(service: loadedPhotoService),
+            builder: (context) =>
+                PhotoServiceDetailPage(service: loadedPhotoService),
           ),
         );
       } else if (context.mounted) {
@@ -373,12 +374,12 @@ class BookingCard extends ConsumerWidget {
   }
 
   /// 내 리뷰 보기 (서비스 상세 페이지로 이동)
-  void _viewMyReview(BuildContext context, WidgetRef ref) { // ref 파라미터 추가
+  void _viewMyReview(BuildContext context, WidgetRef ref) {
     _navigateToServiceDetail(context, ref);
   }
 
   /// 작성된 리뷰 확인 (서비스 상세 페이지로 이동)
-  void _viewReview(BuildContext context, WidgetRef ref) { // ref 파라미터 추가
+  void _viewReview(BuildContext context, WidgetRef ref) {
     _navigateToServiceDetail(context, ref);
   }
 }

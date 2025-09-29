@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:chakak_flutter/provider/review/photographer_review_notifier.dart';
-import 'package:chakak_flutter/data/dtos/review/review_dto.dart'; // ReviewDto 사용을 위해
-import '../../../data/models/review.dart'; // Review 모델 (ReviewCardWidget에서 사용)
+import '../../../provider/photoService/photo_service_provider.dart';
 import '../../widgets/custom_bottom_navigation_bar.dart';
 import 'widgets/review_card_widget.dart';
-// 추가된 import 문들
-import '../../../provider/global/photoService/photo_service_provider.dart';
+
 import '../photo_service/photo_service_detail_page.dart';
 import '../../../data/models/photo_service/photo_service.dart';
 
@@ -88,7 +86,9 @@ class _PhotographerReviewScreenState
               ElevatedButton(
                 onPressed: () {
                   if (mounted) {
-                     ref.read(photographerReviewNotifierProvider(widget.photographerId)
+                    ref
+                        .read(photographerReviewNotifierProvider(
+                                widget.photographerId)
                             .notifier)
                         .fetchInitialReviews();
                   }
@@ -134,9 +134,9 @@ class _PhotographerReviewScreenState
             ),
           );
         }
-        
+
         if (index >= reviewState.reviews.length) {
-            return const SizedBox.shrink(); 
+          return const SizedBox.shrink();
         }
 
         final reviewDto = reviewState.reviews[index];
@@ -147,17 +147,17 @@ class _PhotographerReviewScreenState
             review: reviewModel,
             mode: "photographer",
             onTap: () async {
-              // MyReviewScreen의 로직을 참고하여 onTap 로직 구현
-              if (reviewModel.serviceId == null || reviewModel.serviceId!.isEmpty) {
+              if (reviewModel.serviceId == null ||
+                  reviewModel.serviceId!.isEmpty) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("서비스 ID가 없어 상세 페이지로 이동할 수 없습니다.")),
+                    const SnackBar(
+                        content: Text("서비스 ID가 없어 상세 페이지로 이동할 수 없습니다.")),
                   );
                 }
                 return;
               }
               try {
-                // reviewModel.serviceId가 String 타입이라고 가정.
                 final int? intServiceId = int.tryParse(reviewModel.serviceId!);
                 if (intServiceId == null) {
                   if (mounted) {
@@ -168,20 +168,16 @@ class _PhotographerReviewScreenState
                   return;
                 }
 
-                // 로딩 인디케이터를 보여주는 로직 (선택 사항)
-                // 예: showDialog(context: context, builder: (_) => Center(child: CircularProgressIndicator()));
-
                 final PhotoService? photoService = await ref
                     .read(photoServiceProvider.notifier)
                     .loadServiceDetail(intServiceId);
-                
-                // if (mounted) Navigator.of(context).pop(); // 로딩 인디케이터 닫기
 
                 if (photoService != null && mounted) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PhotoServiceDetailPage(service: photoService),
+                      builder: (context) =>
+                          PhotoServiceDetailPage(service: photoService),
                     ),
                   );
                 } else if (mounted) {
@@ -190,7 +186,6 @@ class _PhotographerReviewScreenState
                   );
                 }
               } catch (e) {
-                // if (mounted) Navigator.of(context).pop(); // 로딩 인디케이터 닫기 (오류 발생 시)
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("상세 페이지 이동 중 오류 발생: $e")),

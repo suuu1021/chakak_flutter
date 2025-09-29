@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../_core/constants/app_colors.dart';
 import '../../../../_core/constants/app_sizes.dart';
-import '../../../../data/models/portfolio.dart';
+import '../../../../data/models/portfolio/portfolio.dart';
 
 class PortfolioCardWidget extends StatelessWidget {
   final Portfolio portfolio;
@@ -140,7 +140,7 @@ class PortfolioCardWidget extends StatelessWidget {
           vertical: AppSizes.spacing4,
         ),
         decoration: BoxDecoration(
-          color: Color(0xB3000000), // AppColors.black with 70% opacity
+          color: Color(0xB3000000),
           borderRadius: const BorderRadius.all(Radius.circular(12)),
         ),
         child: Row(

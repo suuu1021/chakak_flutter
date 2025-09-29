@@ -4,7 +4,6 @@ import '../../../_core/constants/app_strings.dart';
 import '../../widgets/custom_logo.dart';
 import '../home/home_screen.dart';
 import 'login_screen.dart';
-import 'social_login_screen.dart';
 
 class LoginChoiceScreen extends StatelessWidget {
   const LoginChoiceScreen({super.key});
@@ -54,36 +53,6 @@ class LoginChoiceScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // 소셜 로그인 버튼
-            // SizedBox(
-            //   width: double.infinity,
-            //   child: ElevatedButton(
-            //     onPressed: () {
-            //       Navigator.push(
-            //         context,
-            //         MaterialPageRoute(
-            //             builder: (_) => const SocialLoginScreen()),
-            //       );
-            //     },
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: Colors.green,
-            //       padding: const EdgeInsets.symmetric(vertical: 16),
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(12),
-            //       ),
-            //     ),
-            //     child: const Text(
-            //       "소셜 로그인",
-            //       style: TextStyle(
-            //         fontSize: 18,
-            //         color: Colors.white,
-            //         fontWeight: FontWeight.bold,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            // const SizedBox(height: 16),
 
             // 로그인 없이 둘러보기 버튼
             SizedBox(

@@ -209,7 +209,7 @@ class _UserProfileFormState extends State<UserProfileForm> {
           textInputAction: TextInputAction.newline,
           buildCounter: (context,
               {required currentLength, required isFocused, maxLength}) {
-            return null; // 소개글은 별도 카운터로 표시
+            return null;
           },
         ),
       ],

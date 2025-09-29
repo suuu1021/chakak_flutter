@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import '../../../../../_core/constants/app_colors.dart';
 import '../../../../../_core/constants/app_sizes.dart';
 
@@ -9,10 +8,6 @@ class ProfileFormFields extends StatelessWidget {
   final TextEditingController introductionController;
   final TextEditingController locationController;
   final TextEditingController experienceYearsController;
-  // final String selectedStatus; // 제거
-  // final ValueChanged<String?> onStatusChanged; // 제거
-
-  // static const List<String> statusOptions = ['활성', '비활성']; // 제거
 
   const ProfileFormFields({
     super.key,
@@ -20,8 +15,6 @@ class ProfileFormFields extends StatelessWidget {
     required this.introductionController,
     required this.locationController,
     required this.experienceYearsController,
-    // required this.selectedStatus, // 제거
-    // required this.onStatusChanged, // 제거
   });
 
   @override
@@ -36,8 +29,6 @@ class ProfileFormFields extends StatelessWidget {
         _buildLocationField(),
         const SizedBox(height: AppSizes.spacing8),
         _buildExperienceYearsField(),
-        // const SizedBox(height: AppSizes.spacing8), // 제거
-        // _buildStatusField(), // 제거
       ],
     );
   }
@@ -125,8 +116,6 @@ class ProfileFormFields extends StatelessWidget {
       ],
     );
   }
-
-  // _buildStatusField() 메소드 전체 제거
 
   Widget _buildFieldLabel(String label, {bool isRequired = false}) {
     return Row(

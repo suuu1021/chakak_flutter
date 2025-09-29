@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../../../../_core/constants/app_sizes.dart';
-import '../../../../data/models/portfolio.dart';
-import '../../../../provider/global/portfolio/portfolio_notifier.dart';
+import '../../../../data/models/portfolio/portfolio.dart';
+import '../../../../provider/portfolio/portfolio_notifier.dart';
 import '../../portfolio/portfolio_detail_page.dart';
 
 class ServiceGallerySection extends ConsumerStatefulWidget {

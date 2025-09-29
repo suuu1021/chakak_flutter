@@ -4,13 +4,13 @@ import 'widgets/payment_form_body.dart';
 class PaymentFormScreen extends StatelessWidget {
   final String itemName;
   final int totalAmount;
-  final int bookingInfoId; // ✅ 추가
+  final int bookingInfoId;
 
   const PaymentFormScreen({
     super.key,
     required this.itemName,
     required this.totalAmount,
-    required this.bookingInfoId, // ✅ required
+    required this.bookingInfoId,
   });
 
   @override
@@ -30,7 +30,7 @@ class PaymentFormScreen extends StatelessWidget {
       body: PaymentFormBody(
         itemName: itemName,
         totalAmount: totalAmount,
-        bookingInfoId: bookingInfoId, // ✅ 전달
+        bookingInfoId: bookingInfoId,
       ),
     );
   }

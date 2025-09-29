@@ -1,7 +1,3 @@
-/*
- * 개별 게시글 아이템 위젯
- * 커뮤니티 목록에서 각 게시글을 표시하는 재사용 가능한 컴포넌트
- */
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../../../_core/constants/app_colors.dart';
@@ -17,9 +13,6 @@ class PostListItem extends StatelessWidget {
     required this.onTap,
   });
 
-  /*
-   * 카테고리에 따른 색상 반환
-   */
   Color _getCategoryColor(String? category) {
     switch (category) {
       case '공지':
@@ -31,9 +24,6 @@ class PostListItem extends StatelessWidget {
     }
   }
 
-  /*
-   * 썸네일 처리 (http URL + Base64 Data URL 모두 지원)
-   */
   Widget _buildThumbnail(String? dataUrl) {
     if (dataUrl == null || dataUrl.isEmpty) {
       return const Icon(Icons.image_not_supported,
@@ -41,7 +31,6 @@ class PostListItem extends StatelessWidget {
     }
 
     try {
-      // http/https 일반 URL 처리
       if (dataUrl.startsWith('http')) {
         return Image.network(
           dataUrl,
@@ -66,7 +55,6 @@ class PostListItem extends StatelessWidget {
         );
       }
 
-      // data:image/png;base64,... 형태 처리
       final base64Str = dataUrl.split(',').last;
       final bytes = base64Decode(base64Str);
 
@@ -85,10 +73,8 @@ class PostListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 게시글 상세 페이지로 이동할 때 애니메이션을 위해 Hero 위젯을 추가했습니다.
-    // 태그는 각 게시글의 고유 ID를 사용해야 합니다.
     return Hero(
-      tag: 'post-${post.id}', // post.id는 각 게시글마다 고유해야 합니다.
+      tag: 'post-${post.id}',
       child: GestureDetector(
         onTap: onTap,
         child: Container(

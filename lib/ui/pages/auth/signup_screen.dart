@@ -1,16 +1,12 @@
 import 'dart:convert';
-
 import 'package:chakak_flutter/_core/constants/app_colors.dart';
-import 'package:chakak_flutter/_core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-
 import '../../../_core/utils/validator_util.dart';
 import '../../../data/dtos/auth_dto.dart';
 import '../../../provider/auth/signup_provider.dart';
 import '../../widgets/custom_auth_text_form_field.dart';
-import '../../widgets/custom_logo.dart';
 import 'profile_setup_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -75,12 +71,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   // "인증요청" 버튼 로직: 이메일 발송 API 호출
   Future<void> _sendVerificationEmail() async {
     if (_isSendingVerificationEmail || _isVerifyingCode) return;
-
-    // API 명세에 따라, 인증 코드 발송 후 버튼을 비활성화하고
-    // 중복 요청을 막는 로직이 여기에 추가되어야 합니다.
-    // (예: 타이머를 사용하여 일정 시간 동안 '재전송' 버튼 비활성화)
-    // 현재는 이 부분은 수정하지 않고 _verifyCode만 수정합니다.
-
     if (_isVerificationEmailSent || _isCodeVerified) {
       setState(() {
         _isVerificationEmailSent = false;
@@ -144,7 +134,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
-  // "코드 확인" 버튼 로직: 코드 검증 API 호출 (서버 실제 응답에 임시 대응)
+  // "코드 확인" 버튼 로직: 코드 검증 API 호출
   Future<void> _verifyCode() async {
     print("[DEBUG] _verifyCode: Function called.");
 
@@ -197,12 +187,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       print("[DEBUG] _verifyCode: Parsed responseBody: $responseBody");
 
       if (response.statusCode == 200) {
-        // 서버 실제 응답 필드('body')에 맞춰 성공 여부 판단 (임시 수정)
+        // 서버 실제 응답 필드('body')에 맞춰 성공 여부 판단
         bool isSuccess = responseBody['body'] == true;
         print(
             "[DEBUG] _verifyCode: Calculated isSuccess: $isSuccess (based on responseBody['body'] == true)");
 
-        // 서버 실제 응답 필드('msg')에 맞춰 메시지 파싱 (임시 수정)
+        // 서버 실제 응답 필드('msg')에 맞춰 메시지 파싱
         String displayMessage =
             responseBody['msg'] ?? (isSuccess ? "이메일 인증 성공!" : "알 수 없는 응답입니다.");
 
@@ -223,7 +213,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           );
         }
       } else if (response.statusCode == 400) {
-        // 서버 실제 응답 필드('msg')에 맞춰 메시지 파싱 (임시 수정)
+        // 서버 실제 응답 필드('msg')에 맞춰 메시지 파싱
         String errorMessage = responseBody['msg'] ?? "인증에 실패했습니다. (서버 메시지 없음)";
         print(
             "[DEBUG] _verifyCode: Received HTTP 400. Error message from server: '$errorMessage'");
@@ -232,7 +222,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           SnackBar(content: Text(errorMessage)),
         );
       } else {
-        // 기타 HTTP 오류 코드 처리 (일관성을 위해 'msg'로 임시 수정)
+        // 기타 HTTP 오류 코드 처리
         String errorMessage = responseBody['msg'] ??
             "서버 오류 (${response.statusCode}). 응답을 확인해주세요.";
         print(
@@ -356,7 +346,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           key: _formKey,
           child: Column(
             children: [
-              //const CustomLogo(AppStrings.appNameUpper),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

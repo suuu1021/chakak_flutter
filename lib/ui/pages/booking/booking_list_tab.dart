@@ -4,7 +4,7 @@ import '../../../_core/constants/app_colors.dart';
 import '../../../data/models/booking/booking_model.dart';
 import '../../../data/models/booking/booking_list_item.dart';
 import '../../../provider/auth/session_provider.dart';
-import '../../../provider/global/booking/booking_list_notifier.dart';
+import '../../../provider/booking/booking_list_notifier.dart';
 import 'widgets/booking_error_widget.dart';
 import 'widgets/booking_empty_widget.dart';
 import 'widgets/booking_card.dart';
@@ -19,7 +19,6 @@ class BookingListTab extends ConsumerStatefulWidget {
 class _BookingListTabState extends ConsumerState<BookingListTab> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  // selectedFilter 제거 - provider에서 완전히 관리
 
   @override
   void initState() {
@@ -36,7 +35,7 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
   }
 
   List<BookingListItem> get filteredBookings {
-    final bookingState = ref.watch(bookingListProvider); // watch 사용
+    final bookingState = ref.watch(bookingListProvider);
     List<BookingListItem> result = bookingState.bookings;
 
     // Provider의 selectedFilter 사용
@@ -58,14 +57,14 @@ class _BookingListTabState extends ConsumerState<BookingListTab> {
   }
 
   int getCountByStatus(BookingStatus status) {
-    final bookingState = ref.watch(bookingListProvider); // watch 사용
+    final bookingState = ref.watch(bookingListProvider);
     return bookingState.bookings
         .where((booking) => booking.status == status)
         .length;
   }
 
   int get totalCount {
-    final bookingState = ref.watch(bookingListProvider); // watch 사용
+    final bookingState = ref.watch(bookingListProvider);
     return bookingState.bookings.length;
   }
 

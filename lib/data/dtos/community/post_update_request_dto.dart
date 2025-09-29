@@ -17,7 +17,3 @@ class PostUpdateRequestDto {
     };
   }
 }
-/*
-  이 클래스는 기존 게시글을 수정할 때 서버로 보낼 데이터를 담는 DTO입니다.
-  게시글 생성 DTO와 동일하게 `toJson` 메서드를 사용하여 데이터를 JSON으로 변환합니다.
-*/

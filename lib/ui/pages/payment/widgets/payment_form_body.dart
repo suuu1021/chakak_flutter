@@ -10,7 +10,7 @@ import 'package:chakak_flutter/provider/auth/session_provider.dart';
 class PaymentFormBody extends ConsumerStatefulWidget {
   final String itemName;
   final int totalAmount;
-  final int bookingInfoId; // ✅ 추가
+  final int bookingInfoId;
 
   const PaymentFormBody({
     super.key,
@@ -73,7 +73,7 @@ class _PaymentFormBodyState extends ConsumerState<PaymentFormBody> {
             totalAmount: widget.totalAmount,
           ),
           const SizedBox(height: 30),
-          PaymentSubmitButton(onSubmit: _startPayment), // ✅ onSubmit 방식
+          PaymentSubmitButton(onSubmit: _startPayment),
         ],
       ),
     );

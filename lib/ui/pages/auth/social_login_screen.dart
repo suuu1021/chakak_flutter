@@ -1,5 +1,5 @@
 import 'package:chakak_flutter/data/dtos/auth_dto.dart';
-import 'package:chakak_flutter/provider/auth_provider.dart';
+import 'package:chakak_flutter/provider/auth/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_strings.dart';
@@ -8,23 +8,6 @@ import 'profile_setup_screen.dart';
 
 class SocialLoginScreen extends ConsumerWidget {
   const SocialLoginScreen({super.key});
-
-  // void _mockSocialLogin(BuildContext context, String provider) async {
-  //   //소셜 로그인 Mock 동작 (나중에 API 연동 시 교체)
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(content: Text("$provider 로그인 시도 중...")),
-  //   );
-  //
-  //   await Future.delayed(const Duration(seconds: 2)); // 네트워크 대기 흉내
-  //
-  //   // 소셜 로그인 성공 시 → 프로필 설정 화면으로 이동
-  //   Navigator.pushReplacement(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (_) => const ProfileSetupScreen(userType: "social"),
-  //     ),
-  //   );
-  // }
 
   void _kakaoLogin(BuildContext context, WidgetRef ref) {
     ref.read(authProvider.notifier).kakaoLogin(

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../_core/constants/app_colors.dart';
 import '../../../data/models/payment.dart';
 import '../../../data/dtos/payment/payment_dto.dart';
-import '../../../provider/core/dio_provider.dart'; // ✅ dioProvider import 추가
+import '../../../provider/core/dio_provider.dart';
 
 final paymentHistoryProvider = FutureProvider<List<Payment>>((ref) async {
   final dio = ref.watch(dioProvider);
@@ -258,13 +258,13 @@ class _PaymentHistoryTabState extends ConsumerState<PaymentHistoryTab> {
   Color _getStatusColor(PaymentStatus status) {
     switch (status) {
       case PaymentStatus.ready:
-        return AppColors.primary; // 결제준비
+        return AppColors.primary;
       case PaymentStatus.approved:
-        return AppColors.secondary; // 결제승인완료
+        return AppColors.secondary;
       case PaymentStatus.canceled:
-        return AppColors.gray600; // 결제취소
+        return AppColors.gray600;
       case PaymentStatus.failed:
-        return AppColors.textSecondary; // 결제실패
+        return AppColors.textSecondary;
     }
   }
 
